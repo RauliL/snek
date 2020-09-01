@@ -11,6 +11,7 @@ $ cget install
 $ mkdir build
 $ cd build
 $ cmake ..
+$ make
 ```
 
 And tada!
