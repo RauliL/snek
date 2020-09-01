@@ -1,0 +1,5 @@
+#pragma once
+
+#cmakedefine SNEK_HAS_UNISTD_H 1
+#cmakedefine SNEK_HAS_SYSEXITS_H 1
+#cmakedefine SNEK_HAS_ISATTY 1

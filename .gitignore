@@ -1,0 +1,5 @@
+/.vscode
+/build
+/cget
+/doxygen
+/include/snek/config.hpp
