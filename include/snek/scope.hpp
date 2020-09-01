@@ -40,11 +40,11 @@ namespace snek
   public:
     using type_container_type = std::unordered_map<
       std::u32string,
-      std::shared_ptr<type::Base>
+      std::pair<std::shared_ptr<type::Base>, bool>
     >;
     using variable_container_type = std::unordered_map<
       std::u32string,
-      std::shared_ptr<value::Base>
+      std::pair<std::shared_ptr<value::Base>, bool>
     >;
 
     Scope(const std::shared_ptr<Scope>& parent_scope = nullptr);
@@ -73,21 +73,25 @@ namespace snek
     }
 
     std::optional<std::shared_ptr<type::Base>> find_type(
-      const std::u32string& name
+      const std::u32string& name,
+      bool use_only_exports
     ) const;
 
     std::optional<std::shared_ptr<value::Base>> find_variable(
-      const std::u32string& name
+      const std::u32string& name,
+      bool use_only_exports
     ) const;
 
     bool add_type(
       const std::u32string& name,
-      const std::shared_ptr<type::Base>& type
+      const std::shared_ptr<type::Base>& type,
+      bool is_export
     );
 
     bool add_variable(
       const std::u32string& name,
-      const std::shared_ptr<value::Base>& value
+      const std::shared_ptr<value::Base>& value,
+      bool is_export
     );
 
   private:

@@ -56,16 +56,21 @@ namespace snek::api::debug
       {
         {
           U"toString",
-          make_func(
+          {
             {
-              Parameter(
-                U"input",
-                interpreter.any_type()
+              make_func(
+                {
+                  Parameter(
+                    U"input",
+                    interpreter.any_type()
+                  )
+                },
+                func_toString,
+                interpreter.str_type()
               )
             },
-            func_toString,
-            interpreter.str_type()
-          )
+            true
+          }
         },
       }
     );

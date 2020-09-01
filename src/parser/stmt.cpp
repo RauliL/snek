@@ -27,6 +27,7 @@
 #include <snek/ast/stmt/block.hpp>
 #include <snek/ast/stmt/break.hpp>
 #include <snek/ast/stmt/continue.hpp>
+#include <snek/ast/stmt/export.hpp>
 #include <snek/ast/stmt/expr.hpp>
 #include <snek/ast/stmt/if.hpp>
 #include <snek/ast/stmt/import.hpp>
@@ -95,6 +96,113 @@ namespace snek::parser::stmt
       position,
       path,
       specifiers
+    ));
+  }
+
+  static result_type
+  parse_remainder_type_stmt(
+    State& state,
+    const ast::Position& position,
+    bool is_export
+  )
+  {
+    ++state.current;
+    std::u32string name;
+
+    if (!state.peek(cst::Kind::Id))
+    {
+      return result_type::error({
+        position,
+        U"Missing identifier after `type'."
+      });
+    }
+    name = *state.current++->text();
+    if (!state.peek_read(cst::Kind::Assign))
+    {
+      return result_type::error({
+        position,
+        U"Missing `=' after `type'."
+      });
+    }
+
+    const auto type = type::parse(state, position);
+
+    if (!type)
+    {
+      return result_type::error(type.error());
+    }
+    else if (const auto error = skip_new_line(state))
+    {
+      return result_type::error(*error);
+    }
+
+    return result_type::ok(std::make_shared<ast::stmt::Type>(
+      position,
+      name,
+      type.value(),
+      is_export
+    ));
+  }
+
+  static result_type
+  parse_export_stmt(State& state)
+  {
+    const auto position = state.current++->position();
+    std::u32string name;
+
+    if (state.peek(cst::Kind::KeywordType))
+    {
+      return parse_remainder_type_stmt(state, position, true);
+    }
+    if (state.eof())
+    {
+      return result_type::error({
+        position,
+        U"Unexpected end of input; Missing identifier."
+      });
+    }
+    else if (!state.peek(cst::Kind::Id))
+    {
+      return result_type::error({
+        position,
+        U"Unexpected " +
+        cst::to_string(state.current->kind()) +
+        U"; Missing identifier."
+      });
+    }
+    name = *state.current++->text();
+    if (state.eof())
+    {
+      return result_type::error({
+        position,
+        U"Unexpected end of input; Missing `='."
+      });
+    }
+    else if (!state.peek_read(cst::Kind::Assign))
+    {
+      return result_type::error({
+        position,
+        U"Unexpected " +
+        cst::to_string(state.current->kind()) +
+        U"; Missing `='."
+      });
+    }
+
+    const auto value = expr::parse(state);
+
+    if (!value)
+    {
+      return result_type::error(value.error());
+    }
+    else if (const auto error = skip_new_line(state))
+    {
+      return result_type::error(*error);
+    }
+
+    return result_type::ok(std::make_shared<ast::stmt::Export>(
+      position,
+      name,
+      value.value()
     ));
   }
 
@@ -292,41 +400,7 @@ namespace snek::parser::stmt
   static result_type
   parse_type_stmt(State& state)
   {
-    const auto position = state.current++->position();
-    std::u32string name;
-
-    if (!state.peek(cst::Kind::Id))
-    {
-      return result_type::error({
-        position,
-        U"Missing identifier after `type'."
-      });
-    }
-    name = *state.current++->text();
-    if (!state.peek_read(cst::Kind::Assign))
-    {
-      return result_type::error({
-        position,
-        U"Missing `=' after `type'."
-      });
-    }
-
-    const auto type = type::parse(state, position);
-
-    if (!type)
-    {
-      return result_type::error(type.error());
-    }
-    else if (const auto error = skip_new_line(state))
-    {
-      return result_type::error(*error);
-    }
-
-    return result_type::ok(std::make_shared<ast::stmt::Type>(
-      position,
-      name,
-      type.value()
-    ));
+    return parse_remainder_type_stmt(state, state.current->position(), false);
   }
 
   static result_type
@@ -407,6 +481,9 @@ namespace snek::parser::stmt
     {
       case cst::Kind::KeywordImport:
         return parse_import_stmt(state);
+
+      case cst::Kind::KeywordExport:
+        return parse_export_stmt(state);
 
       case cst::Kind::KeywordIf:
         return parse_if_stmt(state);

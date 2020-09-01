@@ -123,7 +123,7 @@ namespace snek::ast::record
   Field::result_type
   Var::eval(Interpreter&, const Scope& scope, record_type& record) const
   {
-    const auto value = scope.find_variable(m_name);
+    const auto value = scope.find_variable(m_name, false);
 
     if (!value)
     {
@@ -149,7 +149,7 @@ namespace snek::ast::record
         U"Unrecognized identifier `" + m_name + U"'."
       });
     }
-    else if (!scope.add_variable(m_name, value->second))
+    else if (!scope.add_variable(m_name, value->second, false))
     {
       return result_type({
         position(),

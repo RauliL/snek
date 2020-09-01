@@ -168,62 +168,83 @@ namespace snek::api::str
       {
         {
           U"isEmpty",
-          make_func(
-            { Parameter(U"input", str_type) },
-            func_isEmpty,
-            interpreter.bool_type()
-          )
+          {
+            make_func(
+              { Parameter(U"input", str_type) },
+              func_isEmpty,
+              interpreter.bool_type()
+            ),
+            true
+          }
         },
         {
           U"length",
-          make_func(
-            { Parameter(U"input", str_type) },
-            func_length,
-            int_type
-          )
+          {
+            make_func(
+              { Parameter(U"input", str_type) },
+              func_length,
+              int_type
+            ),
+            true
+          }
         },
         {
           U"reverse",
-          make_func(
-            { Parameter(U"input", str_type) },
-            func_reverse,
-            str_type
-          )
+          {
+            make_func(
+              { Parameter(U"input", str_type) },
+              func_reverse,
+              str_type
+            ),
+            true
+          }
         },
         {
           U"repeat",
-          make_func(
-            {
-              Parameter(U"times", int_type),
-              Parameter(U"input", str_type)
-            },
-            func_repeat,
-            str_type
-          )
+          {
+            make_func(
+              {
+                Parameter(U"times", int_type),
+                Parameter(U"input", str_type)
+              },
+              func_repeat,
+              str_type
+            ),
+            true
+          }
         },
         {
           U"concat",
-          make_func(
-            { Parameter(U"list", make_list_type(str_type)) },
-            func_concat,
-            str_type
-          )
+          {
+            make_func(
+              { Parameter(U"list", make_list_type(str_type)) },
+              func_concat,
+              str_type
+            ),
+            true
+          }
         },
         {
           U"toUpper",
-          make_func(
-            { Parameter(U"input", str_type) },
-            func_toUpper,
-            str_type
-          )
+          {
+            make_func(
+              { Parameter(U"input", str_type) },
+              func_toUpper,
+              str_type
+            ),
+            true
+          }
         },
         {
           U"toLower",
-          make_func(
-            { Parameter(U"input", str_type) },
-            func_toLower,
-            str_type
-          )
+          {
+            make_func(
+              { Parameter(U"input", str_type) },
+              func_toLower,
+              str_type
+            ),
+            true
+          }
         },
       }
     );

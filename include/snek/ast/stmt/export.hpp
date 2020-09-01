@@ -23,44 +23,41 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <snek/ast/expr/id.hpp>
-#include <snek/scope.hpp>
+#pragma once
 
-namespace snek::ast::expr
+#include <snek/ast/stmt/base.hpp>
+
+namespace snek::ast::expr { class RValue; }
+
+namespace snek::ast::stmt
 {
-  Id::Id(const Position& position, const std::u32string& name)
-    : LValue(position)
-    , m_name(name) {}
-
-  RValue::result_type
-  Id::eval(Interpreter&, const Scope& scope) const
+  class Export : public Base
   {
-    if (const auto value = scope.find_variable(m_name, false))
+  public:
+    explicit Export(
+      const Position& position,
+      const std::u32string& name,
+      const std::shared_ptr<expr::RValue>& value
+    );
+
+    inline const std::u32string& name() const
     {
-      return result_type::ok(*value);
+      return m_name;
     }
 
-    return result_type::error({
-      position(),
-      U"Unknown variable: `" + m_name + U"'"
-    });
-  }
-
-  LValue::assign_result_type
-  Id::assign(
-    Interpreter&,
-    Scope& scope,
-    const std::shared_ptr<value::Base>& value
-  ) const
-  {
-    if (!scope.add_variable(m_name, value, false))
+    inline const std::shared_ptr<expr::RValue>& value() const
     {
-      return assign_result_type({
-        position(),
-        U"Variable `" + m_name + U"' has already been defined."
-      });
+      return m_value;
     }
 
-    return assign_result_type();
-  }
+    void exec(
+      Interpreter& interpreter,
+      Scope& scope,
+      ExecContext& context
+    ) const;
+
+  private:
+    const std::u32string m_name;
+    const std::shared_ptr<expr::RValue> m_value;
+  };
 }

@@ -204,81 +204,102 @@ namespace snek::api::list
       {
         {
           U"isEmpty",
-          make_func(
-            { Parameter(U"input", list_type) },
-            func_isEmpty,
-            bool_type
-          )
+          {
+            make_func(
+              { Parameter(U"input", list_type) },
+              func_isEmpty,
+              bool_type
+            ),
+            true
+          }
         },
         {
           U"length",
-          make_func(
-            { Parameter(U"input", list_type) },
-            func_length,
-            interpreter.int_type()
-          )
+          {
+            make_func(
+              { Parameter(U"input", list_type) },
+              func_length,
+              interpreter.int_type()
+            ),
+            true
+          }
         },
         {
           U"reverse",
-          make_func(
-            { Parameter(U"input", list_type) },
-            func_reverse,
-            list_type
-          )
+          {
+            make_func(
+              { Parameter(U"input", list_type) },
+              func_reverse,
+              list_type
+            ),
+            true
+          }
         },
         {
           U"includes",
-          make_func(
-            {
-              Parameter(U"input", list_type),
-              Parameter(U"element", any_type),
-            },
-            func_includes,
-            bool_type
-          )
+          {
+            make_func(
+              {
+                Parameter(U"input", list_type),
+                Parameter(U"element", any_type),
+              },
+              func_includes,
+              bool_type
+            ),
+            true
+          }
         },
         {
           U"forEach",
-          make_func(
-            {
-              Parameter(U"input", list_type),
-              Parameter(U"func", func_type),
-            },
-            func_forEach,
-            interpreter.void_type()
-          )
+          {
+            make_func(
+              {
+                Parameter(U"input", list_type),
+                Parameter(U"func", func_type),
+              },
+              func_forEach,
+              interpreter.void_type()
+            ),
+            true
+          }
         },
         {
           U"filter",
-          make_func(
-            {
-              Parameter(U"input", list_type),
-              Parameter(
-                U"func",
-                make_func_type(
-                  { Parameter(U"element", any_type) },
-                  bool_type
-                )
-              ),
-            },
-            func_filter,
-            // TODO: See if we could implement some kind of generics at some
-            // point.
-            any_type
-          )
+          {
+            make_func(
+              {
+                Parameter(U"input", list_type),
+                Parameter(
+                  U"func",
+                  make_func_type(
+                    { Parameter(U"element", any_type) },
+                    bool_type
+                  )
+                ),
+              },
+              func_filter,
+              // TODO: See if we could implement some kind of generics at some
+              // point.
+              any_type
+            ),
+            true
+          },
         },
         {
           U"map",
-          make_func(
-            {
-              Parameter(U"input", list_type),
-              Parameter(U"func", func_type),
-            },
-            func_map,
-            // TODO: See if we could implement some kind of generics at some
-            // point.
-            any_type
-          )
+          {
+            make_func(
+              {
+                Parameter(U"input", list_type),
+                Parameter(U"func", func_type),
+              },
+              func_map,
+              // TODO: See if we could implement some kind of generics at some
+              // point.
+              any_type
+            ),
+            true
+          }
         },
       }
     );

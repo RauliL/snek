@@ -35,7 +35,7 @@ namespace snek::ast::type
   Base::result_type
   Named::eval(const Interpreter&, const Scope& scope) const
   {
-    if (const auto type = scope.find_type(m_name))
+    if (const auto type = scope.find_type(m_name, false))
     {
       return result_type::ok(*type);
     }

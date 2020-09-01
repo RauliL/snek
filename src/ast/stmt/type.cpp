@@ -32,11 +32,13 @@ namespace snek::ast::stmt
   Type::Type(
     const Position& position,
     const std::u32string& name,
-    const std::shared_ptr<type::Base>& type
+    const std::shared_ptr<type::Base>& type,
+    bool is_export
   )
     : Base(position)
     , m_name(name)
-    , m_type(type) {}
+    , m_type(type)
+    , m_is_export(is_export) {}
 
   void
   Type::exec(
@@ -51,7 +53,7 @@ namespace snek::ast::stmt
     {
       context.error() = type.error();
     }
-    else if (!scope.add_type(m_name, type.value()))
+    else if (!scope.add_type(m_name, type.value(), m_is_export))
     {
       context.error() = {
         position(),

@@ -13,6 +13,8 @@ INCLUDE(CheckFunctionExists)
 
 CHECK_INCLUDE_FILE(unistd.h SNEK_HAS_UNISTD_H)
 CHECK_INCLUDE_FILE(sysexits.h SNEK_HAS_SYSEXITS_H)
+CHECK_INCLUDE_FILE(sys/types.h SNEK_HAS_SYS_TYPES_H)
+CHECK_INCLUDE_FILE(sys/stat.h SNEK_HAS_SYS_STAT_H)
 CHECK_FUNCTION_EXISTS(isatty SNEK_HAS_ISATTY)
 
 CONFIGURE_FILE(
@@ -49,6 +51,7 @@ ADD_EXECUTABLE(
   src/ast/stmt/block.cpp
   src/ast/stmt/break.cpp
   src/ast/stmt/continue.cpp
+  src/ast/stmt/export.cpp
   src/ast/stmt/expr.cpp
   src/ast/stmt/if.cpp
   src/ast/stmt/import.cpp

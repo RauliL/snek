@@ -2,4 +2,6 @@
 
 #cmakedefine SNEK_HAS_UNISTD_H 1
 #cmakedefine SNEK_HAS_SYSEXITS_H 1
+#cmakedefine SNEK_HAS_SYS_TYPES_H 1
+#cmakedefine SNEK_HAS_SYS_STAT_H 1
 #cmakedefine SNEK_HAS_ISATTY 1

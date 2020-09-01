@@ -44,16 +44,20 @@ namespace snek::ast::stmt
     ExecContext& context
   ) const
   {
-    const auto module = interpreter.import_module(m_path);
+    const auto result = interpreter.import_module(m_path, position());
 
-    if (!module)
+    if (!result)
     {
-      context.error() = { position(), U"Unable to import `" + m_path + U"'." };
+      context.error() = result.error();
       return;
     }
     for (const auto& specifier : m_specifiers)
     {
-      if (const auto error = specifier->import(*module, m_path, scope))
+      if (const auto error = specifier->import(
+        result.value(),
+        m_path,
+        scope
+      ))
       {
         context.error() = error;
         return;

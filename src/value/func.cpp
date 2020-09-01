@@ -74,7 +74,7 @@ namespace snek::value
       for (const auto& argument : message.value())
       {
         // TODO: Check for name clashes.
-        scope.add_variable(argument.first, argument.second);
+        scope.add_variable(argument.first, argument.second, false);
       }
       std::get<std::shared_ptr<ast::stmt::Block>>(
         m_body

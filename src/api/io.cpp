@@ -54,11 +54,14 @@ namespace snek::api::io
       {
         {
           U"print",
-          make_func(
-            { Parameter(U"input", interpreter.str_type()) },
-            func_print,
-            interpreter.void_type()
-          )
+          {
+            make_func(
+              { Parameter(U"input", interpreter.str_type()) },
+              func_print,
+              interpreter.void_type()
+            ),
+            true
+          }
         },
       }
     );

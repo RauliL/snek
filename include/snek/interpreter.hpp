@@ -41,6 +41,7 @@ namespace snek
   public:
     using module_type = value::RecordPtr;
     using module_container_type = std::unordered_map<std::u32string, Scope>;
+    using module_import_result = peelo::result<const Scope, Error>;
     using eval_result_type = peelo::result<value::Ptr, Error>;
 
     explicit Interpreter();
@@ -119,7 +120,10 @@ namespace snek
       int column = 0
     );
 
-    std::optional<const Scope> import_module(const std::u32string& path);
+    module_import_result import_module(
+      const std::u32string& path,
+      const std::optional<ast::Position>& position = std::nullopt
+    );
 
   private:
     module_container_type m_modules;
