@@ -71,6 +71,7 @@ namespace snek::cst
     KeywordIf,
     KeywordImport,
     KeywordNull,
+    KeywordPass,
     KeywordReturn,
     KeywordTrue,
     KeywordType,

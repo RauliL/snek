@@ -31,6 +31,7 @@
 #include <snek/ast/stmt/expr.hpp>
 #include <snek/ast/stmt/if.hpp>
 #include <snek/ast/stmt/import.hpp>
+#include <snek/ast/stmt/pass.hpp>
 #include <snek/ast/stmt/return.hpp>
 #include <snek/ast/stmt/type.hpp>
 #include <snek/ast/stmt/while.hpp>
@@ -398,6 +399,19 @@ namespace snek::parser::stmt
   }
 
   static result_type
+  parse_pass_stmt(State& state)
+  {
+    const auto position = state.current++->position();
+
+    if (const auto error = skip_new_line(state))
+    {
+      return result_type::error(*error);
+    }
+
+    return result_type::ok(std::make_shared<ast::stmt::Pass>(position));
+  }
+
+  static result_type
   parse_type_stmt(State& state)
   {
     return parse_remainder_type_stmt(state, state.current->position(), false);
@@ -499,6 +513,9 @@ namespace snek::parser::stmt
 
       case cst::Kind::KeywordContinue:
         return parse_continue_stmt(state);
+
+      case cst::Kind::KeywordPass:
+        return parse_pass_stmt(state);
 
       case cst::Kind::KeywordType:
         return parse_type_stmt(state);

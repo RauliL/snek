@@ -151,6 +151,9 @@ namespace snek::cst
       case Kind::KeywordNull:
         return U"`null'";
 
+      case Kind::KeywordPass:
+        return U"`pass'";
+
       case Kind::KeywordReturn:
         return U"`return'";
 
