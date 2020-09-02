@@ -50,6 +50,7 @@ namespace snek::lexer
     { U"if", cst::Kind::KeywordIf },
     { U"import", cst::Kind::KeywordImport },
     { U"null", cst::Kind::KeywordNull },
+    { U"pass", cst::Kind::KeywordPass },
     { U"return", cst::Kind::KeywordReturn },
     { U"true", cst::Kind::KeywordTrue },
     { U"type", cst::Kind::KeywordType },

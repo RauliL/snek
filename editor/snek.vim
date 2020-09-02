@@ -9,7 +9,7 @@ endif
 
 " Syntax: Reserved keywords
 syn keyword snekBoolean false true
-syn keyword snekStatement break continue null return
+syn keyword snekStatement break continue null pass return
 syn keyword snekConditional else if
 syn keyword snekRepeat while
 syn keyword snekInclude as export from import

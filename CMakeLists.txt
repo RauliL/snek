@@ -55,6 +55,7 @@ ADD_EXECUTABLE(
   src/ast/stmt/expr.cpp
   src/ast/stmt/if.cpp
   src/ast/stmt/import.cpp
+  src/ast/stmt/pass.cpp
   src/ast/stmt/return.cpp
   src/ast/stmt/type.cpp
   src/ast/stmt/while.cpp
