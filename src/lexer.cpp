@@ -111,7 +111,7 @@ namespace snek::lexer
             ++current;
           }
           ++position.line;
-          position.column = 0;
+          position.column = 1;
 
           return '\n';
         }
