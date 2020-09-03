@@ -1,7 +1,8 @@
 #include <cstdlib>
 #include <fstream>
+#include <iomanip>
 
-#include <argparse.h>
+#include <clipp.h>
 
 #include <snek/config.hpp>
 #include <snek/cst.hpp>
@@ -18,37 +19,9 @@
 # define EX_USAGE 64
 #endif
 
-using namespace argparse;
 using namespace snek;
 
 namespace snek::repl { void loop(); }
-
-static ArgumentParser
-parse_arguments(int argc, const char** argv)
-{
-  ArgumentParser parser(argv[0], "Snek interpreter");
-
-  parser
-    .add_argument()
-    .names({"--cst"})
-    .description("Prints out CST of the script.");
-
-  parser
-    .add_argument()
-    .names({"-f", "--file"})
-    .description("Script file to execute")
-    .position(ArgumentParser::Argument::Position::LAST);
-
-  parser.enable_help();
-
-  if (const auto error = parser.parse(argc, argv))
-  {
-    std::cerr << error << std::endl;
-    std::exit(EX_USAGE);
-  }
-
-  return parser;
-}
 
 static inline void
 die(const Error& error)
@@ -73,43 +46,50 @@ make_indent_str(int level)
 }
 
 static void
-execute(
-  const std::u32string& source,
-  const std::u32string& file,
-  ArgumentParser& args
-)
+do_print_cst(const std::u32string& source, const std::u32string& file)
 {
-  if (args.exists("--cst"))
+  using peelo::unicode::encoding::utf8::encode;
+  const auto tokens = lexer::lex(source, file);
+  std::size_t indent = 0;
+
+  if (!tokens)
   {
-    using peelo::unicode::encoding::utf8::encode;
-    const auto tokens = lexer::lex(source, file);
-    std::size_t indent = 0;
+    die(tokens.error());
+  }
+  for (const auto& token : tokens.value())
+  {
+    if (token.kind() == cst::Kind::Indent)
+    {
+      ++indent;
+    }
+    else if (indent > 0 && token.kind() == cst::Kind::Dedent)
+    {
+      --indent;
+    }
+    std::cout << std::setw(2)
+              << std::setfill(' ')
+              << token.position().line
+              << ':'
+              << std::setw(2)
+              << std::setfill(' ')
+              << token.position().column
+              << ':'
+              << ' '
+              << make_indent_str(indent)
+              << encode(cst::to_string(token.kind()))
+              << std::endl;
+  }
+}
 
-    if (!tokens)
-    {
-      die(tokens.error());
-    }
-    for (const auto& token : tokens.value())
-    {
-      if (token.kind() == cst::Kind::Indent)
-      {
-        ++indent;
-      }
-      else if (indent > 0 && token.kind() == cst::Kind::Dedent)
-      {
-        --indent;
-      }
-      std::cout << make_indent_str(indent)
-                << encode(cst::to_string(token.kind()))
-                << std::endl;
-    }
-  } else {
-    Interpreter interpreter;
+static void
+do_execute(const std::u32string& source, const std::u32string& file)
+{
+  const auto tokens = lexer::lex(source, file);
+  Interpreter interpreter;
 
-    if (const auto error = interpreter.exec(source, file))
-    {
-      die(*error);
-    }
+  if (const auto error = interpreter.exec(source, file))
+  {
+    die(*error);
   }
 }
 
@@ -124,20 +104,65 @@ is_interactive_console()
 }
 
 int
-main(int argc, const char** argv)
+main(int argc, char** argv)
 {
-  auto args = parse_arguments(argc, argv);
+  std::string file;
+  bool print_help = false;
+  bool print_cst = false;
+  std::vector<std::string> unrecognized_args;
+  auto cli = (
+    clipp::with_prefix("--",
+      clipp::option("--print-cst")
+        .set(print_cst)
+        .doc("Prints out CST of the script."),
+      clipp::any_other(unrecognized_args)
+    ),
+    clipp::with_prefix("-",
+      clipp::any_other(unrecognized_args)
+    ),
+    clipp::option("--help", "-h")
+      .set(print_help)
+      .doc("Shows this page."),
+    clipp::opt_value("file", file)
+      .doc("Script file to execute.")
+  );
 
-  if (args.exists("help"))
+  if (!clipp::parse(argc, argv, cli) || !unrecognized_args.empty())
   {
-    args.print_help();
+    std::cerr << clipp::make_man_page(cli, argv[0]);
+    std::exit(EX_USAGE);
+  }
+  else if (print_help)
+  {
+    std::cout << clipp::make_man_page(cli, argv[0]);
     std::exit(EXIT_SUCCESS);
   }
-
-  if (args.exists("file"))
+  else if (file.empty())
   {
-    const auto path = args.get<std::string>("file");
-    std::ifstream is(path, std::ios_base::in);
+    if (!print_cst && is_interactive_console())
+    {
+      repl::loop();
+    } else {
+      const auto source = std::string(
+        std::istreambuf_iterator<char>(std::cin),
+        std::istreambuf_iterator<char>()
+      );
+
+      if (print_cst)
+      {
+        do_print_cst(
+          peelo::unicode::encoding::utf8::decode(source),
+          U"<stdin>"
+        );
+      } else {
+        do_execute(
+          peelo::unicode::encoding::utf8::decode(source),
+          U"<stdin>"
+        );
+      }
+    }
+  } else {
+    std::ifstream is(file, std::ios_base::in);
 
     if (is.good())
     {
@@ -147,33 +172,25 @@ main(int argc, const char** argv)
       );
 
       is.close();
-      execute(
-        peelo::unicode::encoding::utf8::decode(source),
-        peelo::unicode::encoding::utf8::decode(path),
-        args
-      );
+      if (print_cst)
+      {
+        do_print_cst(
+          peelo::unicode::encoding::utf8::decode(source),
+          peelo::unicode::encoding::utf8::decode(file)
+        );
+      } else {
+        do_execute(
+          peelo::unicode::encoding::utf8::decode(source),
+          peelo::unicode::encoding::utf8::decode(file)
+        );
+      }
     } else {
       std::cerr << "Error: Unable to open `"
-                << path
+                << file
                 << "' for reading."
                 << std::endl;
       std::exit(EXIT_FAILURE);
     }
-  }
-  else if (is_interactive_console())
-  {
-    repl::loop();
-  } else {
-    const std::string source = std::string(
-      std::istreambuf_iterator<char>(std::cin),
-      std::istreambuf_iterator<char>()
-    );
-
-    execute(
-      peelo::unicode::encoding::utf8::decode(source),
-      U"<stdin>",
-      args
-    );
   }
 
   return EXIT_SUCCESS;
