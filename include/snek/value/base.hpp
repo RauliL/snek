@@ -26,6 +26,7 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 namespace snek { class Interpreter; }
 namespace snek::type { class Base; }
