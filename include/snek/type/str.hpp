@@ -25,44 +25,34 @@
  */
 #pragma once
 
-#include <memory>
-#include <string>
-
-namespace snek::value { class Base; }
+#include <snek/type/base.hpp>
 
 namespace snek::type
 {
-  enum class Kind
-  {
-    Any,
-    Func,
-    Intersection,
-    List,
-    Primitive,
-    Record,
-    Str,
-    Tuple,
-    Union,
-  };
-
-  class Base
+  class Str final : public Base
   {
   public:
-    explicit Base();
+    explicit Str(const std::u32string& value);
 
-    virtual Kind kind() const = 0;
+    inline Kind kind() const
+    {
+      return Kind::Str;
+    }
 
-    virtual bool matches(const std::shared_ptr<value::Base>& value) const = 0;
+    inline const std::u32string& value() const
+    {
+      return m_value;
+    }
 
-    virtual bool matches(const std::shared_ptr<Base>& type) const = 0;
+    bool matches(const std::shared_ptr<value::Base>& value) const;
 
-    virtual std::u32string to_string() const = 0;
+    bool matches(const Ptr& type) const;
 
-    Base(const Base&&) = delete;
-    Base(Base&&) = delete;
-    void operator=(const Base&) = delete;
-    void operator=(Base&&) = delete;
+    std::u32string to_string() const;
+
+  private:
+    const std::u32string m_value;
   };
 
-  using Ptr = std::shared_ptr<Base>;
+  using StrPtr = std::shared_ptr<Str>;
 }

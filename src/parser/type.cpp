@@ -29,6 +29,7 @@
 #include <snek/ast/type/list.hpp>
 #include <snek/ast/type/named.hpp>
 #include <snek/ast/type/record.hpp>
+#include <snek/ast/type/str.hpp>
 #include <snek/ast/type/tuple.hpp>
 #include <snek/ast/type/union.hpp>
 #include <snek/parser.hpp>
@@ -352,6 +353,13 @@ namespace snek::parser::type
           }
           type = result.value();
         }
+        break;
+
+      case cst::Kind::Str:
+        type = std::make_shared<ast::type::Str>(
+          state.current->position(),
+          *state.current++->text()
+        );
         break;
 
       default:

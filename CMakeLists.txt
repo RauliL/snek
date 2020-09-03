@@ -66,6 +66,7 @@ ADD_EXECUTABLE(
   src/ast/type/list.cpp
   src/ast/type/named.cpp
   src/ast/type/record.cpp
+  src/ast/type/str.cpp
   src/ast/type/tuple.cpp
   src/ast/type/union.cpp
   src/cst.cpp
@@ -89,6 +90,7 @@ ADD_EXECUTABLE(
   src/type/list.cpp
   src/type/primitive.cpp
   src/type/record.cpp
+  src/type/str.cpp
   src/type/tuple.cpp
   src/type/union.cpp
   src/value/base.cpp

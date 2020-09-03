@@ -23,46 +23,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
+#include <snek/ast/type/str.hpp>
+#include <snek/type/str.hpp>
 
-#include <memory>
-#include <string>
-
-namespace snek::value { class Base; }
-
-namespace snek::type
+namespace snek::ast::type
 {
-  enum class Kind
+  Str::Str(const Position& position, const std::u32string& value)
+    : Base(position)
+    , m_value(value) {}
+
+  Base::result_type
+  Str::eval(const Interpreter&, const Scope& scope) const
   {
-    Any,
-    Func,
-    Intersection,
-    List,
-    Primitive,
-    Record,
-    Str,
-    Tuple,
-    Union,
-  };
-
-  class Base
-  {
-  public:
-    explicit Base();
-
-    virtual Kind kind() const = 0;
-
-    virtual bool matches(const std::shared_ptr<value::Base>& value) const = 0;
-
-    virtual bool matches(const std::shared_ptr<Base>& type) const = 0;
-
-    virtual std::u32string to_string() const = 0;
-
-    Base(const Base&&) = delete;
-    Base(Base&&) = delete;
-    void operator=(const Base&) = delete;
-    void operator=(Base&&) = delete;
-  };
-
-  using Ptr = std::shared_ptr<Base>;
+    return result_type::ok(std::make_shared<snek::type::Str>(m_value));
+  }
 }
