@@ -445,7 +445,12 @@ namespace snek::lexer
         break;
 
       case '=':
-        kind = state.peek_read('=') ? cst::Kind::Eq : cst::Kind::Assign;
+        kind =
+          state.peek_read('=') ?
+          cst::Kind::Eq :
+          state.peek_read('>') ?
+          cst::Kind::FatArrow :
+          cst::Kind::Assign;
         break;
 
       case '+':

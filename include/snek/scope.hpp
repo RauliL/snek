@@ -85,13 +85,13 @@ namespace snek
     bool add_type(
       const std::u32string& name,
       const std::shared_ptr<type::Base>& type,
-      bool is_export
+      bool is_export = false
     );
 
     bool add_variable(
       const std::u32string& name,
       const std::shared_ptr<value::Base>& value,
-      bool is_export
+      bool is_export = false
     );
 
   private:

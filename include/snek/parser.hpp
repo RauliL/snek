@@ -117,7 +117,10 @@ namespace snek::parser::expr
 {
   using result_type = peelo::result<std::shared_ptr<ast::expr::RValue>, Error>;
 
-  result_type parse(State& state);
+  result_type parse(
+    State& state,
+    const std::optional<ast::Position>& position = std::nullopt
+  );
   result_type parse_func(State& state);
 }
 

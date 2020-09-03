@@ -112,7 +112,7 @@ namespace snek::value::utils
   inline value::FuncPtr
   make_func(
     const std::vector<Parameter>& parameters,
-    const std::shared_ptr<ast::stmt::Block>& body,
+    const std::shared_ptr<ast::stmt::Base>& body,
     const std::optional<type::Ptr>& return_type = std::nullopt,
     const std::optional<Scope>& enclosing_scope = std::nullopt
   )

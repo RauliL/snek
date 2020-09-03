@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <snek/ast/stmt/block.hpp>
+#include <snek/ast/stmt/base.hpp>
 #include <snek/interpreter.hpp>
 #include <snek/message.hpp>
 #include <snek/type/func.hpp>
@@ -60,25 +60,29 @@ namespace snek::value
     {
       return result_type::error(message.error());
     }
-    if (std::holds_alternative<callback_type>(m_body))
+    else if (!std::holds_alternative<callback_type>(m_body))
     {
-      return std::get<callback_type>(m_body)(interpreter, message.value());
-    } else {
       Scope scope(
         m_enclosing_scope
           ? std::make_shared<Scope>(*m_enclosing_scope)
           : nullptr
       );
+      const auto body = std::get<std::shared_ptr<ast::stmt::Base>>(m_body);
       ast::stmt::ExecContext context;
 
       for (const auto& argument : message.value())
       {
-        // TODO: Check for name clashes.
-        scope.add_variable(argument.first, argument.second, false);
+        if (!scope.add_variable(argument.first, argument.second, false))
+        {
+          return result_type::error({
+            body->position(),
+            U"Variable `" +
+            argument.first +
+            U"' has already been defined."
+          });
+        }
       }
-      std::get<std::shared_ptr<ast::stmt::Block>>(
-        m_body
-      )->exec(interpreter, scope, context);
+      body->exec(interpreter, scope, context);
       if (context.error())
       {
         return result_type::error(*context.error());
@@ -89,10 +93,25 @@ namespace snek::value
 
         return result_type::ok(value ? value : interpreter.null_value());
       }
-      // TODO: Handle dangling break and continue.
+      else if (context.jump() == ast::stmt::Jump::Break)
+      {
+        return result_type::error({
+          body->position(),
+          U"Unexpected `break'."
+        });
+      }
+      else if (context.jump() == ast::stmt::Jump::Continue)
+      {
+        return result_type::error({
+          body->position(),
+          U"Unexpected `continue'."
+        });
+      }
 
       return result_type::ok(interpreter.null_value());
     }
+
+    return std::get<callback_type>(m_body)(interpreter, message.value());
   }
 
   std::shared_ptr<type::Base>

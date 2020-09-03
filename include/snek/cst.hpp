@@ -52,6 +52,7 @@ namespace snek::cst
     Colon,
     Semicolon,
     Arrow,
+    FatArrow,
     Spread,
 
     // Literals

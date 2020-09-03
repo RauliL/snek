@@ -33,7 +33,7 @@ namespace snek::ast::expr
   Func::Func(
     const Position& position,
     const std::vector<std::shared_ptr<Parameter>>& parameters,
-    const std::shared_ptr<ast::stmt::Block>& body,
+    const std::shared_ptr<ast::stmt::Base>& body,
     const std::optional<std::shared_ptr<ast::type::Base>>& return_type
   )
     : RValue(position)
