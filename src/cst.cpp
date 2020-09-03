@@ -244,6 +244,9 @@ namespace snek::cst
       case Kind::Arrow:
         return U"`->'";
 
+      case Kind::FatArrow:
+        return U"`=>'";
+
       case Kind::Spread:
         return U"`...'";
     }

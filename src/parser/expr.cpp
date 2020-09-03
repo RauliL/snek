@@ -39,6 +39,7 @@
 #include <snek/ast/parameter.hpp>
 #include <snek/ast/record.hpp>
 #include <snek/ast/stmt/block.hpp>
+#include <snek/ast/stmt/return.hpp>
 #include <snek/parser.hpp>
 
 namespace snek::parser::expr
@@ -172,6 +173,7 @@ namespace snek::parser::expr
   {
     const auto position = state.current->position();
     const auto parameters = parse_parameter_list(state);
+    std::shared_ptr<ast::stmt::Base> body;
     std::optional<std::shared_ptr<ast::type::Base>> return_type;
 
     if (!parameters)
@@ -188,25 +190,42 @@ namespace snek::parser::expr
       }
       return_type = result.value();
     }
-    if (!state.peek_read(cst::Kind::Colon))
+    if (state.peek_read(cst::Kind::FatArrow))
     {
+      const auto expr = parse(state, position);
+
+      if (!expr)
+      {
+        return result_type::error(expr.error());
+      }
+      // Possibly not the greatest idea. It's really context specific whether
+      // new line should be followed by the expression.
+      state.peek_read(cst::Kind::NewLine);
+      body = std::make_shared<ast::stmt::Return>(
+        expr.value()->position(),
+        expr.value()
+      );
+    }
+    else if (state.peek_read(cst::Kind::Colon))
+    {
+      const auto block = stmt::parse_block(state, position);
+
+      if (!block)
+      {
+        return result_type::error(block.error());
+      }
+      body = block.value();
+    } else {
       return result_type::error({
         position,
         U"Missing `:' after function declaration."
       });
     }
 
-    const auto body = stmt::parse_block(state, position);
-
-    if (!body)
-    {
-      return result_type::error(body.error());
-    }
-
     return result_type::ok(std::make_shared<ast::expr::Func>(
       position,
       parameters.value(),
-      std::static_pointer_cast<ast::stmt::Block>(body.value()),
+      body,
       return_type
     ));
   }
@@ -215,7 +234,7 @@ namespace snek::parser::expr
   parse_parenthesized_expr(State& state)
   {
     const auto position = state.current++->position();
-    const auto expression = parse(state);
+    const auto expression = parse(state, position);
 
     if (!expression)
     {
@@ -233,14 +252,17 @@ namespace snek::parser::expr
   }
 
   static result_type
-  parse_primary_expr(State& state)
+  parse_primary_expr(
+    State& state,
+    const std::optional<ast::Position>& position
+  )
   {
     std::shared_ptr<ast::expr::RValue> expr;
 
     if (state.eof())
     {
       return result_type::error({
-        std::nullopt,
+        position,
         U"Unexpected end of input; Missing expression."
       });
     }
@@ -394,12 +416,15 @@ namespace snek::parser::expr
   }
 
   static result_type
-  parse_unary_expr(State& state)
+  parse_unary_expr(
+    State& state,
+    const std::optional<ast::Position>& position
+  )
   {
     if (state.peek(cst::Kind::Not))
     {
-      const auto position = state.current++->position();
-      const auto expression = parse_unary_expr(state);
+      const auto new_position = state.current++->position();
+      const auto expression = parse_unary_expr(state, new_position);
 
       if (!expression)
       {
@@ -407,12 +432,12 @@ namespace snek::parser::expr
       }
 
       return result_type::ok(std::make_shared<ast::expr::Not>(
-        position,
+        new_position,
         expression.value()
       ));
     }
 
-    auto expression = parse_primary_expr(state);
+    auto expression = parse_primary_expr(state, position);
 
     if (!expression)
     {
@@ -432,9 +457,12 @@ namespace snek::parser::expr
   }
 
   static result_type
-  parse_multiplicative_expr(State& state)
+  parse_multiplicative_expr(
+    State& state,
+    const std::optional<ast::Position>& position
+  )
   {
-    auto expression = parse_unary_expr(state);
+    auto expression = parse_unary_expr(state, position);
 
     if (!expression)
     {
@@ -444,16 +472,16 @@ namespace snek::parser::expr
            state.peek(cst::Kind::Div) ||
            state.peek(cst::Kind::Mod))
     {
-      const auto position = state.current->position();
+      const auto new_position = state.current->position();
       const auto kind = state.current++->kind();
-      const auto operand = parse_unary_expr(state);
+      const auto operand = parse_unary_expr(state, new_position);
 
       if (!operand)
       {
         return operand;
       }
       expression = result_type::ok(std::make_shared<ast::expr::Binary>(
-        position,
+        new_position,
         expression.value(),
         kind == cst::Kind::Mul
           ? ast::expr::BinaryOperator::Mul
@@ -468,9 +496,12 @@ namespace snek::parser::expr
   }
 
   static result_type
-  parse_additive_expression(State& state)
+  parse_additive_expression(
+    State& state,
+    const std::optional<ast::Position>& position
+  )
   {
-    auto expression = parse_multiplicative_expr(state);
+    auto expression = parse_multiplicative_expr(state, position);
 
     if (!expression)
     {
@@ -478,16 +509,16 @@ namespace snek::parser::expr
     }
     while (state.peek(cst::Kind::Add) || state.peek(cst::Kind::Sub))
     {
-      const auto position = state.current->position();
+      const auto new_position = state.current->position();
       const auto kind = state.current++->kind();
-      const auto operand = parse_multiplicative_expr(state);
+      const auto operand = parse_multiplicative_expr(state, new_position);
 
       if (!operand)
       {
         return operand;
       }
       expression = result_type::ok(std::make_shared<ast::expr::Binary>(
-        position,
+        new_position,
         expression.value(),
         kind == cst::Kind::Add
           ? ast::expr::BinaryOperator::Add
@@ -500,9 +531,12 @@ namespace snek::parser::expr
   }
 
   static result_type
-  parse_relational_expr(State& state)
+  parse_relational_expr(
+    State& state,
+    const std::optional<ast::Position>& position
+  )
   {
-    auto expression = parse_additive_expression(state);
+    auto expression = parse_additive_expression(state, position);
 
     if (!expression)
     {
@@ -513,16 +547,16 @@ namespace snek::parser::expr
            state.peek(cst::Kind::Lte) ||
            state.peek(cst::Kind::Gte))
     {
-      const auto position = state.current->position();
+      const auto new_position = state.current->position();
       const auto kind = state.current++->kind();
-      const auto operand = parse_additive_expression(state);
+      const auto operand = parse_additive_expression(state, new_position);
 
       if (!operand)
       {
         return operand;
       }
       expression = result_type::ok(std::make_shared<ast::expr::Binary>(
-        position,
+        new_position,
         expression.value(),
         kind == cst::Kind::Lt
           ? ast::expr::BinaryOperator::Lt
@@ -539,9 +573,12 @@ namespace snek::parser::expr
   }
 
   static result_type
-  parse_equality_expr(State& state)
+  parse_equality_expr(
+    State& state,
+    const std::optional<ast::Position>& position
+  )
   {
-    auto expression = parse_relational_expr(state);
+    auto expression = parse_relational_expr(state, position);
 
     if (!expression)
     {
@@ -549,16 +586,16 @@ namespace snek::parser::expr
     }
     while (state.peek(cst::Kind::Eq) || state.peek(cst::Kind::Ne))
     {
-      const auto position = state.current->position();
+      const auto new_position = state.current->position();
       const auto kind = state.current++->kind();
-      const auto operand = parse_relational_expr(state);
+      const auto operand = parse_relational_expr(state, new_position);
 
       if (!operand)
       {
         return operand;
       }
       expression = result_type::ok(std::make_shared<ast::expr::Binary>(
-        position,
+        new_position,
         expression.value(),
         kind == cst::Kind::Eq
           ? ast::expr::BinaryOperator::Eq
@@ -571,8 +608,8 @@ namespace snek::parser::expr
   }
 
   result_type
-  parse(State& state)
+  parse(State& state, const std::optional<ast::Position>& position)
   {
-    return parse_equality_expr(state);
+    return parse_equality_expr(state, position);
   }
 }

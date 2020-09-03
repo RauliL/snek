@@ -45,7 +45,7 @@ namespace snek
 
 namespace snek::ast::stmt
 {
-  class Block;
+  class Base;
 }
 
 namespace snek::value
@@ -60,7 +60,7 @@ namespace snek::value
     )>;
     using body_type = std::variant<
       callback_type,
-      std::shared_ptr<ast::stmt::Block>
+      std::shared_ptr<ast::stmt::Base>
     >;
 
     explicit Func(

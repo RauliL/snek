@@ -30,7 +30,7 @@
 #include <snek/ast/expr/base.hpp>
 
 namespace snek::ast { class Parameter; }
-namespace snek::ast::stmt { class Block; }
+namespace snek::ast::stmt { class Base; }
 namespace snek::ast::type { class Base; }
 
 namespace snek::ast::expr
@@ -41,7 +41,7 @@ namespace snek::ast::expr
     explicit Func(
       const Position& position,
       const std::vector<std::shared_ptr<Parameter>>& parameters,
-      const std::shared_ptr<ast::stmt::Block>& body,
+      const std::shared_ptr<ast::stmt::Base>& body,
       const std::optional<std::shared_ptr<ast::type::Base>>& return_type
         = std::nullopt
     );
@@ -51,7 +51,7 @@ namespace snek::ast::expr
       return m_parameters;
     }
 
-    inline const std::shared_ptr<ast::stmt::Block>& body() const
+    inline const std::shared_ptr<ast::stmt::Base>& body() const
     {
       return m_body;
     }
@@ -66,7 +66,7 @@ namespace snek::ast::expr
 
   private:
     const std::vector<std::shared_ptr<Parameter>> m_parameters;
-    const std::shared_ptr<stmt::Block> m_body;
+    const std::shared_ptr<stmt::Base> m_body;
     const std::optional<std::shared_ptr<ast::type::Base>> m_return_type;
   };
 }
