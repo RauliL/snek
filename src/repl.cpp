@@ -117,6 +117,36 @@ namespace snek::repl
     std::stack<char32_t> open_braces;
     char prompt_string[BUFSIZ];
 
+    prompt.set_completion_callback(
+      [&scope](
+        const std::string& buffer,
+        std::vector<std::string>& completions
+      )
+      {
+        std::u32string decoded_buffer;
+
+        if (buffer.empty())
+        {
+          return;
+        }
+        decoded_buffer = decode(buffer);
+        for (const auto& variable : scope.variables())
+        {
+          if (variable.first.rfind(decoded_buffer, 0) == 0)
+          {
+            completions.push_back(encode(variable.first));
+          }
+        }
+        for (const auto& type : scope.types())
+        {
+          if (type.first.rfind(decoded_buffer, 0) == 0)
+          {
+            completions.push_back(encode(type.first));
+          }
+        }
+      }
+    );
+
     for (;;)
     {
       std::snprintf(
