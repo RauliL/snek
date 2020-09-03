@@ -34,6 +34,7 @@ ADD_LIBRARY(
   src/api.cpp
   src/api/bin.cpp
   src/api/debug.cpp
+  src/api/fs.cpp
   src/api/io.cpp
   src/api/list.cpp
   src/api/str.cpp

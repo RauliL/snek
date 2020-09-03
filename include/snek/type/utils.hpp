@@ -30,6 +30,7 @@
 #include <snek/type/list.hpp>
 #include <snek/type/primitive.hpp>
 #include <snek/type/record.hpp>
+#include <snek/type/union.hpp>
 
 namespace snek::type::utils
 {
@@ -64,5 +65,11 @@ namespace snek::type::utils
   make_record_type(const type::Record::container_type& fields)
   {
     return std::make_shared<type::Record>(fields);
+  }
+
+  inline UnionPtr
+  make_union_type(const type::Union::container_type& types)
+  {
+    return std::make_shared<type::Union>(types);
   }
 }

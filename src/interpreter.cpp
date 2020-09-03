@@ -59,6 +59,7 @@ namespace snek
 
   namespace api::bin { Scope create(const Interpreter&); }
   namespace api::debug { Scope create(const Interpreter&); }
+  namespace api::fs { Scope create(const Interpreter&); }
   namespace api::io { Scope create(const Interpreter&); }
   namespace api::list { Scope create(const Interpreter&); }
   namespace api::str { Scope create(const Interpreter&); }
@@ -87,6 +88,7 @@ namespace snek
   {
     m_modules[U"bin"] = api::bin::create(*this);
     m_modules[U"debug"] = api::debug::create(*this);
+    m_modules[U"fs"] = api::fs::create(*this);
     m_modules[U"io"] = api::io::create(*this);
     m_modules[U"list"] = api::list::create(*this);
     m_modules[U"str"] = api::str::create(*this);
