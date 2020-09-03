@@ -105,11 +105,11 @@ namespace snek::repl
   }
 
   void
-  loop()
+  loop(const Interpreter::permission_container_type& permissions)
   {
     using peelo::unicode::encoding::utf8::decode;
     using peelo::unicode::encoding::utf8::encode;
-    Interpreter interpreter;
+    Interpreter interpreter(permissions);
     Scope scope;
     peelo::prompt prompt;
     int line = 0;

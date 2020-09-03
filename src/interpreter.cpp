@@ -71,8 +71,9 @@ namespace snek
 
   static std::optional<std::u32string> resolve_path(const std::u32string&);
 
-  Interpreter::Interpreter()
-    : m_any_type(make_any_type())
+  Interpreter::Interpreter(const permission_container_type& permissions)
+    : m_permissions(permissions)
+    , m_any_type(make_any_type())
     , m_bin_type(make_primitive_type(type::PrimitiveKind::Bin))
     , m_bool_type(make_primitive_type(type::PrimitiveKind::Bool))
     , m_float_type(make_primitive_type(type::PrimitiveKind::Float))

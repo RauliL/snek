@@ -25,9 +25,12 @@
  */
 #pragma once
 
+#include <bitset>
+
 #include <peelo/result.hpp>
 
 #include <snek/error.hpp>
+#include <snek/permission.hpp>
 #include <snek/scope.hpp>
 #include <snek/type/base.hpp>
 #include <snek/value/bool.hpp>
@@ -39,16 +42,30 @@ namespace snek
   class Interpreter
   {
   public:
+    using permission_container_type = std::bitset<3>;
     using module_type = value::RecordPtr;
     using module_container_type = std::unordered_map<std::u32string, Scope>;
     using module_import_result = peelo::result<const Scope, Error>;
     using eval_result_type = peelo::result<value::Ptr, Error>;
 
-    explicit Interpreter();
+    explicit Interpreter(
+      const permission_container_type& permissions
+        = permission_container_type()
+    );
     Interpreter(const Interpreter&) = default;
     Interpreter(Interpreter&&) = default;
     Interpreter& operator=(const Interpreter&) = default;
     Interpreter& operator=(Interpreter&&) = default;
+
+    inline const permission_container_type& permissions() const
+    {
+      return m_permissions;
+    }
+
+    inline bool has_permission(Permission permission) const
+    {
+      return m_permissions.test(static_cast<std::size_t>(permission));
+    }
 
     inline const type::Ptr& any_type() const
     {
@@ -131,6 +148,7 @@ namespace snek
     );
 
   private:
+    permission_container_type m_permissions;
     module_container_type m_modules;
     type::Ptr m_any_type;
     type::Ptr m_bin_type;

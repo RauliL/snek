@@ -21,7 +21,10 @@
 
 using namespace snek;
 
-namespace snek::repl { void loop(); }
+namespace snek::repl
+{
+  void loop(const Interpreter::permission_container_type&);
+}
 
 static inline void
 die(const Error& error)
@@ -82,10 +85,14 @@ do_print_cst(const std::u32string& source, const std::u32string& file)
 }
 
 static void
-do_execute(const std::u32string& source, const std::u32string& file)
+do_execute(
+  const std::u32string& source,
+  const std::u32string& file,
+  const Interpreter::permission_container_type& permissions
+)
 {
   const auto tokens = lexer::lex(source, file);
-  Interpreter interpreter;
+  Interpreter interpreter(permissions);
 
   if (const auto error = interpreter.exec(source, file))
   {
@@ -107,11 +114,14 @@ int
 main(int argc, char** argv)
 {
   cxxopts::Options options(argv[0]);
+  Interpreter::permission_container_type permissions;
 
   options
     .custom_help("[switches]")
     .positional_help("[file]")
     .add_options()
+      ("allow-read", "Grant read access to file system.")
+      ("allow-write", "Grant write access to file system.")
       ("print-cst", "Prints out CST of the script.")
       ("h,help", "Shows this page.")
       ("file", "Script to execute.", cxxopts::value<std::string>());
@@ -121,6 +131,14 @@ main(int argc, char** argv)
   {
     const auto result = options.parse(argc, argv);
 
+    if (result.count("allow-read"))
+    {
+      permissions.set(static_cast<std::size_t>(Permission::Read));
+    }
+    if (result.count("allow-write"))
+    {
+      permissions.set(static_cast<std::size_t>(Permission::Write));
+    }
     if (result.count("help"))
     {
       std::cout << options.help();
@@ -148,7 +166,8 @@ main(int argc, char** argv)
         } else {
           do_execute(
             peelo::unicode::encoding::utf8::decode(source),
-            peelo::unicode::encoding::utf8::decode(file)
+            peelo::unicode::encoding::utf8::decode(file),
+            permissions
           );
         }
       } else {
@@ -161,7 +180,7 @@ main(int argc, char** argv)
     } else {
       if (!result.count("print-cst") && is_interactive_console())
       {
-        repl::loop();
+        repl::loop(permissions);
       } else {
         const auto source = std::string(
           std::istreambuf_iterator<char>(std::cin),
@@ -177,7 +196,8 @@ main(int argc, char** argv)
         } else {
           do_execute(
             peelo::unicode::encoding::utf8::decode(source),
-            U"<stdin>"
+            U"<stdin>",
+            permissions
           );
         }
       }
