@@ -30,7 +30,7 @@
 
 namespace snek::ast::stmt
 {
-  class Assign : public Base
+  class Assign final : public Base
   {
   public:
     explicit Assign(

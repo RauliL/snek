@@ -31,7 +31,7 @@ namespace snek::ast::expr { class RValue; }
 
 namespace snek::ast::stmt
 {
-  class Expr : public Base
+  class Expr final : public Base
   {
   public:
     using value_type = std::shared_ptr<expr::RValue>;

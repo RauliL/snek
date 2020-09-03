@@ -31,7 +31,7 @@ namespace snek::ast::expr { class RValue; }
 
 namespace snek::ast::stmt
 {
-  class If : public Base
+  class If final : public Base
   {
   public:
     explicit If(

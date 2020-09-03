@@ -31,7 +31,7 @@ namespace snek::ast::type { class Base; }
 
 namespace snek::ast::stmt
 {
-  class Type : public Base
+  class Type final : public Base
   {
   public:
     explicit Type(

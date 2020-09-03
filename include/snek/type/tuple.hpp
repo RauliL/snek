@@ -31,7 +31,7 @@
 
 namespace snek::type
 {
-  class Tuple : public Base
+  class Tuple final : public Base
   {
   public:
     using value_type = Ptr;

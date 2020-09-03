@@ -50,7 +50,7 @@ namespace snek::ast::stmt
 
 namespace snek::value
 {
-  class Func : public Base
+  class Func final : public Base
   {
   public:
     using result_type = peelo::result<Ptr, Error>;

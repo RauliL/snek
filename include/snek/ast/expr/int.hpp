@@ -31,7 +31,7 @@
 
 namespace snek::ast::expr
 {
-  class Int : public RValue
+  class Int final : public RValue
   {
   public:
     using value_type = std::int64_t;

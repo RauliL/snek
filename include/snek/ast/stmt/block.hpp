@@ -31,7 +31,7 @@
 
 namespace snek::ast::stmt
 {
-  class Block : public Base
+  class Block final : public Base
   {
   public:
     using value_type = std::shared_ptr<Base>;

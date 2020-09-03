@@ -39,7 +39,7 @@ namespace snek::type
     Void,
   };
 
-  class Primitive : public Base
+  class Primitive final : public Base
   {
   public:
     explicit Primitive(PrimitiveKind primitive_kind);

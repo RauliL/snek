@@ -29,7 +29,7 @@
 
 namespace snek::ast::expr
 {
-  class Str : public RValue
+  class Str final : public RValue
   {
   public:
     using value_type = std::u32string;

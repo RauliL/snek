@@ -31,7 +31,7 @@
 
 namespace snek::ast::expr
 {
-  class Call : public RValue
+  class Call final : public RValue
   {
   public:
     explicit Call(

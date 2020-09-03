@@ -29,7 +29,7 @@
 
 namespace snek::type
 {
-  class Any : public Base
+  class Any final : public Base
   {
   public:
     explicit Any();

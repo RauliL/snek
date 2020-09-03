@@ -31,7 +31,7 @@ namespace snek::ast::expr { class RValue; }
 
 namespace snek::ast::stmt
 {
-  class While : public Base
+  class While final : public Base
   {
   public:
     explicit While(

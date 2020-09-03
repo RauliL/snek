@@ -31,7 +31,7 @@
 
 namespace snek::type
 {
-  class Union : public Base
+  class Union final : public Base
   {
   public:
     using value_type = Ptr;

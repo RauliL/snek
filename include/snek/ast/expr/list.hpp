@@ -33,7 +33,7 @@ namespace snek::ast::expr
 {
   // TODO: Perhaps `type()` of this AST node should be dynamically determined
   // from contents of the element array?
-  class List : public LValue
+  class List final : public LValue
   {
   public:
     using value_type = std::shared_ptr<RValue>;

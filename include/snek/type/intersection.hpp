@@ -31,7 +31,7 @@
 
 namespace snek::type
 {
-  class Intersection : public Base
+  class Intersection final : public Base
   {
   public:
     using value_type = Ptr;

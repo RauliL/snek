@@ -29,7 +29,7 @@
 
 namespace snek::ast::type
 {
-  class Named : public Base
+  class Named final : public Base
   {
   public:
     explicit Named(const Position& position, const std::u32string& name);

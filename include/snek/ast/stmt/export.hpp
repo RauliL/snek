@@ -31,7 +31,7 @@ namespace snek::ast::expr { class RValue; }
 
 namespace snek::ast::stmt
 {
-  class Export : public Base
+  class Export final : public Base
   {
   public:
     explicit Export(

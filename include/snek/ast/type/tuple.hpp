@@ -31,7 +31,7 @@
 
 namespace snek::ast::type
 {
-  class Tuple : public Base
+  class Tuple final : public Base
   {
   public:
     using value_type = std::shared_ptr<Base>;

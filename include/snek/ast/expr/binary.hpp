@@ -44,7 +44,7 @@ namespace snek::ast::expr
     Gte,
   };
 
-  class Binary : public RValue
+  class Binary final : public RValue
   {
   public:
     explicit Binary(

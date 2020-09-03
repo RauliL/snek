@@ -31,7 +31,7 @@
 
 namespace snek::ast::type
 {
-  class Union : public Base
+  class Union final : public Base
   {
   public:
     using value_type = std::shared_ptr<Base>;

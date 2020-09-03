@@ -29,7 +29,7 @@
 
 namespace snek::ast::expr
 {
-  class Float : public RValue
+  class Float final : public RValue
   {
   public:
     using value_type = double;

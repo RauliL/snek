@@ -29,7 +29,7 @@
 
 namespace snek::ast::stmt
 {
-  class Continue : public Base
+  class Continue final : public Base
   {
   public:
     explicit Continue(const Position& position);
