@@ -29,7 +29,7 @@
 
 namespace snek::ast::expr
 {
-  class Field : public RValue
+  class Field final : public RValue
   {
   public:
     explicit Field(

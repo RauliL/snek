@@ -29,7 +29,7 @@
 
 namespace snek::value
 {
-  class Bool : public Base
+  class Bool final : public Base
   {
   public:
     using value_type = bool;

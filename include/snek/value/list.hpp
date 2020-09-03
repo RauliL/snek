@@ -31,7 +31,7 @@
 
 namespace snek::value
 {
-  class List : public Base
+  class List final : public Base
   {
   public:
     using value_type = Ptr;

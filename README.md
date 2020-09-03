@@ -1,5 +1,7 @@
 # snek
 
+![Build](https://github.com/RauliL/snek/workflows/Build/badge.svg)
+
 Experimental programming language where Python meets TypeScript, kinda.
 
 ## How to compile?

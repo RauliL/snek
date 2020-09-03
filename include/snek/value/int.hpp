@@ -31,7 +31,7 @@
 
 namespace snek::value
 {
-  class Int : public Base
+  class Int final : public Base
   {
   public:
     using value_type = std::int64_t;

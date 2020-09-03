@@ -32,7 +32,7 @@
 
 namespace snek::ast::stmt
 {
-  class Import : public Base
+  class Import final : public Base
   {
   public:
     using value_type = std::shared_ptr<import::Specifier>;

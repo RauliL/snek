@@ -29,7 +29,7 @@
 
 namespace snek::type
 {
-  class List : public Base
+  class List final : public Base
   {
   public:
     explicit List(const Ptr& element_type);

@@ -35,7 +35,7 @@ namespace snek::ast::type { class Base; }
 
 namespace snek::ast::expr
 {
-  class Func : public RValue
+  class Func final : public RValue
   {
   public:
     explicit Func(

@@ -29,7 +29,7 @@
 
 namespace snek::ast::expr
 {
-  class Not : public RValue
+  class Not final : public RValue
   {
   public:
     explicit Not(

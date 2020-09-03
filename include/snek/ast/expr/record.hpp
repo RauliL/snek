@@ -33,7 +33,7 @@ namespace snek::ast::record { class Field; }
 
 namespace snek::ast::expr
 {
-  class Record : public LValue
+  class Record final : public LValue
   {
   public:
     using value_type = std::shared_ptr<record::Field>;

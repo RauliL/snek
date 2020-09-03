@@ -29,7 +29,7 @@
 
 namespace snek::ast::type
 {
-  class List : public Base
+  class List final : public Base
   {
   public:
     explicit List(

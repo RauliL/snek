@@ -44,7 +44,7 @@ namespace snek::ast::type
 
 namespace snek::ast
 {
-  class Parameter : public Node
+  class Parameter final : public Node
   {
   public:
     using result_type = peelo::result<snek::Parameter, Error>;

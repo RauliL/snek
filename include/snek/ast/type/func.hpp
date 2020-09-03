@@ -32,7 +32,7 @@
 
 namespace snek::ast::type
 {
-  class Func : public Base
+  class Func final : public Base
   {
   public:
     explicit Func(

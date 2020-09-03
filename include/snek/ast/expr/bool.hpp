@@ -29,7 +29,7 @@
 
 namespace snek::ast::expr
 {
-  class Bool : public RValue
+  class Bool final : public RValue
   {
   public:
     using value_type = bool;

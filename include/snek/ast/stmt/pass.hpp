@@ -29,7 +29,7 @@
 
 namespace snek::ast::stmt
 {
-  class Pass : public Base
+  class Pass final : public Base
   {
   public:
     explicit Pass(const Position& position);

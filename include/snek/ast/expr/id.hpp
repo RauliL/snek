@@ -29,7 +29,7 @@
 
 namespace snek::ast::expr
 {
-  class Id : public LValue
+  class Id final : public LValue
   {
   public:
     explicit Id(const Position& position, const std::u32string& name);

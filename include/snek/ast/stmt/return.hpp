@@ -31,7 +31,7 @@ namespace snek::ast::expr { class RValue; }
 
 namespace snek::ast::stmt
 {
-  class Return : public Base
+  class Return final : public Base
   {
   public:
     explicit Return(

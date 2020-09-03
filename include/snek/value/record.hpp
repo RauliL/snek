@@ -32,7 +32,7 @@
 
 namespace snek::value
 {
-  class Record : public Base
+  class Record final : public Base
   {
   public:
     using key_type = std::u32string;

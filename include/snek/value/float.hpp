@@ -29,7 +29,7 @@
 
 namespace snek::value
 {
-  class Float : public Base
+  class Float final : public Base
   {
   public:
     using value_type = double;

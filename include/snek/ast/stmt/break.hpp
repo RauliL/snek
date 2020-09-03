@@ -29,7 +29,7 @@
 
 namespace snek::ast::stmt
 {
-  class Break : public Base
+  class Break final : public Base
   {
   public:
     explicit Break(const Position& position);

@@ -38,7 +38,7 @@ namespace snek
   class Interpreter;
   class Parameter;
 
-  namespace ast { class Position; }
+  namespace ast { struct Position; }
 
   class Message
   {

@@ -46,7 +46,7 @@ namespace snek::ast::import
     ) const = 0;
   };
 
-  class Named : public Specifier
+  class Named final : public Specifier
   {
   public:
     explicit Named(
@@ -76,7 +76,7 @@ namespace snek::ast::import
     const std::optional<std::u32string> m_alias;
   };
 
-  class Star : public Specifier
+  class Star final : public Specifier
   {
   public:
     explicit Star(

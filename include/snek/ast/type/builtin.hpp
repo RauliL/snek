@@ -29,7 +29,7 @@
 
 namespace snek::ast::type
 {
-  class Builtin : public Base
+  class Builtin final : public Base
   {
   public:
     enum class Kind

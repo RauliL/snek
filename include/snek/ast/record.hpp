@@ -66,7 +66,7 @@ namespace snek::ast::record
     ) const;
   };
 
-  class Named : public Field
+  class Named final : public Field
   {
   public:
     explicit Named(
@@ -96,7 +96,7 @@ namespace snek::ast::record
     const std::shared_ptr<expr::RValue> m_value_expression;
   };
 
-  class Expr : public Field
+  class Expr final : public Field
   {
   public:
     explicit Expr(
@@ -126,7 +126,7 @@ namespace snek::ast::record
     const std::shared_ptr<expr::RValue> m_value_expression;
   };
 
-  class Var : public Field
+  class Var final : public Field
   {
   public:
     explicit Var(const Position& position, const std::u32string& name);
@@ -152,7 +152,7 @@ namespace snek::ast::record
     const std::u32string m_name;
   };
 
-  class Spread : public Field
+  class Spread final : public Field
   {
   public:
     explicit Spread(

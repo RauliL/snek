@@ -31,7 +31,7 @@
 
 namespace snek::value
 {
-  class Str : public Base
+  class Str final : public Base
   {
   public:
     using value_type = std::u32string;

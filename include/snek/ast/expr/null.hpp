@@ -29,7 +29,7 @@
 
 namespace snek::ast::expr
 {
-  class Null : public RValue
+  class Null final : public RValue
   {
   public:
     explicit Null(const Position& position);

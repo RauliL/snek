@@ -29,7 +29,7 @@
 
 namespace snek::value
 {
-  class Null : public Base
+  class Null final : public Base
   {
   public:
     explicit Null();
