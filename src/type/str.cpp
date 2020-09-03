@@ -23,46 +23,32 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
-
-#include <memory>
-#include <string>
-
-namespace snek::value { class Base; }
+#include <snek/cst.hpp>
+#include <snek/type/str.hpp>
+#include <snek/value/str.hpp>
 
 namespace snek::type
 {
-  enum class Kind
+  Str::Str(const std::u32string& value)
+    : m_value(value) {}
+
+  bool
+  Str::matches(const value::Ptr& value) const
   {
-    Any,
-    Func,
-    Intersection,
-    List,
-    Primitive,
-    Record,
-    Str,
-    Tuple,
-    Union,
-  };
+    return value->kind() == value::Kind::Str &&
+      !std::static_pointer_cast<value::Str>(value)->value().compare(m_value);
+  }
 
-  class Base
+  bool
+  Str::matches(const Ptr& type) const
   {
-  public:
-    explicit Base();
+    return type->kind() == Kind::Str &&
+      !std::static_pointer_cast<Str>(type)->value().compare(m_value);
+  }
 
-    virtual Kind kind() const = 0;
-
-    virtual bool matches(const std::shared_ptr<value::Base>& value) const = 0;
-
-    virtual bool matches(const std::shared_ptr<Base>& type) const = 0;
-
-    virtual std::u32string to_string() const = 0;
-
-    Base(const Base&&) = delete;
-    Base(Base&&) = delete;
-    void operator=(const Base&) = delete;
-    void operator=(Base&&) = delete;
-  };
-
-  using Ptr = std::shared_ptr<Base>;
+  std::u32string
+  Str::to_string() const
+  {
+    return cst::stringify(m_value);
+  }
 }
