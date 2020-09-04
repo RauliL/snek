@@ -42,7 +42,7 @@ namespace snek::api::list
   static result_type
   func_isEmpty(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::List>(U"input");
+    const auto& input = message.at<value::List>(0);
 
     return result_type::ok(interpreter.bool_value(input->elements().empty()));
   }
@@ -55,7 +55,7 @@ namespace snek::api::list
   static result_type
   func_length(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::List>(U"input");
+    const auto& input = message.at<value::List>(0);
 
     return result_type::ok(make_int(input->elements().size()));
   }
@@ -68,7 +68,7 @@ namespace snek::api::list
   static result_type
   func_reverse(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::List>(U"input");
+    const auto& input = message.at<value::List>(0);
 
     return result_type::ok(make_list(input->rbegin(), input->rend()));
   }
@@ -82,8 +82,8 @@ namespace snek::api::list
   static result_type
   func_includes(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::List>(U"input");
-    const auto& searched_element = message.get<value::Base>(U"element");
+    const auto& input = message.at<value::List>(0);
+    const auto& searched_element = message.at<value::Base>(1);
 
     for (const auto& element : *input)
     {
@@ -105,12 +105,12 @@ namespace snek::api::list
   static result_type
   func_forEach(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::List>(U"input");
-    const auto& func = message.get<value::Func>(U"func");
+    const auto& input = message.at<value::List>(0);
+    const auto& func = message.at<value::Func>(1);
 
     for (const auto& element : *input)
     {
-      const auto result = func->call(interpreter, { element });
+      const auto result = func->send(interpreter, { element });
 
       if (!result)
       {
@@ -130,13 +130,13 @@ namespace snek::api::list
   static result_type
   func_filter(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::List>(U"input");
-    const auto& func = message.get<value::Func>(U"func");
+    const auto& input = message.at<value::List>(0);
+    const auto& func = message.at<value::Func>(1);
     value::List::container_type output;
 
     for (const auto& element : *input)
     {
-      const auto result = func->call(interpreter, { element });
+      const auto result = func->send(interpreter, { element });
 
       if (!result)
       {
@@ -169,13 +169,13 @@ namespace snek::api::list
   static result_type
   func_map(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::List>(U"input");
-    const auto& func = message.get<value::Func>(U"func");
+    const auto& input = message.at<value::List>(0);
+    const auto& func = message.at<value::Func>(1);
     value::List::container_type output;
 
     for (const auto& element : *input)
     {
-      const auto result = func->call(interpreter, { element });
+      const auto result = func->send(interpreter, { element });
 
       if (!result)
       {
