@@ -43,9 +43,7 @@ namespace snek::api::debug
   static result_type
   func_toString(Interpreter& interpreter, const Message& message)
   {
-    return result_type::ok(make_str(
-      message.get<value::Base>(U"input")->to_string()
-    ));
+    return result_type::ok(make_str(message.at(0)->to_string()));
   }
 
   Scope

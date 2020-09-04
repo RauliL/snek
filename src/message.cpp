@@ -24,24 +24,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <snek/message.hpp>
-#include <snek/parameter.hpp>
-#include <snek/type/base.hpp>
 
 namespace snek
 {
-  Message::Message(const container_type& arguments)
-    : m_arguments(arguments) {}
+  Message::Message(const container_type& args)
+    : m_args(args) {}
 
   Message::Message(const Message& that)
-    : m_arguments(that.m_arguments) {}
+    : m_args(that.m_args) {}
 
   Message::Message(Message&& that)
-    : m_arguments(std::move(that.m_arguments)) {}
+    : m_args(std::move(that.m_args)) {}
 
   Message&
   Message::operator=(const Message& that)
   {
-    m_arguments = that.m_arguments;
+    m_args = that.m_args;
 
     return *this;
   }
@@ -49,46 +47,8 @@ namespace snek
   Message&
   Message::operator=(Message&& that)
   {
-    m_arguments = std::move(that.m_arguments);
+    m_args = std::move(that.m_args);
 
     return *this;
-  }
-
-  Message::result_type
-  Message::create(
-    const std::vector<Parameter>& parameters,
-    const std::vector<value::Ptr>& arguments,
-    const Interpreter& interpreter,
-    const std::optional<ast::Position>& position
-  )
-  {
-    container_type container;
-
-    if (parameters.size() > arguments.size())
-    {
-      return result_type::error({
-        position,
-        U"Not enough arguments."
-      });
-    }
-    for (std::size_t i = 0; i < parameters.size(); ++i)
-    {
-      const auto& parameter = parameters[i];
-      const auto& argument = arguments[i];
-
-      if (!parameter.type()->matches(argument))
-      {
-        return result_type::error({
-          position,
-          argument->type(interpreter)->to_string() +
-          U" cannot be assigned to " +
-          parameter.type()->to_string() +
-          U"."
-        });
-      }
-      container[parameter.name()] = argument;
-    }
-
-    return result_type::ok(Message(container));
   }
 }

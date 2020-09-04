@@ -45,7 +45,7 @@ namespace snek::api::str
   static result_type
   func_isEmpty(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::Str>(U"input");
+    const auto& input = message.at<value::Str>(0);
 
     return result_type::ok(interpreter.bool_value(input->value().empty()));
   }
@@ -58,7 +58,7 @@ namespace snek::api::str
   static result_type
   func_length(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::Str>(U"input");
+    const auto& input = message.at<value::Str>(0);
 
     return result_type::ok(make_int(input->value().length()));
   }
@@ -71,7 +71,7 @@ namespace snek::api::str
   static result_type
   func_reverse(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::Str>(U"input");
+    const auto& input = message.at<value::Str>(0);
 
     return result_type::ok(make_str(input->rbegin(), input->rend()));
   }
@@ -84,8 +84,8 @@ namespace snek::api::str
   static result_type
   func_repeat(Interpreter& interpreter, const Message& message)
   {
-    const auto& times = message.get<value::Int>(U"times");
-    const auto& input = message.get<value::Str>(U"input");
+    const auto& times = message.at<value::Int>(0);
+    const auto& input = message.at<value::Str>(1);
     std::u32string result;
 
     result.reserve(times->value());
@@ -105,7 +105,7 @@ namespace snek::api::str
   static result_type
   func_concat(Interpreter& interpreter, const Message& message)
   {
-    const auto& list = message.get<value::List>(U"list");
+    const auto& list = message.at<value::List>(0);
     std::u32string result;
 
     for (const auto& element : *list)
@@ -124,7 +124,7 @@ namespace snek::api::str
   static result_type
   func_toUpper(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::Str>(U"input");
+    const auto& input = message.at<value::Str>(0);
     std::u32string result;
 
     result.reserve(input->value().length());
@@ -144,7 +144,7 @@ namespace snek::api::str
   static result_type
   func_toLower(Interpreter& interpreter, const Message& message)
   {
-    const auto& input = message.get<value::Str>(U"input");
+    const auto& input = message.at<value::Str>(0);
     std::u32string result;
 
     result.reserve(input->value().length());

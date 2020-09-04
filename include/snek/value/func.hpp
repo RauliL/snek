@@ -32,15 +32,14 @@
 #include <peelo/result.hpp>
 
 #include <snek/error.hpp>
+#include <snek/message.hpp>
 #include <snek/parameter.hpp>
 #include <snek/scope.hpp>
 #include <snek/type/base.hpp>
-#include <snek/value/base.hpp>
 
 namespace snek
 {
   class Interpreter;
-  class Message;
 }
 
 namespace snek::ast::stmt
@@ -95,11 +94,20 @@ namespace snek::value
       return m_enclosing_scope;
     }
 
-    result_type call(
+    result_type send(
       Interpreter& interpreter,
-      const std::vector<Ptr>& arguments,
+      const Message& message,
       const std::optional<ast::Position>& position = std::nullopt
     ) const;
+
+    inline result_type send(
+      Interpreter& interpreter,
+      const Message::container_type& args,
+      const std::optional<ast::Position>& position = std::nullopt
+    ) const
+    {
+      return send(interpreter, Message(args), position);
+    }
 
     std::shared_ptr<type::Base> type(const Interpreter& interpreter) const;
 

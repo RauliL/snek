@@ -43,41 +43,54 @@ namespace snek::value
     , m_enclosing_scope(enclosing_scope) {}
 
   Func::result_type
-  Func::call(
+  Func::send(
     Interpreter& interpreter,
-    const std::vector<value::Ptr>& arguments,
+    const Message& message,
     const std::optional<ast::Position>& position
   ) const
   {
-    const auto message = Message::create(
-      m_parameters,
-      arguments,
-      interpreter,
-      position
-    );
+    const auto& args = message.args();
 
-    if (!message)
+    if (m_parameters.size() > args.size())
     {
-      return result_type::error(message.error());
+      return result_type::error({
+        position,
+        U"Not enough arguments."
+      });
     }
-    else if (!std::holds_alternative<callback_type>(m_body))
+    for (std::size_t i = 0; i < m_parameters.size(); ++i)
     {
-      Scope scope(
-        m_enclosing_scope
-          ? std::make_shared<Scope>(*m_enclosing_scope)
-          : nullptr
-      );
+      const auto& param = m_parameters[i];
+      const auto& arg = args[i];
+
+      if (!param.type()->matches(arg))
+      {
+        return result_type::error({
+          position,
+          arg->type(interpreter)->to_string() +
+          U" cannot be assigned to " +
+          param.type()->to_string() +
+          U"."
+        });
+      }
+    }
+    if (!std::holds_alternative<callback_type>(m_body))
+    {
       const auto body = std::get<std::shared_ptr<ast::stmt::Base>>(m_body);
+      Scope scope(m_enclosing_scope
+        ? std::make_shared<Scope>(*m_enclosing_scope)
+        : nullptr
+      );
       ast::stmt::ExecContext context;
 
-      for (const auto& argument : message.value())
+      for (std::size_t i = 0; i < m_parameters.size(); ++i)
       {
-        if (!scope.add_variable(argument.first, argument.second, false))
+        if (!scope.add_variable(m_parameters[i].name(), args[i]))
         {
           return result_type::error({
             body->position(),
             U"Variable `" +
-            argument.first +
+            m_parameters[i].name() +
             U"' has already been defined."
           });
         }
@@ -111,7 +124,7 @@ namespace snek::value
       return result_type::ok(interpreter.null_value());
     }
 
-    return std::get<callback_type>(m_body)(interpreter, message.value());
+    return std::get<callback_type>(m_body)(interpreter, message);
   }
 
   std::shared_ptr<type::Base>

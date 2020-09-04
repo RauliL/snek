@@ -41,7 +41,7 @@ namespace snek::ast::expr
   Call::eval(Interpreter& interpreter, const Scope& scope) const
   {
     const auto callee = m_callee->eval(interpreter, scope);
-    std::vector<value::Ptr> arguments;
+    Message::container_type arguments;
 
     if (!callee)
     {
@@ -67,7 +67,7 @@ namespace snek::ast::expr
       arguments.push_back(result.value());
     }
 
-    return std::static_pointer_cast<value::Func>(callee.value())->call(
+    return std::static_pointer_cast<value::Func>(callee.value())->send(
       interpreter,
       arguments,
       position()

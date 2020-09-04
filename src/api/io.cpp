@@ -36,7 +36,7 @@ namespace snek::api::io
   func_print(Interpreter& interpreter, const Message& message)
   {
     using peelo::unicode::encoding::utf8::encode;
-    const auto input = message.get<value::Str>(U"input");
+    const auto input = message.at<value::Str>(0);
 
     std::cout << encode(input->value()) << std::endl;
 

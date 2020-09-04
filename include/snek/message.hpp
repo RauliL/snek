@@ -25,82 +25,108 @@
  */
 #pragma once
 
-#include <unordered_map>
 #include <vector>
 
-#include <peelo/result.hpp>
-
-#include <snek/error.hpp>
 #include <snek/value/base.hpp>
 
 namespace snek
 {
-  class Interpreter;
-  class Parameter;
-
-  namespace ast { struct Position; }
-
   class Message
   {
   public:
-    using key_type = std::u32string;
-    using mapped_type = value::Ptr;
-    using container_type = std::unordered_map<key_type, mapped_type>;
-    using value_type = container_type::value_type;
+    using value_type = std::shared_ptr<value::Base>;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using container_type = std::vector<value_type>;
+    using size_type = container_type::size_type;
     using iterator = container_type::iterator;
     using const_iterator = container_type::const_iterator;
-    using result_type = peelo::result<Message, Error>;
+    using reverse_iterator = container_type::reverse_iterator;
+    using const_reverse_iterator = container_type::const_reverse_iterator;
 
-    Message(const container_type& arguments = container_type());
+    Message(const container_type& args = container_type());
     Message(const Message& that);
     Message(Message&& that);
     Message& operator=(const Message& that);
     Message& operator=(Message&& that);
 
-    static result_type create(
-      const std::vector<Parameter>& parameters,
-      const std::vector<value::Ptr>& arguments,
-      const Interpreter& interpreter,
-      const std::optional<ast::Position>& position = std::nullopt
-    );
-
-    inline container_type& arguments()
+    inline container_type args()
     {
-      return m_arguments;
+      return m_args;
     }
 
-    inline const container_type& arguments() const
+    inline const container_type args() const
     {
-      return m_arguments;
+      return m_args;
     }
 
-    template<class T>
-    inline std::shared_ptr<T> get(const std::u32string& name) const
+    template<class T = value::Base>
+    inline std::shared_ptr<T> at(size_type index) const
     {
-      return std::static_pointer_cast<T>(m_arguments.find(name)->second);
+      return std::static_pointer_cast<T>(m_args[index]);
     }
 
     inline iterator begin()
     {
-      return std::begin(m_arguments);
+      return std::begin(m_args);
     }
 
     inline const_iterator begin() const
     {
-      return std::begin(m_arguments);
+      return std::begin(m_args);
+    }
+
+    inline const_iterator cbegin() const
+    {
+      return std::cbegin(m_args);
     }
 
     inline iterator end()
     {
-      return std::end(m_arguments);
+      return std::end(m_args);
     }
 
     inline const_iterator end() const
     {
-      return std::end(m_arguments);
+      return std::end(m_args);
+    }
+
+    inline const_iterator cend() const
+    {
+      return std::cend(m_args);
+    }
+
+    inline reverse_iterator rbegin()
+    {
+      return std::rbegin(m_args);
+    }
+
+    inline const_reverse_iterator rbegin() const
+    {
+      return std::rbegin(m_args);
+    }
+
+    inline const_reverse_iterator crbegin() const
+    {
+      return std::crbegin(m_args);
+    }
+
+    inline reverse_iterator rend()
+    {
+      return std::rend(m_args);
+    }
+
+    inline const_reverse_iterator rend() const
+    {
+      return std::rend(m_args);
+    }
+
+    inline const_reverse_iterator crend() const
+    {
+      return std::crend(m_args);
     }
 
   private:
-    container_type m_arguments;
+    container_type m_args;
   };
 }
