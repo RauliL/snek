@@ -212,6 +212,26 @@ namespace snek::parser::type
   }
 
   static result_type
+  parse_str_type(State& state)
+  {
+    const auto position = state.current->position();
+    std::u32string value;
+
+    if (!state.peek(cst::Kind::Str))
+    {
+      return result_type::error({
+        position,
+        U"Unexpected " +
+        cst::to_string(state.current->kind()) +
+        U"; Missing string type."
+      });
+    }
+    value = *state.current++->text();
+
+    return result_type::ok(std::make_shared<ast::type::Str>(position, value));
+  }
+
+  static result_type
   parse_intersection_type(
     State& state,
     const std::shared_ptr<ast::type::Base>& first_type
@@ -356,10 +376,15 @@ namespace snek::parser::type
         break;
 
       case cst::Kind::Str:
-        type = std::make_shared<ast::type::Str>(
-          state.current->position(),
-          *state.current++->text()
-        );
+        {
+          const auto result = parse_str_type(state);
+
+          if (!result)
+          {
+            return result;
+          }
+          type = result.value();
+        }
         break;
 
       default:
@@ -381,13 +406,30 @@ namespace snek::parser::type
       }
       type = std::make_shared<ast::type::List>(type->position(), type);
     }
-    if (state.peek(cst::Kind::And))
+    for (;;)
     {
-      return parse_intersection_type(state, type);
-    }
-    else if (state.peek(cst::Kind::Or))
-    {
-      return parse_union_type(state, type);
+      if (state.peek(cst::Kind::And))
+      {
+        const auto result = parse_intersection_type(state, type);
+
+        if (!result)
+        {
+          return result;
+        }
+        type = result.value();
+      }
+      else if (state.peek(cst::Kind::Or))
+      {
+        const auto result = parse_union_type(state, type);
+
+        if (!result)
+        {
+          return result;
+        }
+        type = result.value();
+      } else {
+        break;
+      }
     }
 
     return result_type::ok(type);
