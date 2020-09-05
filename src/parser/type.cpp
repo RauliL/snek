@@ -38,18 +38,18 @@ namespace snek::parser::type
 {
   using builtin_types_mapping = std::unordered_map<
     std::u32string,
-    ast::type::Builtin::Kind
+    ast::type::BuiltinKind
   >;
 
   static const builtin_types_mapping builtin_types =
   {
-    { U"Any", ast::type::Builtin::Kind::Any },
-    { U"Bool", ast::type::Builtin::Kind::Bool },
-    { U"Float", ast::type::Builtin::Kind::Float },
-    { U"Int", ast::type::Builtin::Kind::Int },
-    { U"Num", ast::type::Builtin::Kind::Num },
-    { U"Str", ast::type::Builtin::Kind::Str },
-    { U"Void", ast::type::Builtin::Kind::Void },
+    { U"Any", ast::type::BuiltinKind::Any },
+    { U"Bool", ast::type::BuiltinKind::Bool },
+    { U"Float", ast::type::BuiltinKind::Float },
+    { U"Int", ast::type::BuiltinKind::Int },
+    { U"Num", ast::type::BuiltinKind::Num },
+    { U"Str", ast::type::BuiltinKind::Str },
+    { U"Void", ast::type::BuiltinKind::Void },
   };
 
   static result_type

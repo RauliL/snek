@@ -41,6 +41,11 @@ namespace snek::ast::type
       const std::optional<std::shared_ptr<Base>>& return_type = std::nullopt
     );
 
+    inline Kind kind() const
+    {
+      return Kind::Func;
+    }
+
     inline const std::vector<std::shared_ptr<Parameter>>& parameters() const
     {
       return m_parameters;

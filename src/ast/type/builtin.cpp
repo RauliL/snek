@@ -28,34 +28,34 @@
 
 namespace snek::ast::type
 {
-  Builtin::Builtin(const Position& position, Kind kind)
+  Builtin::Builtin(const Position& position, BuiltinKind builtin_kind)
     : Base(position)
-    , m_kind(kind) {}
+    , m_builtin_kind(builtin_kind) {}
 
   Base::result_type
   Builtin::eval(const Interpreter& interpreter, const Scope&) const
   {
-    switch (m_kind)
+    switch (m_builtin_kind)
     {
-      case Kind::Any:
+      case BuiltinKind::Any:
         return result_type::ok(interpreter.any_type());
 
-      case Kind::Bool:
+      case BuiltinKind::Bool:
         return result_type::ok(interpreter.bool_type());
 
-      case Kind::Float:
+      case BuiltinKind::Float:
         return result_type::ok(interpreter.float_type());
 
-      case Kind::Int:
+      case BuiltinKind::Int:
         return result_type::ok(interpreter.int_type());
 
-      case Kind::Num:
+      case BuiltinKind::Num:
         return result_type::ok(interpreter.num_type());
 
-      case Kind::Str:
+      case BuiltinKind::Str:
         return result_type::ok(interpreter.str_type());
 
-      case Kind::Void:
+      case BuiltinKind::Void:
         return result_type::ok(interpreter.void_type());
     }
 

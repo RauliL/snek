@@ -44,6 +44,11 @@ namespace snek::ast::type
       const container_type& types
     );
 
+    inline Kind kind() const
+    {
+      return Kind::Union;
+    }
+
     inline const container_type& types() const
     {
       return m_types;

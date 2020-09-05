@@ -29,30 +29,35 @@
 
 namespace snek::ast::type
 {
+  enum class BuiltinKind
+  {
+    Any,
+    Bool,
+    Float,
+    Int,
+    Num,
+    Str,
+    Void,
+  };
+
   class Builtin final : public Base
   {
   public:
-    enum class Kind
-    {
-      Any,
-      Bool,
-      Float,
-      Int,
-      Num,
-      Str,
-      Void,
-    };
-
-    explicit Builtin(const Position& position, Kind kind);
+    explicit Builtin(const Position& position, BuiltinKind builtin_kind);
 
     inline Kind kind() const
     {
-      return m_kind;
+      return Kind::Builtin;
+    }
+
+    inline BuiltinKind builtin_kind() const
+    {
+      return m_builtin_kind;
     }
 
     result_type eval(const Interpreter& interpreter, const Scope& scope) const;
 
   private:
-    const Kind m_kind;
+    const BuiltinKind m_builtin_kind;
   };
 }

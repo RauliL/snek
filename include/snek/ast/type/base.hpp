@@ -43,6 +43,19 @@ namespace snek::type
 
 namespace snek::ast::type
 {
+  enum class Kind
+  {
+    Builtin,
+    Func,
+    Intersection,
+    List,
+    Named,
+    Record,
+    Str,
+    Tuple,
+    Union,
+  };
+
   class Base : public Node
   {
   public:
@@ -52,6 +65,8 @@ namespace snek::ast::type
     >;
 
     explicit Base(const Position& position);
+
+    virtual Kind kind() const = 0;
 
     virtual result_type eval(
       const Interpreter& interpreter,

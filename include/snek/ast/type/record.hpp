@@ -46,6 +46,11 @@ namespace snek::ast::type
       const container_type& fields
     );
 
+    inline Kind kind() const
+    {
+      return Kind::Record;
+    }
+
     inline const container_type& fields() const
     {
       return m_fields;

@@ -37,6 +37,11 @@ namespace snek::ast::type
       const std::shared_ptr<Base>& element_type
     );
 
+    inline Kind kind() const
+    {
+      return Kind::List;
+    }
+
     inline const std::shared_ptr<Base>& element_type() const
     {
       return m_element_type;

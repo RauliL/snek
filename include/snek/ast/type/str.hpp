@@ -34,6 +34,11 @@ namespace snek::ast::type
   public:
     explicit Str(const Position& position, const std::u32string& value);
 
+    inline Kind kind() const
+    {
+      return Kind::Str;
+    }
+
     inline const std::u32string& value() const
     {
       return m_value;

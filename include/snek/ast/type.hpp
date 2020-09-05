@@ -26,27 +26,12 @@
 #pragma once
 
 #include <snek/ast/type/base.hpp>
-
-namespace snek::ast::type
-{
-  class Named final : public Base
-  {
-  public:
-    explicit Named(const Position& position, const std::u32string& name);
-
-    inline Kind kind() const
-    {
-      return Kind::Named;
-    }
-
-    inline const std::u32string& name() const
-    {
-      return m_name;
-    }
-
-    result_type eval(const Interpreter& interpreter, const Scope& scope) const;
-
-  private:
-    const std::u32string m_name;
-  };
-}
+#include <snek/ast/type/builtin.hpp>
+#include <snek/ast/type/func.hpp>
+#include <snek/ast/type/intersection.hpp>
+#include <snek/ast/type/list.hpp>
+#include <snek/ast/type/named.hpp>
+#include <snek/ast/type/record.hpp>
+#include <snek/ast/type/str.hpp>
+#include <snek/ast/type/tuple.hpp>
+#include <snek/ast/type/union.hpp>
