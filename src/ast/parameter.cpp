@@ -25,6 +25,7 @@
  */
 #include <snek/ast/parameter.hpp>
 #include <snek/ast/type/base.hpp>
+#include <snek/interpreter.hpp>
 #include <snek/parameter.hpp>
 
 namespace snek::ast
@@ -32,7 +33,7 @@ namespace snek::ast
   Parameter::Parameter(
     const Position& position,
     const std::u32string& name,
-    const std::shared_ptr<type::Base>& type
+    const std::optional<std::shared_ptr<type::Base>>& type
   )
     : Node(position)
     , m_name(name)
@@ -41,13 +42,21 @@ namespace snek::ast
   Parameter::result_type
   Parameter::eval(const Interpreter& interpreter, const Scope& scope) const
   {
-    const auto type = m_type->eval(interpreter, scope);
+    std::shared_ptr<snek::type::Base> type;
 
-    if (!type)
+    if (m_type)
     {
-      return result_type::error(type.error());
+      const auto result = (*m_type)->eval(interpreter, scope);
+
+      if (!result)
+      {
+        return result_type::error(result.error());
+      }
+      type = result.value();
+    } else {
+      type = interpreter.any_type();
     }
 
-    return result_type::ok(snek::Parameter(m_name, type.value()));
+    return result_type::ok(snek::Parameter(m_name, type));
   }
 }

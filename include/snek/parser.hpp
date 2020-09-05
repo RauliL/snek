@@ -45,10 +45,6 @@ namespace snek::parser
     std::vector<std::shared_ptr<ast::stmt::Base>>,
     Error
   >;
-  using parameter_result_type = peelo::result<
-    std::shared_ptr<ast::Parameter>,
-    Error
-  >;
 
   struct State
   {
@@ -84,27 +80,20 @@ namespace snek::parser
     {
       return peek(cst::Kind::LeftParen) && (
         // ():
-        (
-          peek(cst::Kind::RightParen, 1) &&
-          peek(cst::Kind::Colon, 2)
-        ) ||
-        // () -> Type:
-        (
-          peek(cst::Kind::RightParen, 1) &&
-          peek(cst::Kind::Arrow, 2)
-        ) ||
-        // (arg: Type):
-        (
-          peek(cst::Kind::Id, 1) &&
-          peek(cst::Kind::Colon, 2)
-        )
-     );
+        (peek(cst::Kind::RightParen, 1) && peek(cst::Kind::Colon, 2)) ||
+        // () ->
+        (peek(cst::Kind::RightParen, 1) && peek(cst::Kind::Arrow, 2)) ||
+        // () =>
+        (peek(cst::Kind::RightParen, 1) && peek(cst::Kind::FatArrow, 2)) ||
+        // (arg:
+        (peek(cst::Kind::Id, 1) && peek(cst::Kind::Colon, 2)) ||
+        // (arg,
+        (peek(cst::Kind::Id, 1) && peek(cst::Kind::Comma, 2))
+      );
     }
   };
 
   result_type parse(const std::vector<cst::Token>& tokens);
-
-  parameter_result_type parse_parameter(State& state);
 
   std::optional<Error> parse_parameter_list(
     State& state,

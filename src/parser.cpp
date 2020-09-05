@@ -28,6 +28,11 @@
 
 namespace snek::parser
 {
+  using parameter_result_type = peelo::result<
+    std::shared_ptr<ast::Parameter>,
+    Error
+  >;
+
   result_type
   parse(const std::vector<cst::Token>& tokens)
   {
@@ -52,16 +57,20 @@ namespace snek::parser
     return result_type::ok(statements);
   }
 
-  parameter_result_type
-  parse_parameter(State& state)
+  static parameter_result_type
+  parse_parameter(
+    State& state,
+    const std::optional<ast::Position>& original_position
+  )
   {
     ast::Position position;
     std::u32string name;
+    std::optional<std::shared_ptr<ast::type::Base>> type;
 
     if (state.eof())
     {
       return parameter_result_type::error({
-        std::nullopt,
+        original_position,
         U"Unexpected end of input; Missing parameter."
       });
     }
@@ -76,25 +85,21 @@ namespace snek::parser
       });
     }
     name = *state.current++->text();
-    if (!state.peek_read(cst::Kind::Colon))
+    if (state.peek_read(cst::Kind::Colon))
     {
-      return parameter_result_type::error({
-        position,
-        U"Missing `:' after parameter declaration."
-      });
-    }
+      const auto result = type::parse(state, position);
 
-    const auto type = type::parse(state, position);
-
-    if (!type)
-    {
-      return parameter_result_type::error(type.error());
+      if (!result)
+      {
+        return parameter_result_type::error(result.error());
+      }
+      type = result.value();
     }
 
     return parameter_result_type::ok(std::make_shared<ast::Parameter>(
       position,
       name,
-      type.value()
+      type
     ));
   }
 
@@ -134,7 +139,7 @@ namespace snek::parser
       {
         break;
       } else {
-        const auto parameter = parse_parameter(state);
+        const auto parameter = parse_parameter(state, position);
 
         if (!parameter)
         {

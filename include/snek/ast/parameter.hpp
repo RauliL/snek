@@ -52,7 +52,7 @@ namespace snek::ast
     explicit Parameter(
       const Position& position,
       const std::u32string& name,
-      const std::shared_ptr<type::Base>& type
+      const std::optional<std::shared_ptr<type::Base>>& type
     );
 
     inline const std::u32string& name() const
@@ -60,7 +60,7 @@ namespace snek::ast
       return m_name;
     }
 
-    inline const std::shared_ptr<type::Base>& type() const
+    inline const std::optional<std::shared_ptr<type::Base>>& type() const
     {
       return m_type;
     }
@@ -69,6 +69,6 @@ namespace snek::ast
 
   private:
     const std::u32string m_name;
-    const std::shared_ptr<type::Base> m_type;
+    const std::optional<std::shared_ptr<type::Base>> m_type;
   };
 }
