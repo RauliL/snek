@@ -8,6 +8,12 @@ PROJECT(
   LANGUAGES C CXX
 )
 
+OPTION(
+  SNEK_ENABLE_TESTS
+  "Whether to compile test cases or not."
+  ON
+)
+
 INCLUDE(CheckIncludeFile)
 INCLUDE(CheckFunctionExists)
 
@@ -22,8 +28,9 @@ CONFIGURE_FILE(
   ${CMAKE_CURRENT_SOURCE_DIR}/include/snek/config.hpp
 )
 
-ADD_EXECUTABLE(
+ADD_LIBRARY(
   snek
+  STATIC
   src/api.cpp
   src/api/debug.cpp
   src/api/io.cpp
@@ -73,7 +80,6 @@ ADD_EXECUTABLE(
   src/cst.cpp
   src/interpreter.cpp
   src/lexer.cpp
-  src/main.cpp
   src/message.cpp
   src/parameter.cpp
   src/parser.cpp
@@ -82,7 +88,6 @@ ADD_EXECUTABLE(
   src/parser/record.cpp
   src/parser/stmt.cpp
   src/parser/type.cpp
-  src/repl.cpp
   src/scope.cpp
   src/type/any.cpp
   src/type/base.cpp
@@ -112,21 +117,51 @@ TARGET_INCLUDE_DIRECTORIES(
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cget/include>
 )
 
-TARGET_COMPILE_OPTIONS(
-  snek
-  PRIVATE
-    -Wall -Werror
-)
-
 TARGET_COMPILE_FEATURES(
   snek
   PRIVATE
     cxx_std_17
 )
 
+ADD_EXECUTABLE(
+  snek-cli
+  src/main.cpp
+  src/repl.cpp
+)
+
+TARGET_INCLUDE_DIRECTORIES(
+  snek-cli
+  PRIVATE
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/cget/include>
+)
+
+TARGET_COMPILE_FEATURES(
+  snek-cli
+  PRIVATE
+    cxx_std_17
+)
+
+TARGET_LINK_LIBRARIES(
+  snek-cli
+  PRIVATE
+    snek
+)
+
+SET_TARGET_PROPERTIES(
+  snek-cli
+  PROPERTIES
+    OUTPUT_NAME snek
+)
+
 INSTALL(
   TARGETS
-    snek
+    snek-cli
   RUNTIME DESTINATION
     ${CMAKE_INSTALL_BINDIR}
 )
+
+IF(${SNEK_ENABLE_TESTS})
+  ENABLE_TESTING()
+  ADD_SUBDIRECTORY(tests)
+ENDIF()
