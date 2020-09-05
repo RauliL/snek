@@ -49,10 +49,6 @@ namespace snek::parser
     std::shared_ptr<ast::Parameter>,
     Error
   >;
-  using parameter_list_result_type = peelo::result<
-    std::vector<std::shared_ptr<ast::Parameter>>,
-    Error
-  >;
 
   struct State
   {
@@ -110,7 +106,11 @@ namespace snek::parser
 
   parameter_result_type parse_parameter(State& state);
 
-  parameter_list_result_type parse_parameter_list(State& state);
+  std::optional<Error> parse_parameter_list(
+    State& state,
+    std::vector<std::shared_ptr<ast::Parameter>>& list,
+    const std::optional<ast::Position>& position = std::nullopt
+  );
 }
 
 namespace snek::parser::expr
@@ -146,7 +146,10 @@ namespace snek::parser::type
 {
   using result_type = peelo::result<std::shared_ptr<ast::type::Base>, Error>;
 
-  result_type parse(State& state, const ast::Position& position);
+  result_type parse(
+    State& state,
+    const std::optional<ast::Position>& position = std::nullopt
+  );
 }
 
 namespace snek::parser::record

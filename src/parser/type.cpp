@@ -76,13 +76,13 @@ namespace snek::parser::type
   static result_type
   parse_func_type(State& state)
   {
-    const auto position = state.current++->position();
-    const auto parameters = parse_parameter_list(state);
+    const auto position = state.current->position();
+    std::vector<std::shared_ptr<ast::Parameter>> parameters;
     std::optional<std::shared_ptr<ast::type::Base>> return_type;
 
-    if (!parameters)
+    if (const auto error = parse_parameter_list(state, parameters, position))
     {
-      return result_type::error(parameters.error());
+      return result_type::error(*error);
     }
     if (state.peek_read(cst::Kind::Arrow))
     {
@@ -97,7 +97,7 @@ namespace snek::parser::type
 
     return result_type::ok(std::make_shared<ast::type::Func>(
       position,
-      parameters.value(),
+      parameters,
       return_type
     ));
   }
@@ -294,7 +294,7 @@ namespace snek::parser::type
   }
 
   result_type
-  parse(State& state, const ast::Position& position)
+  parse(State& state, const std::optional<ast::Position>& position)
   {
     std::shared_ptr<ast::type::Base> type;
 

@@ -98,23 +98,23 @@ namespace snek::parser
     ));
   }
 
-  parameter_list_result_type
-  parse_parameter_list(State& state)
+  std::optional<Error>
+  parse_parameter_list(
+    State& state,
+    std::vector<std::shared_ptr<ast::Parameter>>& list,
+    const std::optional<ast::Position>& position
+  )
   {
-    ast::Position position;
-    std::vector<std::shared_ptr<ast::Parameter>> list;
-
     if (state.eof())
     {
-      return parameter_list_result_type::error({
-        std::nullopt,
+      return std::make_optional<Error>({
+        position,
         U"Unexpected end of input; Missing parameter list."
       });
     }
-    position = state.current->position();
     if (!state.peek_read(cst::Kind::LeftParen))
     {
-      return parameter_list_result_type::error({
+      return std::make_optional<Error>({
         position,
         U"Unexpected " +
         cst::to_string(state.current->kind()) +
@@ -125,7 +125,7 @@ namespace snek::parser
     {
       if (state.eof())
       {
-        return parameter_list_result_type::error({
+        return std::make_optional<Error>({
           position,
           U"Unterminated parameter list; Missing `)'."
         });
@@ -138,13 +138,13 @@ namespace snek::parser
 
         if (!parameter)
         {
-          return parameter_list_result_type::error(parameter.error());
+          return parameter.error();
         }
         list.push_back(parameter.value());
         if (!state.peek(cst::Kind::Comma) &&
             !state.peek(cst::Kind::RightParen))
         {
-          return parameter_list_result_type::error({
+          return std::make_optional<Error>({
             parameter.value()->position(),
             U"Unterminated parameter list; Missing `)'."
           });
@@ -153,6 +153,6 @@ namespace snek::parser
       }
     }
 
-    return parameter_list_result_type::ok(list);
+    return std::nullopt;
   }
 }
