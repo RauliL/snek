@@ -54,7 +54,7 @@ namespace snek::type
     }
 
   private:
-    const Ptr& m_element_type;
+    const Ptr m_element_type;
   };
 
   using ListPtr = std::shared_ptr<List>;

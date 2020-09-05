@@ -221,7 +221,10 @@ namespace snek::api::list
       {
         U"includes",
         func_includes,
-        { Parameter(U"input", list_type) },
+        {
+          Parameter(U"input", list_type),
+          Parameter(U"element", any_type),
+        },
         bool_type
       },
       {
