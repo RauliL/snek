@@ -24,6 +24,7 @@ CONFIGURE_FILE(
 
 ADD_EXECUTABLE(
   snek
+  src/api.cpp
   src/api/debug.cpp
   src/api/io.cpp
   src/api/list.cpp

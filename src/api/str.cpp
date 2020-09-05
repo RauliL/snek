@@ -26,8 +26,8 @@
 #include <peelo/unicode/ctype/tolower.hpp>
 #include <peelo/unicode/ctype/toupper.hpp>
 
+#include <snek/api.hpp>
 #include <snek/interpreter.hpp>
-#include <snek/message.hpp>
 #include <snek/type/utils.hpp>
 #include <snek/value/utils.hpp>
 
@@ -163,90 +163,52 @@ namespace snek::api::str
     const auto& str_type = interpreter.str_type();
     const auto& int_type = interpreter.int_type();
 
-    return Scope(
-      {},
+    return create_module({
       {
+        U"isEmpty",
+        func_isEmpty,
+        { Parameter(U"input", str_type) },
+        interpreter.bool_type()
+      },
+      {
+        U"length",
+        func_length,
+        { Parameter(U"input", str_type) },
+        int_type
+      },
+      {
+        U"reverse",
+        func_reverse,
+        { Parameter(U"input", str_type) },
+        str_type
+      },
+      {
+        U"repeat",
+        func_repeat,
         {
-          U"isEmpty",
-          {
-            make_func(
-              { Parameter(U"input", str_type) },
-              func_isEmpty,
-              interpreter.bool_type()
-            ),
-            true
-          }
+          Parameter(U"times", int_type),
+          Parameter(U"input", str_type),
         },
-        {
-          U"length",
-          {
-            make_func(
-              { Parameter(U"input", str_type) },
-              func_length,
-              int_type
-            ),
-            true
-          }
-        },
-        {
-          U"reverse",
-          {
-            make_func(
-              { Parameter(U"input", str_type) },
-              func_reverse,
-              str_type
-            ),
-            true
-          }
-        },
-        {
-          U"repeat",
-          {
-            make_func(
-              {
-                Parameter(U"times", int_type),
-                Parameter(U"input", str_type)
-              },
-              func_repeat,
-              str_type
-            ),
-            true
-          }
-        },
-        {
-          U"concat",
-          {
-            make_func(
-              { Parameter(U"list", make_list_type(str_type)) },
-              func_concat,
-              str_type
-            ),
-            true
-          }
-        },
-        {
-          U"toUpper",
-          {
-            make_func(
-              { Parameter(U"input", str_type) },
-              func_toUpper,
-              str_type
-            ),
-            true
-          }
-        },
-        {
-          U"toLower",
-          {
-            make_func(
-              { Parameter(U"input", str_type) },
-              func_toLower,
-              str_type
-            ),
-            true
-          }
-        },
-      }
-    );
+        str_type
+      },
+      {
+        U"concat",
+        func_concat,
+        { Parameter(U"list", make_list_type(str_type)) },
+        str_type
+      },
+      {
+        U"toUpper",
+        func_toUpper,
+        { Parameter(U"input", str_type) },
+        str_type
+      },
+      {
+        U"toLower",
+        func_toLower,
+        { Parameter(U"input", str_type) },
+        str_type
+      },
+    });
   }
 }

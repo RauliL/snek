@@ -23,38 +23,30 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <snek/api.hpp>
-#include <snek/interpreter.hpp>
-#include <snek/value/utils.hpp>
+#pragma once
 
-namespace snek::api::debug
+#include <snek/value/func.hpp>
+
+namespace snek::api
 {
-  using namespace snek::value::utils;
-  using result_type = value::Func::result_type;
-
-  /**
-   * Converts any kind of value into a string.
-   *
-   *     toString(1) == "1"
-   *     toString([1, 2]) == "[1, 2]"
-   *     toString("foo") == "\"foo\""
-   */
-  static result_type
-  func_toString(Interpreter& interpreter, const Message& message)
+  struct FuncDefinition
   {
-    return result_type::ok(make_str(message.at(0)->to_string()));
-  }
+    const char32_t* name;
+    value::Func::callback_type callback;
+    std::vector<Parameter> parameters;
+    std::shared_ptr<type::Base> return_type;
+  };
 
-  Scope
-  create(const Interpreter& interpreter)
+  struct TypeDefinition
   {
-    return create_module({
-      {
-        U"toString",
-        func_toString,
-        { Parameter(U"input", interpreter.any_type()) },
-        interpreter.str_type()
-      }
-    });
-  }
+    const char32_t* name;
+    std::shared_ptr<type::Base> type;
+  };
+
+  Scope create_module(
+    const std::vector<FuncDefinition>& functions
+      = std::vector<FuncDefinition>(),
+    const std::vector<TypeDefinition>& types
+      = std::vector<TypeDefinition>()
+  );
 }

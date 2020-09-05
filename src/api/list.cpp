@@ -23,8 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <snek/api.hpp>
 #include <snek/interpreter.hpp>
-#include <snek/message.hpp>
 #include <snek/value/utils.hpp>
 #include <snek/type/utils.hpp>
 
@@ -199,110 +199,67 @@ namespace snek::api::list
       any_type
     );
 
-    return Scope(
-      {},
+    return create_module({
       {
+        U"isEmpty",
+        func_isEmpty,
+        { Parameter(U"input", list_type) },
+        bool_type
+      },
+      {
+        U"length",
+        func_length,
+        { Parameter(U"input", list_type) },
+        interpreter.int_type()
+      },
+      {
+        U"reverse",
+        func_reverse,
+        { Parameter(U"input", list_type) },
+        list_type
+      },
+      {
+        U"includes",
+        func_includes,
+        { Parameter(U"input", list_type) },
+        bool_type
+      },
+      {
+        U"forEach",
+        func_forEach,
         {
-          U"isEmpty",
-          {
-            make_func(
-              { Parameter(U"input", list_type) },
-              func_isEmpty,
+          Parameter(U"input", list_type),
+          Parameter(U"func", func_type),
+        },
+        interpreter.void_type()
+      },
+      {
+        U"filter",
+        func_filter,
+        {
+          Parameter(U"input", list_type),
+          Parameter(
+            U"func",
+            make_func_type(
+              { Parameter(U"element", any_type) },
               bool_type
-            ),
-            true
-          }
+            )
+          ),
         },
+        // TODO: Implement generics at some point.
+        any_type
+      },
+      {
+        U"map",
+        func_map,
         {
-          U"length",
-          {
-            make_func(
-              { Parameter(U"input", list_type) },
-              func_length,
-              interpreter.int_type()
-            ),
-            true
-          }
+          Parameter(U"input", list_type),
+          Parameter(U"func", func_type),
         },
-        {
-          U"reverse",
-          {
-            make_func(
-              { Parameter(U"input", list_type) },
-              func_reverse,
-              list_type
-            ),
-            true
-          }
-        },
-        {
-          U"includes",
-          {
-            make_func(
-              {
-                Parameter(U"input", list_type),
-                Parameter(U"element", any_type),
-              },
-              func_includes,
-              bool_type
-            ),
-            true
-          }
-        },
-        {
-          U"forEach",
-          {
-            make_func(
-              {
-                Parameter(U"input", list_type),
-                Parameter(U"func", func_type),
-              },
-              func_forEach,
-              interpreter.void_type()
-            ),
-            true
-          }
-        },
-        {
-          U"filter",
-          {
-            make_func(
-              {
-                Parameter(U"input", list_type),
-                Parameter(
-                  U"func",
-                  make_func_type(
-                    { Parameter(U"element", any_type) },
-                    bool_type
-                  )
-                ),
-              },
-              func_filter,
-              // TODO: See if we could implement some kind of generics at some
-              // point.
-              any_type
-            ),
-            true
-          },
-        },
-        {
-          U"map",
-          {
-            make_func(
-              {
-                Parameter(U"input", list_type),
-                Parameter(U"func", func_type),
-              },
-              func_map,
-              // TODO: See if we could implement some kind of generics at some
-              // point.
-              any_type
-            ),
-            true
-          }
-        },
-      }
-    );
+        // TODO: Implement generics at some point.
+        any_type
+      },
+    });
   }
 }
 

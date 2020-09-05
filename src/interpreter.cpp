@@ -78,9 +78,9 @@ namespace snek
     , m_num_type(make_primitive_type(type::PrimitiveKind::Num))
     , m_str_type(make_primitive_type(type::PrimitiveKind::Str))
     , m_void_type(make_primitive_type(type::PrimitiveKind::Void))
-    , m_null_value(make_null())
-    , m_true_value(make_bool(true))
-    , m_false_value(make_bool(false))
+    , m_null_value(std::make_shared<value::Null>())
+    , m_true_value(std::make_shared<value::Bool>(true))
+    , m_false_value(std::make_shared<value::Bool>(false))
   {
     m_modules[U"debug"] = api::debug::create(*this);
     m_modules[U"io"] = api::io::create(*this);

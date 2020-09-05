@@ -36,18 +36,6 @@
 
 namespace snek::value::utils
 {
-  inline value::NullPtr
-  make_null()
-  {
-    return std::make_shared<value::Null>();
-  }
-
-  inline value::BoolPtr
-  make_bool(value::Bool::value_type value)
-  {
-    return std::make_shared<value::Bool>(value);
-  }
-
   inline value::FloatPtr
   make_float(value::Float::value_type value)
   {

@@ -24,37 +24,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <snek/api.hpp>
-#include <snek/interpreter.hpp>
-#include <snek/value/utils.hpp>
 
-namespace snek::api::debug
+namespace snek::api
 {
-  using namespace snek::value::utils;
-  using result_type = value::Func::result_type;
-
-  /**
-   * Converts any kind of value into a string.
-   *
-   *     toString(1) == "1"
-   *     toString([1, 2]) == "[1, 2]"
-   *     toString("foo") == "\"foo\""
-   */
-  static result_type
-  func_toString(Interpreter& interpreter, const Message& message)
-  {
-    return result_type::ok(make_str(message.at(0)->to_string()));
-  }
-
   Scope
-  create(const Interpreter& interpreter)
+  create_module(
+    const std::vector<FuncDefinition>& functions,
+    const std::vector<TypeDefinition>& types
+  )
   {
-    return create_module({
-      {
-        U"toString",
-        func_toString,
-        { Parameter(U"input", interpreter.any_type()) },
-        interpreter.str_type()
-      }
-    });
+    Scope::variable_container_type function_definitions;
+    Scope::type_container_type type_definitions;
+
+    for (const auto& func : functions)
+    {
+      function_definitions[func.name] = std::make_pair(
+        std::make_shared<value::Func>(
+          func.parameters,
+          func.callback,
+          func.return_type
+        ),
+        true
+      );
+    }
+    for (const auto& type : types)
+    {
+      type_definitions[type.name] = std::make_pair(type.type, true);
+    }
+
+    return Scope(type_definitions, function_definitions);
   }
 }

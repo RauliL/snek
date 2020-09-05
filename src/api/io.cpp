@@ -23,8 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <snek/api.hpp>
 #include <snek/interpreter.hpp>
-#include <snek/message.hpp>
 #include <snek/value/utils.hpp>
 #include <snek/type/utils.hpp>
 
@@ -49,21 +49,13 @@ namespace snek::api::io
     using namespace snek::type::utils;
     using namespace snek::value::utils;
 
-    return Scope(
-      {},
+    return create_module({
       {
-        {
-          U"print",
-          {
-            make_func(
-              { Parameter(U"input", interpreter.str_type()) },
-              func_print,
-              interpreter.void_type()
-            ),
-            true
-          }
-        },
-      }
-    );
+        U"print",
+        func_print,
+        { Parameter(U"input", interpreter.str_type()) },
+        interpreter.void_type()
+      },
+    });
   }
 }
