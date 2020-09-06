@@ -2,7 +2,7 @@
 #include <fstream>
 #include <iomanip>
 
-#include <clipp.h>
+#include <cxxopts.hpp>
 
 #include <snek/config.hpp>
 #include <snek/cst.hpp>
@@ -106,91 +106,87 @@ is_interactive_console()
 int
 main(int argc, char** argv)
 {
-  std::string file;
-  bool print_help = false;
-  bool print_cst = false;
-  std::vector<std::string> unrecognized_args;
-  auto cli = (
-    clipp::with_prefix("--",
-      clipp::option("--print-cst")
-        .set(print_cst)
-        .doc("Prints out CST of the script."),
-      clipp::any_other(unrecognized_args)
-    ),
-    clipp::with_prefix("-",
-      clipp::any_other(unrecognized_args)
-    ),
-    clipp::option("--help", "-h")
-      .set(print_help)
-      .doc("Shows this page."),
-    clipp::opt_value("file", file)
-      .doc("Script file to execute.")
-  );
+  cxxopts::Options options(argv[0]);
 
-  if (!clipp::parse(argc, argv, cli) || !unrecognized_args.empty())
+  options
+    .custom_help("[switches]")
+    .positional_help("[file]")
+    .add_options()
+      ("print-cst", "Prints out CST of the script.")
+      ("h,help", "Shows this page.")
+      ("file", "Script to execute.", cxxopts::value<std::string>());
+  options.parse_positional({"file", "args"});
+
+  try
   {
-    std::cerr << clipp::make_man_page(cli, argv[0]);
+    const auto result = options.parse(argc, argv);
+
+    if (result.count("help"))
+    {
+      std::cout << options.help();
+      std::exit(EXIT_SUCCESS);
+    }
+    else if (result.count("file"))
+    {
+      const auto file = result["file"].as<std::string>();
+      std::ifstream is(file, std::ios_base::in);
+
+      if (is.good())
+      {
+        const std::string source = std::string(
+          std::istreambuf_iterator<char>(is),
+          std::istreambuf_iterator<char>()
+        );
+
+        is.close();
+        if (result.count("print-cst"))
+        {
+          do_print_cst(
+            peelo::unicode::encoding::utf8::decode(source),
+            peelo::unicode::encoding::utf8::decode(file)
+          );
+        } else {
+          do_execute(
+            peelo::unicode::encoding::utf8::decode(source),
+            peelo::unicode::encoding::utf8::decode(file)
+          );
+        }
+      } else {
+        std::cerr << "Error: Unable to open `"
+                  << file
+                  << "' for reading."
+                  << std::endl;
+        std::exit(EXIT_FAILURE);
+      }
+    } else {
+      if (!result.count("print-cst") && is_interactive_console())
+      {
+        repl::loop();
+      } else {
+        const auto source = std::string(
+          std::istreambuf_iterator<char>(std::cin),
+          std::istreambuf_iterator<char>()
+        );
+
+        if (result.count("print-cst"))
+        {
+          do_print_cst(
+            peelo::unicode::encoding::utf8::decode(source),
+            U"<stdin>"
+          );
+        } else {
+          do_execute(
+            peelo::unicode::encoding::utf8::decode(source),
+            U"<stdin>"
+          );
+        }
+      }
+    }
+  }
+  catch (cxxopts::OptionException& ex)
+  {
+    std::cerr << options.help();
     std::exit(EX_USAGE);
-  }
-  else if (print_help)
-  {
-    std::cout << clipp::make_man_page(cli, argv[0]);
-    std::exit(EXIT_SUCCESS);
-  }
-  else if (file.empty())
-  {
-    if (!print_cst && is_interactive_console())
-    {
-      repl::loop();
-    } else {
-      const auto source = std::string(
-        std::istreambuf_iterator<char>(std::cin),
-        std::istreambuf_iterator<char>()
-      );
-
-      if (print_cst)
-      {
-        do_print_cst(
-          peelo::unicode::encoding::utf8::decode(source),
-          U"<stdin>"
-        );
-      } else {
-        do_execute(
-          peelo::unicode::encoding::utf8::decode(source),
-          U"<stdin>"
-        );
-      }
-    }
-  } else {
-    std::ifstream is(file, std::ios_base::in);
-
-    if (is.good())
-    {
-      const std::string source = std::string(
-        std::istreambuf_iterator<char>(is),
-        std::istreambuf_iterator<char>()
-      );
-
-      is.close();
-      if (print_cst)
-      {
-        do_print_cst(
-          peelo::unicode::encoding::utf8::decode(source),
-          peelo::unicode::encoding::utf8::decode(file)
-        );
-      } else {
-        do_execute(
-          peelo::unicode::encoding::utf8::decode(source),
-          peelo::unicode::encoding::utf8::decode(file)
-        );
-      }
-    } else {
-      std::cerr << "Error: Unable to open `"
-                << file
-                << "' for reading."
-                << std::endl;
-      std::exit(EXIT_FAILURE);
-    }
   }
 
   return EXIT_SUCCESS;
