@@ -31,6 +31,7 @@ namespace snek::type
 {
   enum class PrimitiveKind
   {
+    Bin,
     Bool,
     Float,
     Int,

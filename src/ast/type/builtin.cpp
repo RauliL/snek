@@ -31,6 +31,7 @@ namespace snek::ast::type
   static const std::unordered_map<BuiltinKind, std::u32string> mapping =
   {
     { BuiltinKind::Any, U"Any" },
+    { BuiltinKind::Bin, U"Bin" },
     { BuiltinKind::Bool, U"Bool" },
     { BuiltinKind::Float, U"Float" },
     { BuiltinKind::Int, U"Int" },
@@ -58,6 +59,9 @@ namespace snek::ast::type
     {
       case BuiltinKind::Any:
         return result_type::ok(interpreter.any_type());
+
+      case BuiltinKind::Bin:
+        return result_type::ok(interpreter.bin_type());
 
       case BuiltinKind::Bool:
         return result_type::ok(interpreter.bool_type());

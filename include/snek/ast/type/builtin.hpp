@@ -32,6 +32,7 @@ namespace snek::ast::type
   enum class BuiltinKind
   {
     Any,
+    Bin,
     Bool,
     Float,
     Int,

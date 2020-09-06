@@ -32,6 +32,7 @@ ADD_LIBRARY(
   snek
   STATIC
   src/api.cpp
+  src/api/bin.cpp
   src/api/debug.cpp
   src/api/io.cpp
   src/api/list.cpp
@@ -99,6 +100,7 @@ ADD_LIBRARY(
   src/type/union.cpp
   src/utils.cpp
   src/value/base.cpp
+  src/value/bin.cpp
   src/value/bool.cpp
   src/value/float.cpp
   src/value/func.cpp
