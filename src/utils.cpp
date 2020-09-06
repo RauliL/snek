@@ -23,30 +23,59 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
+#include <cmath>
 
-#include <snek/ast/position.hpp>
+#include <peelo/unicode/encoding/utf8.hpp>
 
-namespace snek::ast
+#include <snek/utils.hpp>
+
+namespace snek::utils
 {
-  class Node
-  {
-  public:
-    explicit Node(const Position& position);
+  static const char digitmap[] = "0123456789abcdefghijklmnopqrstuvwxyz";
 
-    inline const Position& position() const
+  std::u32string
+  to_string(std::int64_t value)
+  {
+    const bool negative = value < 0;
+    std::uint64_t mag = static_cast<std::uint64_t>(negative ? -value : value);
+    std::u32string result;
+
+    if (mag != 0)
     {
-      return m_position;
+      result.reserve(negative ? 21 : 20);
+      do
+      {
+        result.insert(result.begin(), digitmap[mag % 10]);
+        mag /= 10;
+      }
+      while (mag);
+    } else {
+      result.insert(result.begin(), '0');
+    }
+    if (negative)
+    {
+      result.insert(result.begin(), '-');
     }
 
-    virtual std::u32string to_string() const = 0;
+    return result;
+  }
 
-    Node(const Node&) = delete;
-    Node(Node&&) = delete;
-    void operator=(const Node&) = delete;
-    void operator=(Node&&) = delete;
+  std::u32string
+  to_string(double value)
+  {
+    using peelo::unicode::encoding::utf8::decode;
+    char buffer[20];
 
-  private:
-    const Position m_position;
-  };
+    if (std::isnan(value))
+    {
+      return U"nan";
+    }
+    else if (std::isinf(value))
+    {
+      return value < 0.0 ? U"-inf" : U"inf";
+    }
+    std::snprintf(buffer, sizeof(buffer), "%g", value);
+
+    return decode(buffer);
+  }
 }

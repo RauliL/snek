@@ -71,6 +71,8 @@ namespace snek::ast::type
       return m_types;
     }
 
+    std::u32string to_string() const;
+
     result_type eval(const Interpreter& interpreter, const Scope& scope) const;
 
     inline const_iterator begin() const

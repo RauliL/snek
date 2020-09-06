@@ -34,6 +34,11 @@ namespace snek::ast::stmt
   public:
     explicit Break(const Position& position);
 
+    inline std::u32string to_string() const
+    {
+      return U"break";
+    }
+
     void exec(
       Interpreter& interpreter,
       Scope& scope,

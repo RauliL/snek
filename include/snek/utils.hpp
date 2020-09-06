@@ -25,28 +25,11 @@
  */
 #pragma once
 
-#include <snek/ast/position.hpp>
+#include <cstdint>
+#include <string>
 
-namespace snek::ast
+namespace snek::utils
 {
-  class Node
-  {
-  public:
-    explicit Node(const Position& position);
-
-    inline const Position& position() const
-    {
-      return m_position;
-    }
-
-    virtual std::u32string to_string() const = 0;
-
-    Node(const Node&) = delete;
-    Node(Node&&) = delete;
-    void operator=(const Node&) = delete;
-    void operator=(Node&&) = delete;
-
-  private:
-    const Position m_position;
-  };
+  std::u32string to_string(std::int64_t value);
+  std::u32string to_string(double value);
 }

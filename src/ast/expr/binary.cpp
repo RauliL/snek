@@ -34,6 +34,21 @@ namespace snek::ast::expr
 {
   using namespace snek::value::utils;
 
+  static const std::unordered_map<BinaryOperator, std::u32string> mapping =
+  {
+    { BinaryOperator::Add, U"+" },
+    { BinaryOperator::Sub, U"-" },
+    { BinaryOperator::Mul, U"*" },
+    { BinaryOperator::Div, U"/" },
+    { BinaryOperator::Mod, U"%" },
+    { BinaryOperator::Eq, U"==" },
+    { BinaryOperator::Ne, U"!=" },
+    { BinaryOperator::Lt, U"<" },
+    { BinaryOperator::Gt, U">" },
+    { BinaryOperator::Lte, U"<=" },
+    { BinaryOperator::Gte, U">=" },
+  };
+
   Binary::Binary(
     const Position& position,
     const std::shared_ptr<RValue>& left_expression,
@@ -432,6 +447,26 @@ namespace snek::ast::expr
       U" against " +
       right->type(interpreter)->to_string()
     });
+  }
+
+  std::u32string
+  Binary::to_string() const
+  {
+    const auto entry = mapping.find(m_binary_operator);
+    std::u32string result;
+
+    result += m_left_expression->to_string();
+    result += U' ';
+    if (entry != std::end(mapping))
+    {
+      result += entry->second;
+    } else {
+      result += U"unknown";
+    }
+    result += U' ';
+    result += m_right_expression->to_string();
+
+    return result;
   }
 
   RValue::result_type

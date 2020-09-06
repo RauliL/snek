@@ -25,9 +25,8 @@
  */
 #pragma once
 
+#include <snek/ast/expr/base.hpp>
 #include <snek/ast/stmt/base.hpp>
-
-namespace snek::ast::expr { class RValue; }
 
 namespace snek::ast::stmt
 {
@@ -42,6 +41,20 @@ namespace snek::ast::stmt
     inline const std::shared_ptr<expr::RValue>& value_expression() const
     {
       return m_value_expression;
+    }
+
+    inline std::u32string to_string() const
+    {
+      std::u32string result;
+
+      result += U"return";
+      if (m_value_expression)
+      {
+        result += U' ';
+        result += m_value_expression->to_string();
+      }
+
+      return result;
     }
 
     void exec(

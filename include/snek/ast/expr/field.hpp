@@ -48,6 +48,11 @@ namespace snek::ast::expr
       return m_field;
     }
 
+    inline std::u32string to_string() const
+    {
+      return m_record_expression->to_string() + U'.' + m_field;
+    }
+
     result_type eval(Interpreter& interpreter, const Scope& scope) const;
 
   private:

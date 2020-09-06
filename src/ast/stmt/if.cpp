@@ -40,6 +40,17 @@ namespace snek::ast::stmt
     , m_then_statement(then_statement)
     , m_else_statement(else_statement) {}
 
+  std::u32string
+  If::to_string() const
+  {
+    return (
+      U"if " +
+      m_condition->to_string() +
+      U": " +
+      m_then_statement->to_string()
+    );
+  }
+
   void
   If::exec(
     Interpreter& interpreter,

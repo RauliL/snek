@@ -28,9 +28,28 @@
 
 namespace snek::ast::type
 {
+  static const std::unordered_map<BuiltinKind, std::u32string> mapping =
+  {
+    { BuiltinKind::Any, U"Any" },
+    { BuiltinKind::Bool, U"Bool" },
+    { BuiltinKind::Float, U"Float" },
+    { BuiltinKind::Int, U"Int" },
+    { BuiltinKind::Num, U"Num" },
+    { BuiltinKind::Str, U"Str" },
+    { BuiltinKind::Void, U"Void" },
+  };
+
   Builtin::Builtin(const Position& position, BuiltinKind builtin_kind)
     : Base(position)
     , m_builtin_kind(builtin_kind) {}
+
+  std::u32string
+  Builtin::to_string() const
+  {
+    const auto entry = mapping.find(m_builtin_kind);
+
+    return entry != std::end(mapping) ? entry->second : U"Any";
+  }
 
   Base::result_type
   Builtin::eval(const Interpreter& interpreter, const Scope&) const

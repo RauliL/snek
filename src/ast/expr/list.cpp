@@ -36,6 +36,25 @@ namespace snek::ast::expr
     : LValue(position)
     , m_elements(elements) {}
 
+  std::u32string
+  List::to_string() const
+  {
+    std::u32string result;
+
+    result += U'[';
+    for (std::size_t i = 0; i < m_elements.size(); ++i)
+    {
+      if (i > 0)
+      {
+        result += U", ";
+      }
+      result += m_elements[i]->to_string();
+    }
+    result += U']';
+
+    return result;
+  }
+
   RValue::result_type
   List::eval(Interpreter& interpreter, const Scope& scope) const
   {
@@ -101,7 +120,9 @@ namespace snek::ast::expr
       } else {
         return assign_result_type({
           target->position(),
-          U"Cannot assign into TODO."
+          U"Cannot assign into `" +
+          target->to_string() +
+          U"'."
         });
       }
     }

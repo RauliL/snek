@@ -38,6 +38,12 @@ namespace snek::ast::stmt
     , m_name(name)
     , m_value(value) {}
 
+  std::u32string
+  Export::to_string() const
+  {
+    return U"export " + m_name + U" = " + m_value->to_string();
+  }
+
   void
   Export::exec(
     Interpreter& interpreter,

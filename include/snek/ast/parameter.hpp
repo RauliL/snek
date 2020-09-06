@@ -65,6 +65,8 @@ namespace snek::ast
       return m_type;
     }
 
+    std::u32string to_string() const;
+
     result_type eval(const Interpreter& interpreter, const Scope& scope) const;
 
   private:

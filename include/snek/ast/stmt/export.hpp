@@ -50,6 +50,8 @@ namespace snek::ast::stmt
       return m_value;
     }
 
+    std::u32string to_string() const;
+
     void exec(
       Interpreter& interpreter,
       Scope& scope,

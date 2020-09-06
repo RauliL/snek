@@ -37,6 +37,26 @@ namespace snek::ast::expr
     , m_callee(callee)
     , m_arguments(arguments) {}
 
+  std::u32string
+  Call::to_string() const
+  {
+    std::u32string result;
+
+    result += m_callee->to_string();
+    result += U'(';
+    for (std::size_t i = 0; i < m_arguments.size(); ++i)
+    {
+      if (i > 0)
+      {
+        result += U", ";
+      }
+      result += m_arguments[i]->to_string();
+    }
+    result += U')';
+
+    return result;
+  }
+
   RValue::result_type
   Call::eval(Interpreter& interpreter, const Scope& scope) const
   {

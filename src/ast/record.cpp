@@ -53,6 +53,12 @@ namespace snek::ast::record
     , m_name(name)
     , m_value_expression(value_expression) {}
 
+  std::u32string
+  Named::to_string() const
+  {
+    return m_name + U": " + m_value_expression->to_string();
+  }
+
   Field::result_type
   Named::eval(
     Interpreter& interpreter,
@@ -79,6 +85,17 @@ namespace snek::ast::record
     : Field(position)
     , m_name_expression(name_expression)
     , m_value_expression(value_expression) {}
+
+  std::u32string
+  Expr::to_string() const
+  {
+    return (
+      U'[' +
+      m_name_expression->to_string() +
+      U"]: " +
+      m_value_expression->to_string()
+    );
+  }
 
   Field::result_type
   Expr::eval(
@@ -168,6 +185,12 @@ namespace snek::ast::record
   )
     : Field(position)
     , m_expression(expression) {}
+
+  std::u32string
+  Spread::to_string() const
+  {
+    return U"..." + m_expression->to_string();
+  }
 
   Field::result_type
   Spread::eval(

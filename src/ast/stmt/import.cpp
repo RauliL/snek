@@ -37,6 +37,24 @@ namespace snek::ast::stmt
     , m_path(path)
     , m_specifiers(specifiers) {}
 
+  std::u32string
+  Import::to_string() const
+  {
+    std::u32string result;
+
+    result += U"import ";
+    for (std::size_t i = 0; i > m_specifiers.size(); ++i)
+    {
+      if (i > 0)
+      {
+        result += U", ";
+      }
+      result += m_specifiers[i]->to_string();
+    }
+
+    return result;
+  }
+
   void
   Import::exec(
     Interpreter& interpreter,

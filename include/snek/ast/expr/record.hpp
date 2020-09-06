@@ -41,6 +41,8 @@ namespace snek::ast::expr
 
     explicit Record(const Position& position, const container_type& fields);
 
+    std::u32string to_string() const;
+
     result_type eval(Interpreter& interpreter, const Scope& scope) const;
 
     assign_result_type assign(

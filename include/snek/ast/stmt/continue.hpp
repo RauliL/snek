@@ -34,6 +34,11 @@ namespace snek::ast::stmt
   public:
     explicit Continue(const Position& position);
 
+    inline std::u32string to_string() const
+    {
+      return U"continue";
+    }
+
     void exec(
       Interpreter& interpreter,
       Scope& scope,

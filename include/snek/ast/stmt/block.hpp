@@ -44,6 +44,11 @@ namespace snek::ast::stmt
       return m_statements;
     }
 
+    inline std::u32string to_string() const
+    {
+      return U"...";
+    }
+
     void exec(
       Interpreter& interpreter,
       Scope& scope,

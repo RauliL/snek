@@ -56,6 +56,8 @@ namespace snek::ast::stmt
       return m_else_statement;
     }
 
+    std::u32string to_string() const;
+
     void exec(
       Interpreter& interpreter,
       Scope& scope,

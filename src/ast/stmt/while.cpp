@@ -38,6 +38,17 @@ namespace snek::ast::stmt
     , m_condition(condition)
     , m_statement(statement) {}
 
+  std::u32string
+  While::to_string() const
+  {
+    return (
+      U"while " +
+      m_condition->to_string() +
+      U": " +
+      m_statement->to_string()
+    );
+  }
+
   void
   While::exec(
     Interpreter& interpreter,
