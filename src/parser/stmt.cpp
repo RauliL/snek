@@ -223,7 +223,7 @@ namespace snek::parser::stmt
       }
       for (;;)
       {
-        const auto statement = parse(state);
+        const auto statement = parse(state, false, position);
 
         if (!statement)
         {
@@ -242,7 +242,7 @@ namespace snek::parser::stmt
       ));
     }
 
-    return parse(state);
+    return parse(state, false, position);
   }
 
   static result_type
@@ -482,22 +482,42 @@ namespace snek::parser::stmt
   }
 
   result_type
-  parse(State& state)
+  parse(
+    State& state,
+    bool is_top_level,
+    const std::optional<ast::Position>& position
+  )
   {
     if (state.eof())
     {
       return result_type::error({
-        std::nullopt,
+        position,
         U"Unexpected end of input; Missing statement."
       });
     }
     switch (state.current->kind())
     {
       case cst::Kind::KeywordImport:
-        return parse_import_stmt(state);
+        if (is_top_level)
+        {
+          return parse_import_stmt(state);
+        } else {
+          return result_type::error({
+            position,
+            U"Unexpected `import'."
+          });
+        }
 
       case cst::Kind::KeywordExport:
-        return parse_export_stmt(state);
+        if (is_top_level)
+        {
+          return parse_export_stmt(state);
+        } else {
+          return result_type::error({
+            position,
+            U"Unexpected `export'."
+          });
+        }
 
       case cst::Kind::KeywordIf:
         return parse_if_stmt(state);
