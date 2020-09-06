@@ -32,29 +32,16 @@ namespace snek::ast::stmt
   Type::Type(
     const Position& position,
     const std::u32string& name,
-    const std::shared_ptr<type::Base>& type,
-    bool is_export
+    const std::shared_ptr<type::Base>& type
   )
     : Base(position)
     , m_name(name)
-    , m_type(type)
-    , m_is_export(is_export) {}
+    , m_type(type) {}
 
   std::u32string
   Type::to_string() const
   {
-    std::u32string result;
-
-    if (m_is_export)
-    {
-      result += U"export ";
-    }
-    result += U" type ";
-    result += m_name;
-    result += U" = ";
-    result += m_type->to_string();
-
-    return result;
+    return U"type " + m_name + U" = " + m_type->to_string();
   }
 
   void
@@ -70,7 +57,7 @@ namespace snek::ast::stmt
     {
       context.error() = type.error();
     }
-    else if (!scope.add_type(m_name, type.value(), m_is_export))
+    else if (!scope.add_type(m_name, type.value()))
     {
       context.error() = {
         position(),

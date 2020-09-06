@@ -38,18 +38,15 @@ namespace snek::api
 
     for (const auto& func : functions)
     {
-      function_definitions[func.name] = std::make_pair(
-        std::make_shared<value::Func>(
-          func.parameters,
-          func.callback,
-          func.return_type
-        ),
-        true
+      function_definitions[func.name] = std::make_shared<value::Func>(
+        func.parameters,
+        func.callback,
+        func.return_type
       );
     }
     for (const auto& type : types)
     {
-      type_definitions[type.name] = std::make_pair(type.type, true);
+      type_definitions[type.name] = type.type;
     }
 
     return Scope(type_definitions, function_definitions);

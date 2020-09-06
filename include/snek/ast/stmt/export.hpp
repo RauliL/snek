@@ -28,16 +28,17 @@
 #include <snek/ast/stmt/base.hpp>
 
 namespace snek::ast::expr { class RValue; }
+namespace snek::ast::type { class Base; }
 
 namespace snek::ast::stmt
 {
-  class Export final : public Base
+  class ExportExpr final : public Base
   {
   public:
-    explicit Export(
+    explicit ExportExpr(
       const Position& position,
       const std::u32string& name,
-      const std::shared_ptr<expr::RValue>& value
+      const std::shared_ptr<expr::RValue>& expr
     );
 
     inline const std::u32string& name() const
@@ -45,9 +46,9 @@ namespace snek::ast::stmt
       return m_name;
     }
 
-    inline const std::shared_ptr<expr::RValue>& value() const
+    inline const std::shared_ptr<expr::RValue>& expr() const
     {
-      return m_value;
+      return m_expr;
     }
 
     std::u32string to_string() const;
@@ -60,6 +61,60 @@ namespace snek::ast::stmt
 
   private:
     const std::u32string m_name;
-    const std::shared_ptr<expr::RValue> m_value;
+    const std::shared_ptr<expr::RValue> m_expr;
+  };
+
+  class ExportType final : public Base
+  {
+  public:
+    explicit ExportType(
+      const Position& position,
+      const std::u32string& name,
+      const std::shared_ptr<type::Base>& type
+    );
+
+    inline const std::u32string& name() const
+    {
+      return m_name;
+    }
+
+    inline const std::shared_ptr<type::Base>& type() const
+    {
+      return m_type;
+    }
+
+    std::u32string to_string() const;
+
+    void exec(
+      Interpreter& interpreter,
+      Scope& scope,
+      ExecContext& context
+    ) const;
+
+  private:
+    const std::u32string m_name;
+    const std::shared_ptr<type::Base> m_type;
+  };
+
+  class ExportName final : public Base
+  {
+  public:
+    explicit ExportName(const Position& position, const std::u32string& name);
+
+    inline const std::u32string& name() const
+    {
+      return m_name;
+    }
+
+    std::u32string to_string() const;
+
+    void exec(
+      Interpreter& interpreter,
+      Scope& scope,
+      ExecContext& context
+    ) const;
+
+  private:
+    const std::u32string m_name;
   };
 }

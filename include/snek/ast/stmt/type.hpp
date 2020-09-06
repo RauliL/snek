@@ -37,8 +37,7 @@ namespace snek::ast::stmt
     explicit Type(
       const Position& position,
       const std::u32string& name,
-      const std::shared_ptr<type::Base>& type,
-      bool is_export = false
+      const std::shared_ptr<type::Base>& type
     );
 
     inline const std::u32string& name() const
@@ -49,11 +48,6 @@ namespace snek::ast::stmt
     inline const std::shared_ptr<type::Base>& type() const
     {
       return m_type;
-    }
-
-    inline bool is_export() const
-    {
-      return m_is_export;
     }
 
     std::u32string to_string() const;
@@ -67,6 +61,5 @@ namespace snek::ast::stmt
   private:
     const std::u32string m_name;
     const std::shared_ptr<type::Base> m_type;
-    const bool m_is_export;
   };
 }

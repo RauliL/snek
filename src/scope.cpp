@@ -31,90 +31,100 @@ namespace snek
     : m_parent_scope(parent_scope) {}
 
   Scope::Scope(
-    const type_container_type& types,
-    const variable_container_type& variables
+    const type_container_type& exported_types,
+    const variable_container_type& exported_variables
   )
-    : m_types(types)
-    , m_variables(variables) {}
-
-  Scope::Scope(const Scope& that)
-    : m_types(that.m_types)
-    , m_variables(that.m_variables)
-    , m_parent_scope(that.m_parent_scope) {}
-
-  Scope::Scope(Scope&& that)
-    : m_types(std::move(that.m_types))
-    , m_variables(std::move(that.m_variables))
-    , m_parent_scope(std::move(that.m_parent_scope)) {}
-
-  Scope&
-  Scope::operator=(const Scope& that)
-  {
-    m_types = that.m_types;
-    m_variables = that.m_variables;
-    m_parent_scope = that.m_parent_scope;
-
-    return *this;
-  }
-
-  Scope&
-  Scope::operator=(Scope&& that)
-  {
-    m_types = std::move(that.m_types);
-    m_variables = std::move(that.m_variables);
-    m_parent_scope = std::move(that.m_parent_scope);
-
-    return *this;
-  }
+    : m_types(exported_types)
+    , m_exported_types(exported_types)
+    , m_variables(exported_variables)
+    , m_exported_variables(exported_variables) {}
 
   std::optional<std::shared_ptr<type::Base>>
-  Scope::find_type(const std::u32string& name, bool export_only) const
+  Scope::find_type(const std::u32string& name) const
   {
     const auto entry = m_types.find(name);
 
     if (entry != std::end(m_types))
     {
-      if (!export_only || entry->second.second)
-      {
-        return entry->second.first;
-      }
+      return entry->second;
     }
 
     return m_parent_scope
-      ? m_parent_scope->find_type(name, export_only)
+      ? m_parent_scope->find_type(name)
+      : std::nullopt;
+  }
+
+  std::optional<std::shared_ptr<type::Base>>
+  Scope::find_exported_type(const std::u32string& name) const
+  {
+    const auto entry = m_exported_types.find(name);
+
+    if (entry != std::end(m_exported_types))
+    {
+      return entry->second;
+    }
+
+    return m_parent_scope
+      ? m_parent_scope->find_exported_type(name)
       : std::nullopt;
   }
 
   std::optional<std::shared_ptr<value::Base>>
-  Scope::find_variable(const std::u32string& name, bool export_only) const
+  Scope::find_variable(const std::u32string& name) const
   {
     const auto entry = m_variables.find(name);
 
     if (entry != std::end(m_variables))
     {
-      if (!export_only || entry->second.second)
-      {
-        return entry->second.first;
-      }
+      return entry->second;
     }
 
     return m_parent_scope
-      ? m_parent_scope->find_variable(name, export_only)
+      ? m_parent_scope->find_variable(name)
+      : std::nullopt;
+  }
+
+  std::optional<std::shared_ptr<value::Base>>
+  Scope::find_exported_variable(const std::u32string& name) const
+  {
+    const auto entry = m_exported_variables.find(name);
+
+    if (entry != std::end(m_exported_variables))
+    {
+      return entry->second;
+    }
+
+    return m_parent_scope
+      ? m_parent_scope->find_exported_variable(name)
       : std::nullopt;
   }
 
   bool
   Scope::add_type(
     const std::u32string& name,
-    const std::shared_ptr<type::Base>& type,
-    bool is_export
+    const std::shared_ptr<type::Base>& type
   )
   {
     if (m_types.find(name) != std::end(m_types))
     {
       return false;
     }
-    m_types[name] = { type, is_export };
+    m_types[name] = type;
+
+    return true;
+  }
+
+  bool
+  Scope::add_exported_type(
+    const std::u32string& name,
+    const std::shared_ptr<type::Base>& type
+  )
+  {
+    if (m_exported_types.find(name) != std::end(m_exported_types))
+    {
+      return false;
+    }
+    m_exported_types[name] = type;
 
     return true;
   }
@@ -122,15 +132,29 @@ namespace snek
   bool
   Scope::add_variable(
     const std::u32string& name,
-    const std::shared_ptr<value::Base>& value,
-    bool is_export
+    const std::shared_ptr<value::Base>& value
   )
   {
     if (m_variables.find(name) != std::end(m_variables))
     {
       return false;
     }
-    m_variables[name] = { value, is_export };
+    m_variables[name] = value;
+
+    return true;
+  }
+
+  bool
+  Scope::add_exported_variable(
+    const std::u32string& name,
+    const std::shared_ptr<value::Base>& value
+  )
+  {
+    if (m_exported_variables.find(name) != std::end(m_exported_variables))
+    {
+      return false;
+    }
+    m_exported_variables[name] = value;
 
     return true;
   }

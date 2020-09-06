@@ -40,26 +40,31 @@ namespace snek
   public:
     using type_container_type = std::unordered_map<
       std::u32string,
-      std::pair<std::shared_ptr<type::Base>, bool>
+      std::shared_ptr<type::Base>
     >;
     using variable_container_type = std::unordered_map<
       std::u32string,
-      std::pair<std::shared_ptr<value::Base>, bool>
+      std::shared_ptr<value::Base>
     >;
 
     Scope(const std::shared_ptr<Scope>& parent_scope = nullptr);
     Scope(
-      const type_container_type& types,
-      const variable_container_type& variables
+      const type_container_type& exported_types,
+      const variable_container_type& exported_variables
     );
-    Scope(const Scope& that);
-    Scope(Scope&& that);
-    Scope& operator=(const Scope& that);
-    Scope& operator=(Scope&& that);
+    Scope(const Scope& that) = default;
+    Scope(Scope&& that) = default;
+    Scope& operator=(const Scope& that) = default;
+    Scope& operator=(Scope&& that) = default;
 
     inline const type_container_type& types() const
     {
       return m_types;
+    }
+
+    inline const type_container_type& exported_types() const
+    {
+      return m_exported_types;
     }
 
     inline const variable_container_type &variables() const
@@ -67,36 +72,57 @@ namespace snek
       return m_variables;
     }
 
-    inline const std::shared_ptr<Scope> &parent_scope() const
+    inline const variable_container_type& exported_variables() const
+    {
+      return m_exported_variables;
+    }
+
+    inline const std::shared_ptr<Scope>& parent_scope() const
     {
       return m_parent_scope;
     }
 
     std::optional<std::shared_ptr<type::Base>> find_type(
-      const std::u32string& name,
-      bool use_only_exports
+      const std::u32string& name
+    ) const;
+
+    std::optional<std::shared_ptr<type::Base>> find_exported_type(
+      const std::u32string& name
     ) const;
 
     std::optional<std::shared_ptr<value::Base>> find_variable(
-      const std::u32string& name,
-      bool use_only_exports
+      const std::u32string& name
+    ) const;
+
+    std::optional<std::shared_ptr<value::Base>> find_exported_variable(
+      const std::u32string& name
     ) const;
 
     bool add_type(
       const std::u32string& name,
-      const std::shared_ptr<type::Base>& type,
-      bool is_export = false
+      const std::shared_ptr<type::Base>& type
+    );
+
+    bool add_exported_type(
+      const std::u32string& name,
+      const std::shared_ptr<type::Base>& type
     );
 
     bool add_variable(
       const std::u32string& name,
-      const std::shared_ptr<value::Base>& value,
-      bool is_export = false
+      const std::shared_ptr<value::Base>& value
+    );
+
+    bool add_exported_variable(
+      const std::u32string& name,
+      const std::shared_ptr<value::Base>& value
     );
 
   private:
     type_container_type m_types;
+    type_container_type m_exported_types;
     variable_container_type m_variables;
+    variable_container_type m_exported_variables;
     std::shared_ptr<Scope> m_parent_scope;
   };
 }
