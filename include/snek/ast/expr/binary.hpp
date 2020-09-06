@@ -75,7 +75,7 @@ namespace snek::ast::expr
 
   private:
     const std::shared_ptr<RValue> m_left_expression;
-    BinaryOperator m_binary_operator;
+    const BinaryOperator m_binary_operator;
     const std::shared_ptr<RValue> m_right_expression;
   };
 }

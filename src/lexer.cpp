@@ -444,6 +444,10 @@ namespace snek::lexer
         kind = state.peek_read('=') ? cst::Kind::Ne : cst::Kind::Not;
         break;
 
+      case '~':
+        kind = cst::Kind::BitwiseNot;
+        break;
+
       case '=':
         kind =
           state.peek_read('=') ?

@@ -88,6 +88,7 @@ namespace snek::cst
     And,
     Or,
     Not,
+    BitwiseNot,
     Eq,
     Ne,
     Lt,

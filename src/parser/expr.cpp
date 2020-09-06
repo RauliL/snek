@@ -32,10 +32,10 @@
 #include <snek/ast/expr/id.hpp>
 #include <snek/ast/expr/int.hpp>
 #include <snek/ast/expr/list.hpp>
-#include <snek/ast/expr/not.hpp>
 #include <snek/ast/expr/null.hpp>
 #include <snek/ast/expr/record.hpp>
 #include <snek/ast/expr/str.hpp>
+#include <snek/ast/expr/unary.hpp>
 #include <snek/ast/parameter.hpp>
 #include <snek/ast/record.hpp>
 #include <snek/ast/stmt/block.hpp>
@@ -421,8 +421,12 @@ namespace snek::parser::expr
     const std::optional<ast::Position>& position
   )
   {
-    if (state.peek(cst::Kind::Not))
+    if (state.peek(cst::Kind::Not) ||
+        state.peek(cst::Kind::Add) ||
+        state.peek(cst::Kind::Sub) ||
+        state.peek(cst::Kind::BitwiseNot))
     {
+      const auto kind = state.current->kind();
       const auto new_position = state.current++->position();
       const auto expression = parse_unary_expr(state, new_position);
 
@@ -431,29 +435,35 @@ namespace snek::parser::expr
         return expression;
       }
 
-      return result_type::ok(std::make_shared<ast::expr::Not>(
+      return result_type::ok(std::make_shared<ast::expr::Unary>(
         new_position,
+        kind == cst::Kind::Not
+          ? ast::expr::UnaryOperator::Not
+          : kind == cst::Kind::Add
+          ? ast::expr::UnaryOperator::Add
+          : kind == cst::Kind::Sub
+          ? ast::expr::UnaryOperator::Sub
+          : ast::expr::UnaryOperator::BitwiseNot,
         expression.value()
       ));
-    }
+    } else {
+      auto result = parse_primary_expr(state, position);
 
-    auto expression = parse_primary_expr(state, position);
-
-    if (!expression)
-    {
-      return expression;
-    }
-
-    while (state.peek(cst::Kind::Dot) || state.peek(cst::Kind::LeftParen))
-    {
-      expression = parse_selector(state, expression.value());
-      if (!expression)
+      if (!result)
       {
-        return expression;
+        return result;
       }
-    }
+      while (state.peek(cst::Kind::Dot) || state.peek(cst::Kind::LeftParen))
+      {
+        result = parse_selector(state, result.value());
+        if (!result)
+        {
+          return result;
+        }
+      }
 
-    return expression;
+      return result;
+    }
   }
 
   static result_type

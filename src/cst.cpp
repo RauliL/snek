@@ -92,6 +92,7 @@ namespace snek::cst
 
     return result;
   }
+
   std::u32string
   to_string(Kind kind)
   {
@@ -222,6 +223,9 @@ namespace snek::cst
 
       case Kind::Not:
         return U"`!'";
+
+      case Kind::BitwiseNot:
+        return U"`~'";
 
       case Kind::Eq:
         return U"`=='";

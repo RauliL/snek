@@ -23,25 +23,45 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <snek/ast/expr/not.hpp>
-#include <snek/interpreter.hpp>
+#pragma once
+
+#include <snek/ast/expr/base.hpp>
 
 namespace snek::ast::expr
 {
-  Not::Not(const Position& position, const std::shared_ptr<RValue>& expression)
-    : RValue(position)
-    , m_expression(expression) {}
-
-  RValue::result_type
-  Not::eval(Interpreter& interpreter, const Scope& scope) const
+  enum class UnaryOperator
   {
-    const auto result = m_expression->eval_as_bool(interpreter, scope);
+    Add,
+    BitwiseNot,
+    Not,
+    Sub,
+  };
 
-    if (!result)
+  class Unary final : public RValue
+  {
+  public:
+    explicit Unary(
+      const Position& position,
+      UnaryOperator unary_operator,
+      const std::shared_ptr<RValue>& expression
+    );
+
+    inline UnaryOperator unary_operator() const
     {
-      return result_type::error(result.error());
+      return m_unary_operator;
     }
 
-    return result_type::ok(interpreter.bool_value(!result.value()));
-  }
+    inline const std::shared_ptr<RValue>& expression() const
+    {
+      return m_expression;
+    }
+
+    std::u32string to_string() const;
+
+    result_type eval(Interpreter& interpreter, const Scope& scope) const;
+
+  private:
+    const UnaryOperator m_unary_operator;
+    const std::shared_ptr<RValue> m_expression;
+  };
 }

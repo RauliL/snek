@@ -48,10 +48,10 @@ ADD_LIBRARY(
   src/ast/expr/id.cpp
   src/ast/expr/int.cpp
   src/ast/expr/list.cpp
-  src/ast/expr/not.cpp
   src/ast/expr/null.cpp
   src/ast/expr/record.cpp
   src/ast/expr/str.cpp
+  src/ast/expr/unary.cpp
   src/ast/import.cpp
   src/ast/parameter.cpp
   src/ast/record.cpp
