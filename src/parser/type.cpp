@@ -25,13 +25,11 @@
  */
 #include <snek/ast/type/builtin.hpp>
 #include <snek/ast/type/func.hpp>
-#include <snek/ast/type/intersection.hpp>
 #include <snek/ast/type/list.hpp>
+#include <snek/ast/type/multiple.hpp>
 #include <snek/ast/type/named.hpp>
 #include <snek/ast/type/record.hpp>
 #include <snek/ast/type/str.hpp>
-#include <snek/ast/type/tuple.hpp>
-#include <snek/ast/type/union.hpp>
 #include <snek/parser.hpp>
 
 namespace snek::parser::type
@@ -106,7 +104,7 @@ namespace snek::parser::type
   parse_tuple_type(State& state)
   {
     const auto position = state.current++->position();
-    ast::type::Tuple::container_type types;
+    ast::type::Multiple::container_type types;
 
     for (;;)
     {
@@ -140,8 +138,9 @@ namespace snek::parser::type
       }
     }
 
-    return result_type::ok(std::make_shared<ast::type::Tuple>(
+    return result_type::ok(std::make_shared<ast::type::Multiple>(
       position,
+      ast::type::MultipleKind::Tuple,
       types
     ));
   }
@@ -238,7 +237,7 @@ namespace snek::parser::type
   )
   {
     const auto position = state.current++->position();
-    ast::type::Intersection::container_type types;
+    ast::type::Multiple::container_type types;
 
     types.push_back(first_type);
     for (;;)
@@ -266,8 +265,9 @@ namespace snek::parser::type
       }
     }
 
-    return result_type::ok(std::make_shared<ast::type::Intersection>(
+    return result_type::ok(std::make_shared<ast::type::Multiple>(
       position,
+      ast::type::MultipleKind::Intersection,
       types
     ));
   }
@@ -279,7 +279,7 @@ namespace snek::parser::type
   )
   {
     const auto position = state.current++->position();
-    ast::type::Union::container_type types;
+    ast::type::Multiple::container_type types;
 
     types.push_back(first_type);
     for (;;)
@@ -307,8 +307,9 @@ namespace snek::parser::type
       }
     }
 
-    return result_type::ok(std::make_shared<ast::type::Union>(
+    return result_type::ok(std::make_shared<ast::type::Multiple>(
       position,
+      ast::type::MultipleKind::Union,
       types
     ));
   }

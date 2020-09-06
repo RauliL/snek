@@ -36,7 +36,7 @@ namespace snek::type
   public:
     using value_type = Ptr;
     using container_type = std::vector<value_type>;
-    using iterator = container_type::iterator;
+    using iterator = container_type::const_iterator;
     using const_iterator = container_type::const_iterator;
     using reverse_iterator = container_type::const_reverse_iterator;
     using const_reverse_iterator = container_type::const_reverse_iterator;

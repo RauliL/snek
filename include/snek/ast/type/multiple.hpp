@@ -31,22 +31,39 @@
 
 namespace snek::ast::type
 {
-  class Tuple final : public Base
+  enum class MultipleKind
+  {
+    Intersection,
+    Tuple,
+    Union,
+  };
+
+  class Multiple final : public Base
   {
   public:
     using value_type = std::shared_ptr<Base>;
     using reference = value_type&;
     using const_reference = const value_type&;
     using container_type = std::vector<value_type>;
+    using iterator = container_type::const_iterator;
+    using const_iterator = container_type::const_iterator;
+    using reverse_iterator = container_type::const_reverse_iterator;
+    using const_reverse_iterator = container_type::const_reverse_iterator;
 
-    explicit Tuple(
+    explicit Multiple(
       const Position& position,
+      const MultipleKind multiple_kind,
       const container_type& types
     );
 
     inline Kind kind() const
     {
-      return Kind::Tuple;
+      return Kind::Multiple;
+    }
+
+    inline MultipleKind multiple_kind() const
+    {
+      return m_multiple_kind;
     }
 
     inline const container_type& types() const
@@ -56,7 +73,28 @@ namespace snek::ast::type
 
     result_type eval(const Interpreter& interpreter, const Scope& scope) const;
 
+    inline const_iterator begin() const
+    {
+      return std::begin(m_types);
+    }
+
+    inline const_iterator end() const
+    {
+      return std::end(m_types);
+    }
+
+    inline const_reverse_iterator rbegin() const
+    {
+      return std::rbegin(m_types);
+    }
+
+    inline const_reverse_iterator rend() const
+    {
+      return std::rend(m_types);
+    }
+
   private:
+    const MultipleKind m_multiple_kind;
     const container_type m_types;
   };
 }

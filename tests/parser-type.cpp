@@ -202,44 +202,48 @@ static const lest::test specification[] =
   CASE("Tuple type (empty)")
   {
     const auto result = parse(U"[]");
-    std::shared_ptr<ast::type::Tuple> type;
+    std::shared_ptr<ast::type::Multiple> type;
 
     EXPECT(result);
-    EXPECT(result.value()->kind() == ast::type::Kind::Tuple);
-    type = std::static_pointer_cast<ast::type::Tuple>(result.value());
+    EXPECT(result.value()->kind() == ast::type::Kind::Multiple);
+    type = std::static_pointer_cast<ast::type::Multiple>(result.value());
+    EXPECT(type->multiple_kind() == ast::type::MultipleKind::Tuple);
     EXPECT(type->types().size() == 0);
   },
 
   CASE("Tuple type (with one element)")
   {
     const auto result = parse(U"[Int]");
-    std::shared_ptr<ast::type::Tuple> type;
+    std::shared_ptr<ast::type::Multiple> type;
 
     EXPECT(result);
-    EXPECT(result.value()->kind() == ast::type::Kind::Tuple);
-    type = std::static_pointer_cast<ast::type::Tuple>(result.value());
+    EXPECT(result.value()->kind() == ast::type::Kind::Multiple);
+    type = std::static_pointer_cast<ast::type::Multiple>(result.value());
+    EXPECT(type->multiple_kind() == ast::type::MultipleKind::Tuple);
     EXPECT(type->types().size() == 1);
   },
 
   CASE("Tuple type (with multiple elements)")
   {
     const auto result = parse(U"[Int, Str]");
-    std::shared_ptr<ast::type::Tuple> type;
+    std::shared_ptr<ast::type::Multiple> type;
 
     EXPECT(result);
-    EXPECT(result.value()->kind() == ast::type::Kind::Tuple);
-    type = std::static_pointer_cast<ast::type::Tuple>(result.value());
+    EXPECT(result.value()->kind() == ast::type::Kind::Multiple);
+    type = std::static_pointer_cast<ast::type::Multiple>(result.value());
+    EXPECT(type->multiple_kind() == ast::type::MultipleKind::Tuple);
     EXPECT(type->types().size() == 2);
   },
 
   CASE("Tuple type (with trailing comma)")
   {
     const auto result = parse(U"[Int,]");
-    std::shared_ptr<ast::type::Tuple> type;
+    std::shared_ptr<ast::type::Multiple> type;
 
     EXPECT(result);
-    EXPECT(result.value()->kind() == ast::type::Kind::Tuple);
-    type = std::static_pointer_cast<ast::type::Tuple>(result.value());
+    EXPECT(result.value()->kind() == ast::type::Kind::Multiple);
+    type = std::static_pointer_cast<ast::type::Multiple>(result.value());
+    EXPECT(type->multiple_kind() == ast::type::MultipleKind::Tuple);
     EXPECT(type->types().size() == 1);
   },
 
@@ -325,22 +329,24 @@ static const lest::test specification[] =
   CASE("Intersection type")
   {
     const auto result = parse(U"Str & Bool");
-    std::shared_ptr<ast::type::Intersection> type;
+    std::shared_ptr<ast::type::Multiple> type;
 
     EXPECT(result);
-    EXPECT(result.value()->kind() == ast::type::Kind::Intersection);
-    type = std::static_pointer_cast<ast::type::Intersection>(result.value());
+    EXPECT(result.value()->kind() == ast::type::Kind::Multiple);
+    type = std::static_pointer_cast<ast::type::Multiple>(result.value());
+    EXPECT(type->multiple_kind() == ast::type::MultipleKind::Intersection);
     EXPECT(type->types().size() == 2);
   },
 
   CASE("Union type")
   {
     const auto result = parse(U"Str | Bool");
-    std::shared_ptr<ast::type::Union> type;
+    std::shared_ptr<ast::type::Multiple> type;
 
     EXPECT(result);
-    EXPECT(result.value()->kind() == ast::type::Kind::Union);
-    type = std::static_pointer_cast<ast::type::Union>(result.value());
+    EXPECT(result.value()->kind() == ast::type::Kind::Multiple);
+    type = std::static_pointer_cast<ast::type::Multiple>(result.value());
+    EXPECT(type->multiple_kind() == ast::type::MultipleKind::Union);
     EXPECT(type->types().size() == 2);
   },
 };

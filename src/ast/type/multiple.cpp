@@ -23,40 +23,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
-
-#include <vector>
-
-#include <snek/ast/type/base.hpp>
+#include <snek/ast/type/multiple.hpp>
+#include <snek/type/intersection.hpp>
+#include <snek/type/tuple.hpp>
+#include <snek/type/union.hpp>
 
 namespace snek::ast::type
 {
-  class Union final : public Base
+  Multiple::Multiple(
+    const Position& position,
+    const MultipleKind multiple_kind,
+    const container_type& types
+  )
+    : Base(position)
+    , m_multiple_kind(multiple_kind)
+    , m_types(types) {}
+
+  Base::result_type
+  Multiple::eval(const Interpreter& interpreter, const Scope& scope) const
   {
-  public:
-    using value_type = std::shared_ptr<Base>;
-    using reference = value_type&;
-    using const_reference = const value_type&;
-    using container_type = std::vector<value_type>;
+    std::vector<std::shared_ptr<snek::type::Base>> types;
 
-    explicit Union(
-      const Position& position,
-      const container_type& types
-    );
-
-    inline Kind kind() const
+    types.reserve(m_types.size());
+    for (const auto& type : m_types)
     {
-      return Kind::Union;
-    }
+      const auto result = type->eval(interpreter, scope);
 
-    inline const container_type& types() const
+      if (!result)
+      {
+        return result;
+      }
+      types.push_back(result.value());
+    }
+    switch (m_multiple_kind)
     {
-      return m_types;
-    }
+      case MultipleKind::Intersection:
+        return result_type::ok(std::make_shared<snek::type::Intersection>(
+          types
+        ));
 
-    result_type eval(const Interpreter& interpreter, const Scope& scope) const;
+      case MultipleKind::Tuple:
+        return result_type::ok(std::make_shared<snek::type::Tuple>(types));
 
-  private:
-    const container_type m_types;
-  };
+      case MultipleKind::Union:
+        return result_type::ok(std::make_shared<snek::type::Union>(types));
+    };
+  }
 }

@@ -70,13 +70,11 @@ ADD_LIBRARY(
   src/ast/type/base.cpp
   src/ast/type/builtin.cpp
   src/ast/type/func.cpp
-  src/ast/type/intersection.cpp
   src/ast/type/list.cpp
+  src/ast/type/multiple.cpp
   src/ast/type/named.cpp
   src/ast/type/record.cpp
   src/ast/type/str.cpp
-  src/ast/type/tuple.cpp
-  src/ast/type/union.cpp
   src/cst.cpp
   src/interpreter.cpp
   src/lexer.cpp

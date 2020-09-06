@@ -47,13 +47,11 @@ namespace snek::ast::type
   {
     Builtin,
     Func,
-    Intersection,
     List,
+    Multiple,
     Named,
     Record,
     Str,
-    Tuple,
-    Union,
   };
 
   class Base : public Node

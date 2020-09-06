@@ -28,10 +28,8 @@
 #include <snek/ast/type/base.hpp>
 #include <snek/ast/type/builtin.hpp>
 #include <snek/ast/type/func.hpp>
-#include <snek/ast/type/intersection.hpp>
 #include <snek/ast/type/list.hpp>
+#include <snek/ast/type/multiple.hpp>
 #include <snek/ast/type/named.hpp>
 #include <snek/ast/type/record.hpp>
 #include <snek/ast/type/str.hpp>
-#include <snek/ast/type/tuple.hpp>
-#include <snek/ast/type/union.hpp>
