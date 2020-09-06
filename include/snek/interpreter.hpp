@@ -45,14 +45,19 @@ namespace snek
     using eval_result_type = peelo::result<value::Ptr, Error>;
 
     explicit Interpreter();
-    Interpreter(const Interpreter& that);
-    Interpreter(Interpreter&& that);
-    Interpreter& operator=(const Interpreter& that);
-    Interpreter& operator=(Interpreter&& that);
+    Interpreter(const Interpreter&) = default;
+    Interpreter(Interpreter&&) = default;
+    Interpreter& operator=(const Interpreter&) = default;
+    Interpreter& operator=(Interpreter&&) = default;
 
     inline const type::Ptr& any_type() const
     {
       return m_any_type;
+    }
+
+    inline const type::Ptr& bin_type() const
+    {
+      return m_bin_type;
     }
 
     inline const type::Ptr& bool_type() const
@@ -128,6 +133,7 @@ namespace snek
   private:
     module_container_type m_modules;
     type::Ptr m_any_type;
+    type::Ptr m_bin_type;
     type::Ptr m_bool_type;
     type::Ptr m_float_type;
     type::Ptr m_int_type;

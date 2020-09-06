@@ -57,6 +57,7 @@ namespace snek
   using namespace snek::type::utils;
   using namespace snek::value::utils;
 
+  namespace api::bin { Scope create(const Interpreter&); }
   namespace api::debug { Scope create(const Interpreter&); }
   namespace api::io { Scope create(const Interpreter&); }
   namespace api::list { Scope create(const Interpreter&); }
@@ -72,6 +73,7 @@ namespace snek
 
   Interpreter::Interpreter()
     : m_any_type(make_any_type())
+    , m_bin_type(make_primitive_type(type::PrimitiveKind::Bin))
     , m_bool_type(make_primitive_type(type::PrimitiveKind::Bool))
     , m_float_type(make_primitive_type(type::PrimitiveKind::Float))
     , m_int_type(make_primitive_type(type::PrimitiveKind::Int))
@@ -82,72 +84,11 @@ namespace snek
     , m_true_value(std::make_shared<value::Bool>(true))
     , m_false_value(std::make_shared<value::Bool>(false))
   {
+    m_modules[U"bin"] = api::bin::create(*this);
     m_modules[U"debug"] = api::debug::create(*this);
     m_modules[U"io"] = api::io::create(*this);
     m_modules[U"list"] = api::list::create(*this);
     m_modules[U"str"] = api::str::create(*this);
-  }
-
-  Interpreter::Interpreter(const Interpreter& that)
-    : m_modules(that.m_modules)
-    , m_any_type(that.m_any_type)
-    , m_bool_type(that.m_bool_type)
-    , m_float_type(that.m_float_type)
-    , m_int_type(that.m_int_type)
-    , m_num_type(that.m_num_type)
-    , m_str_type(that.m_str_type)
-    , m_void_type(that.m_void_type)
-    , m_null_value(that.m_null_value)
-    , m_true_value(that.m_true_value)
-    , m_false_value(that.m_false_value) {}
-
-  Interpreter::Interpreter(Interpreter&& that)
-    : m_modules(std::move(that.m_modules))
-    , m_any_type(std::move(that.m_any_type))
-    , m_bool_type(std::move(that.m_bool_type))
-    , m_float_type(std::move(that.m_float_type))
-    , m_int_type(std::move(that.m_int_type))
-    , m_num_type(std::move(that.m_num_type))
-    , m_str_type(std::move(that.m_str_type))
-    , m_void_type(std::move(that.m_void_type))
-    , m_null_value(std::move(that.m_null_value))
-    , m_true_value(std::move(that.m_true_value))
-    , m_false_value(std::move(that.m_false_value)) {}
-
-  Interpreter&
-  Interpreter::operator=(const Interpreter& that)
-  {
-    m_modules = that.m_modules;
-    m_any_type = that.m_any_type;
-    m_bool_type = that.m_bool_type;
-    m_float_type = that.m_float_type;
-    m_int_type = that.m_int_type;
-    m_num_type = that.m_num_type;
-    m_str_type = that.m_str_type;
-    m_void_type = that.m_void_type;
-    m_null_value = that.m_null_value;
-    m_true_value = that.m_true_value;
-    m_false_value = that.m_false_value;
-
-    return *this;
-  }
-
-  Interpreter&
-  Interpreter::operator=(Interpreter&& that)
-  {
-    m_modules = std::move(that.m_modules);
-    m_any_type = std::move(that.m_any_type);
-    m_bool_type = std::move(that.m_bool_type);
-    m_float_type = std::move(that.m_float_type);
-    m_int_type = std::move(that.m_int_type);
-    m_num_type = std::move(that.m_num_type);
-    m_str_type = std::move(that.m_str_type);
-    m_void_type = std::move(that.m_void_type);
-    m_null_value = std::move(that.m_null_value);
-    m_true_value = std::move(that.m_true_value);
-    m_false_value = std::move(that.m_false_value);
-
-    return *this;
   }
 
   static parser::result_type

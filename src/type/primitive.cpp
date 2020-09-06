@@ -38,6 +38,9 @@ namespace snek::type
 
     switch (m_primitive_kind)
     {
+      case PrimitiveKind::Bin:
+        return kind == value::Kind::Bin;
+
       case PrimitiveKind::Bool:
         return kind == value::Kind::Bool;
 
@@ -73,6 +76,9 @@ namespace snek::type
   {
     switch (primitive_kind)
     {
+      case PrimitiveKind::Bin:
+        return U"Bin";
+
       case PrimitiveKind::Bool:
         return U"Bool";
 

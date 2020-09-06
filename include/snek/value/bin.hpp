@@ -25,68 +25,64 @@
  */
 #pragma once
 
-#include <memory>
 #include <string>
 
-namespace snek { class Interpreter; }
-namespace snek::type { class Base; }
+#include <snek/value/base.hpp>
 
 namespace snek::value
 {
-  enum class Kind
-  {
-    Bin,
-    Bool,
-    Float,
-    Func,
-    Int,
-    List,
-    Null,
-    Record,
-    Str,
-  };
-
-  /**
-   * Abstract base class for all values.
-   */
-  class Base
+  class Bin final : public Base
   {
   public:
-    explicit Base();
+    using value_type = std::string;
+    using reference = value_type&;
+    using const_reference = const value_type&;
+    using iterator = value_type::const_iterator;
+    using const_iterator = value_type::const_iterator;
+    using reverse_iterator = value_type::const_reverse_iterator;
+    using const_reverse_iterator = value_type::const_reverse_iterator;
 
-    /**
-     * Returns the type of the value.
-     */
-    virtual Kind kind() const = 0;
+    explicit Bin(const_reference value);
 
-    /**
-     * Determines type of the value.
-     */
-    virtual std::shared_ptr<type::Base> type(
-      const Interpreter& interpreter
-    ) const = 0;
+    inline Kind kind() const
+    {
+      return Kind::Bin;
+    }
 
-    virtual bool equals(const std::shared_ptr<Base>& that) const = 0;
+    inline const_reference value() const
+    {
+      return m_value;
+    }
 
-    virtual std::u32string to_string() const = 0;
+    std::shared_ptr<type::Base> type(const Interpreter& interpreter) const;
 
-    Base(const Base&) = delete;
-    Base(Base&&) = delete;
-    void operator=(const Base&) = delete;
-    void operator=(Base&&) = delete;
+    bool equals(const std::shared_ptr<Base>& that) const;
+
+    std::u32string to_string() const;
+
+    inline const_iterator begin() const
+    {
+      return std::begin(m_value);
+    }
+
+    inline const_iterator end() const
+    {
+      return std::end(m_value);
+    }
+
+    inline const_reverse_iterator rbegin() const
+    {
+      return std::rbegin(m_value);
+    }
+
+    inline const_reverse_iterator rend() const
+    {
+      return std::rend(m_value);
+    }
+
+  private:
+    const value_type m_value;
   };
 
-  using Ptr = std::shared_ptr<Base>;
-
-  inline bool
-  operator==(const Ptr& a, const Ptr& b)
-  {
-    return a->equals(b);
-  }
-
-  inline bool
-  operator!=(const Ptr& a, const Ptr& b)
-  {
-    return !a->equals(b);
-  }
+  using BinPtr = std::shared_ptr<Bin>;
 }
