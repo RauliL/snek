@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <snek/ast/expr/int.hpp>
+#include <snek/utils.hpp>
 #include <snek/value/int.hpp>
 
 namespace snek::ast::expr
@@ -31,6 +32,12 @@ namespace snek::ast::expr
   Int::Int(const Position& position, value_type value)
     : RValue(position)
     , m_value(value) {}
+
+  std::u32string
+  Int::to_string() const
+  {
+    return utils::to_string(m_value);
+  }
 
   RValue::result_type
   Int::eval(Interpreter&, const Scope&) const

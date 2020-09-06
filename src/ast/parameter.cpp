@@ -39,6 +39,23 @@ namespace snek::ast
     , m_name(name)
     , m_type(type) {}
 
+  std::u32string
+  Parameter::to_string() const
+  {
+    std::u32string result;
+
+    result += m_name;
+    result += U": ";
+    if (m_type)
+    {
+      result += (*m_type)->to_string();
+    } else {
+      result += U"Any";
+    }
+
+    return result;
+  }
+
   Parameter::result_type
   Parameter::eval(const Interpreter& interpreter, const Scope& scope) const
   {

@@ -47,6 +47,11 @@ namespace snek::ast::type
       return m_element_type;
     }
 
+    inline std::u32string to_string() const
+    {
+      return m_element_type->to_string() + U"[]";
+    }
+
     result_type eval(const Interpreter& interpreter, const Scope& scope) const;
 
   private:

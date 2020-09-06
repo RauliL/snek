@@ -97,6 +97,7 @@ ADD_LIBRARY(
   src/type/str.cpp
   src/type/tuple.cpp
   src/type/union.cpp
+  src/utils.cpp
   src/value/base.cpp
   src/value/bool.cpp
   src/value/float.cpp

@@ -39,6 +39,11 @@ namespace snek::ast::expr
       return m_name;
     }
 
+    inline std::u32string to_string() const
+    {
+      return m_name;
+    }
+
     result_type eval(Interpreter& interpreter, const Scope& scope) const;
 
     assign_result_type assign(

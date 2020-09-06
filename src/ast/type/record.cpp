@@ -35,6 +35,30 @@ namespace snek::ast::type
     : Base(position)
     , m_fields(fields) {}
 
+  std::u32string
+  Record::to_string() const
+  {
+    std::u32string result;
+    bool first = true;
+
+    result += U'{';
+    for (const auto& field : m_fields)
+    {
+      if (first)
+      {
+        first = false;
+      } else {
+        result += U", ";
+      }
+      result += field.first;
+      result += U": ";
+      result += field.second->to_string();
+    }
+    result += U'}';
+
+    return result;
+  }
+
   Base::result_type
   Record::eval(const Interpreter& interpreter, const Scope& scope) const
   {

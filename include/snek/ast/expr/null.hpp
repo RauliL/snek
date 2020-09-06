@@ -34,6 +34,11 @@ namespace snek::ast::expr
   public:
     explicit Null(const Position& position);
 
+    inline std::u32string to_string() const
+    {
+      return U"null";
+    }
+
     result_type eval(Interpreter& interpreter, const Scope& scope) const;
   };
 }

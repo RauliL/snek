@@ -40,6 +40,23 @@ namespace snek::ast::stmt
     , m_type(type)
     , m_is_export(is_export) {}
 
+  std::u32string
+  Type::to_string() const
+  {
+    std::u32string result;
+
+    if (m_is_export)
+    {
+      result += U"export ";
+    }
+    result += U" type ";
+    result += m_name;
+    result += U" = ";
+    result += m_type->to_string();
+
+    return result;
+  }
+
   void
   Type::exec(
     Interpreter& interpreter,

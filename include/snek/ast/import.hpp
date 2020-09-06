@@ -65,6 +65,8 @@ namespace snek::ast::import
       return m_alias;
     }
 
+    std::u32string to_string() const;
+
     result_type import(
       const Scope& module,
       const std::u32string& module_path,
@@ -87,6 +89,11 @@ namespace snek::ast::import
     inline const std::u32string name() const
     {
       return m_name;
+    }
+
+    inline std::u32string to_string() const
+    {
+      return U"* as " + m_name;
     }
 
     result_type import(

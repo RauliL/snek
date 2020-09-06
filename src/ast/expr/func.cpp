@@ -41,6 +41,31 @@ namespace snek::ast::expr
     , m_body(body)
     , m_return_type(return_type) {}
 
+  std::u32string
+  Func::to_string() const
+  {
+    std::u32string result;
+
+    result += U'(';
+    for (std::size_t i = 0; i < m_parameters.size(); ++i)
+    {
+      if (i > 0)
+      {
+        result += U", ";
+      }
+      result += m_parameters[i]->to_string();
+    }
+    result += U") -> ";
+    if (m_return_type)
+    {
+      result += (*m_return_type)->to_string();
+    } else {
+      result += U"Any";
+    }
+
+    return result;
+  }
+
   RValue::result_type
   Func::eval(Interpreter& interpreter, const Scope& scope) const
   {

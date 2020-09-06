@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <snek/ast/type/str.hpp>
+#include <snek/cst.hpp>
 #include <snek/type/str.hpp>
 
 namespace snek::ast::type
@@ -31,6 +32,12 @@ namespace snek::ast::type
   Str::Str(const Position& position, const std::u32string& value)
     : Base(position)
     , m_value(value) {}
+
+  std::u32string
+  Str::to_string() const
+  {
+    return cst::stringify(m_value);
+  }
 
   Base::result_type
   Str::eval(const Interpreter&, const Scope& scope) const

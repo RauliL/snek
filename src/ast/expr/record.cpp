@@ -37,6 +37,25 @@ namespace snek::ast::expr
     : LValue(position)
     , m_fields(fields) {}
 
+  std::u32string
+  Record::to_string() const
+  {
+    std::u32string result;
+
+    result += U'{';
+    for (std::size_t i = 0; i < m_fields.size(); ++i)
+    {
+      if (i > 0)
+      {
+        result += U", ";
+      }
+      result += m_fields[i]->to_string();
+    }
+    result += U'}';
+
+    return result;
+  };
+
   RValue::result_type
   Record::eval(Interpreter& interpreter, const Scope& scope) const
   {

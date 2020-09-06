@@ -42,6 +42,11 @@ namespace snek::ast::expr
       return m_expression;
     }
 
+    inline std::u32string to_string() const
+    {
+      return U'!' + m_expression->to_string();
+    }
+
     result_type eval(Interpreter& interpreter, const Scope& scope) const;
 
   private:

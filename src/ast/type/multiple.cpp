@@ -39,6 +39,40 @@ namespace snek::ast::type
     , m_multiple_kind(multiple_kind)
     , m_types(types) {}
 
+  std::u32string
+  Multiple::to_string() const
+  {
+    std::u32string result;
+
+    if (m_multiple_kind == MultipleKind::Tuple)
+    {
+      result += U'[';
+    }
+    for (std::size_t i = 0; i < m_types.size(); ++i)
+    {
+      if (i > 0)
+      {
+        if (m_multiple_kind == MultipleKind::Intersection)
+        {
+          result += U" & ";
+        }
+        else if (m_multiple_kind == MultipleKind::Union)
+        {
+          result += U" | ";
+        } else {
+          result += U", ";
+        }
+      }
+      result += m_types[i]->to_string();
+    }
+    if (m_multiple_kind == MultipleKind::Tuple)
+    {
+      result += U']';
+    }
+
+    return result;
+  }
+
   Base::result_type
   Multiple::eval(const Interpreter& interpreter, const Scope& scope) const
   {
@@ -65,7 +99,7 @@ namespace snek::ast::type
       case MultipleKind::Tuple:
         return result_type::ok(std::make_shared<snek::type::Tuple>(types));
 
-      case MultipleKind::Union:
+      default:
         return result_type::ok(std::make_shared<snek::type::Union>(types));
     };
   }

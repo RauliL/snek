@@ -85,6 +85,8 @@ namespace snek::ast::record
       return m_value_expression;
     }
 
+    std::u32string to_string() const;
+
     result_type eval(
       Interpreter& interpreter,
       const Scope& scope,
@@ -115,6 +117,8 @@ namespace snek::ast::record
       return m_value_expression;
     }
 
+    std::u32string to_string() const;
+
     result_type eval(
       Interpreter& interpreter,
       const Scope& scope,
@@ -134,6 +138,11 @@ namespace snek::ast::record
     inline const std::u32string& name() const
     {
       return m_name;
+    }
+
+    inline std::u32string to_string() const
+    {
+      return U"..." + m_name;
     }
 
     result_type eval(
@@ -164,6 +173,8 @@ namespace snek::ast::record
     {
       return m_expression;
     }
+
+    std::u32string to_string() const;
 
     result_type eval(
       Interpreter& interpreter,

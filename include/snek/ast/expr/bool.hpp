@@ -41,6 +41,11 @@ namespace snek::ast::expr
       return m_value;
     }
 
+    inline std::u32string to_string() const
+    {
+      return m_value ? U"true" : U"false";
+    }
+
     result_type eval(Interpreter& interpreter, const Scope& scope) const;
 
   private:

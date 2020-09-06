@@ -23,7 +23,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <snek/ast/expr/base.hpp>
 #include <snek/ast/stmt/expr.hpp>
 
 namespace snek::ast::stmt

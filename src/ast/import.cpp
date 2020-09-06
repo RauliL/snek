@@ -41,6 +41,20 @@ namespace snek::ast::import
     , m_name(name)
     , m_alias(alias) {}
 
+  std::u32string
+  Named::to_string() const
+  {
+    auto result = m_name;
+
+    if (m_alias)
+    {
+      result += U" as ";
+      result += *m_alias;
+    }
+
+    return result;
+  }
+
   Specifier::result_type
   Named::import(
     const Scope& module,
