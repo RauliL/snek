@@ -35,7 +35,7 @@ namespace snek::ast::expr
   RValue::result_type
   Id::eval(Interpreter&, const Scope& scope) const
   {
-    if (const auto value = scope.find_variable(m_name, false))
+    if (const auto value = scope.find_variable(m_name))
     {
       return result_type::ok(*value);
     }
@@ -53,7 +53,7 @@ namespace snek::ast::expr
     const std::shared_ptr<value::Base>& value
   ) const
   {
-    if (!scope.add_variable(m_name, value, false))
+    if (!scope.add_variable(m_name, value))
     {
       return assign_result_type({
         position(),

@@ -62,9 +62,9 @@ namespace snek::ast::import
     Scope& scope
   ) const
   {
-    if (const auto variable = module.find_variable(m_name, true))
+    if (const auto variable = module.find_exported_variable(m_name))
     {
-      if (!scope.add_variable(m_alias ? *m_alias : m_name, *variable, false))
+      if (!scope.add_variable(m_alias ? *m_alias : m_name, *variable))
       {
         return result_type({
           position(),
@@ -76,9 +76,9 @@ namespace snek::ast::import
 
       return std::nullopt;
     }
-    else if (const auto type = module.find_type(m_name, true))
+    else if (const auto type = module.find_exported_type(m_name))
     {
-      if (!scope.add_type(m_alias ? *m_alias : m_name, *type, false))
+      if (!scope.add_type(m_alias ? *m_alias : m_name, *type))
       {
         return result_type({
           position(),
@@ -108,18 +108,11 @@ namespace snek::ast::import
     Scope& scope
   ) const
   {
-    value::Record::container_type fields;
-    std::shared_ptr<value::Record> record;
+    const auto record = std::make_shared<value::Record>(
+      module.exported_variables()
+    );
 
-    for (const auto& variable : module.variables())
-    {
-      if (variable.second.second)
-      {
-        fields[variable.first] = variable.second.first;
-      }
-    }
-    record = std::make_shared<value::Record>(fields);
-    if (!scope.add_variable(m_name, record, false))
+    if (!scope.add_variable(m_name, record))
     {
       return result_type({
         position(),

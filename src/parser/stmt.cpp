@@ -101,65 +101,69 @@ namespace snek::parser::stmt
   }
 
   static result_type
-  parse_remainder_type_stmt(
-    State& state,
-    const ast::Position& position,
-    bool is_export
-  )
-  {
-    ++state.current;
-    std::u32string name;
-
-    if (!state.peek(cst::Kind::Id))
-    {
-      return result_type::error({
-        position,
-        U"Missing identifier after `type'."
-      });
-    }
-    name = *state.current++->text();
-    if (!state.peek_read(cst::Kind::Assign))
-    {
-      return result_type::error({
-        position,
-        U"Missing `=' after `type'."
-      });
-    }
-
-    const auto type = type::parse(state, position);
-
-    if (!type)
-    {
-      return result_type::error(type.error());
-    }
-    else if (const auto error = skip_new_line(state))
-    {
-      return result_type::error(*error);
-    }
-
-    return result_type::ok(std::make_shared<ast::stmt::Type>(
-      position,
-      name,
-      type.value(),
-      is_export
-    ));
-  }
-
-  static result_type
   parse_export_stmt(State& state)
   {
     const auto position = state.current++->position();
     std::u32string name;
 
-    if (state.peek(cst::Kind::KeywordType))
+    if (state.peek_read(cst::Kind::KeywordType))
     {
-      return parse_remainder_type_stmt(state, position, true);
+      if (state.eof())
+      {
+        return result_type::error({
+          position,
+          U"Unexpected end of input; Missing identifier after `export type'."
+        });
+      }
+      else if (!state.peek(cst::Kind::Id))
+      {
+        return result_type::error({
+          position,
+          U"Unexpected " +
+          cst::to_string(state.current->kind()) +
+          U"; Missing identifier after `export type'."
+        });
+      }
+      name = *state.current++->text();
+      if (state.peek_read(cst::Kind::Assign))
+      {
+        const auto result = type::parse(state, position);
+
+        if (!result)
+        {
+          return result_type::error(result.error());
+        }
+        else if (const auto error = skip_new_line(state))
+        {
+          return result_type::error(*error);
+        }
+
+        return result_type::ok(std::make_shared<ast::stmt::ExportType>(
+          position,
+          name,
+          result.value()
+        ));
+      }
+      else if (state.eof())
+      {
+        return result_type::error({
+          position,
+          U"Unexpected end of input; Missing `=' after `export type'."
+        });
+      }
+
+      return result_type::error({
+        position,
+        U"Unexpected " +
+        cst::to_string(state.current->kind()) +
+        U"; Missing `=' after `export type'."
+      });
     }
-    if (state.eof())
+    else if (state.eof())
     {
       return result_type::error({
         position,
-        U"Unexpected end of input; Missing identifier."
+        U"Unexpected end of input; Missing identifier after `export'."
       });
     }
     else if (!state.peek(cst::Kind::Id))
@@ -168,42 +172,37 @@ namespace snek::parser::stmt
         position,
         U"Unexpected " +
         cst::to_string(state.current->kind()) +
-        U"; Missing identifier."
+        U"; Missing identifier after `export'."
       });
     }
     name = *state.current++->text();
-    if (state.eof())
+    if (state.peek_read(cst::Kind::Assign))
     {
-      return result_type::error({
-        position,
-        U"Unexpected end of input; Missing `='."
-      });
-    }
-    else if (!state.peek_read(cst::Kind::Assign))
-    {
-      return result_type::error({
-        position,
-        U"Unexpected " +
-        cst::to_string(state.current->kind()) +
-        U"; Missing `='."
-      });
-    }
+      const auto result = expr::parse(state, position);
 
-    const auto value = expr::parse(state);
+      if (!result)
+      {
+        return result_type::error(result.error());
+      }
+      else if (const auto error = skip_new_line(state))
+      {
+        return result_type::error(*error);
+      }
 
-    if (!value)
-    {
-      return result_type::error(value.error());
+      return result_type::ok(std::make_shared<ast::stmt::ExportExpr>(
+        position,
+        name,
+        result.value()
+      ));
     }
     else if (const auto error = skip_new_line(state))
     {
       return result_type::error(*error);
     }
 
-    return result_type::ok(std::make_shared<ast::stmt::Export>(
+    return result_type::ok(std::make_shared<ast::stmt::ExportName>(
       position,
-      name,
-      value.value()
+      name
     ));
   }
 
@@ -223,7 +222,7 @@ namespace snek::parser::stmt
       }
       for (;;)
       {
-        const auto statement = parse(state);
+        const auto statement = parse(state, false, position);
 
         if (!statement)
         {
@@ -242,7 +241,7 @@ namespace snek::parser::stmt
       ));
     }
 
-    return parse(state);
+    return parse(state, false, position);
   }
 
   static result_type
@@ -414,7 +413,62 @@ namespace snek::parser::stmt
   static result_type
   parse_type_stmt(State& state)
   {
-    return parse_remainder_type_stmt(state, state.current->position(), false);
+    const auto position = state.current++->position();
+    std::u32string name;
+    std::shared_ptr<ast::type::Base> type;
+
+    if (!state.peek(cst::Kind::Id))
+    {
+      if (state.eof())
+      {
+        return result_type::error({
+          position,
+          U"Unexpected end of input; Missing identifier."
+        });
+      }
+
+      return result_type::error({
+        position,
+        U"Unexpected " +
+        cst::to_string(state.current->kind()) +
+        U"; Missing identifier."
+      });
+    }
+    name = *state.current++->text();
+    if (state.peek_read(cst::Kind::Assign))
+    {
+      const auto result = type::parse(state, position);
+
+      if (!result)
+      {
+        return result_type::error(result.error());
+      }
+      type = result.value();
+    }
+    else if (state.eof())
+    {
+      return result_type::error({
+        position,
+        U"Unexpected end of input; Missing `=' after `type'."
+      });
+    } else {
+      return result_type::error({
+        position,
+        U"Unexpected " +
+        cst::to_string(state.current->kind()) +
+        U"; Missing `=' after `type'."
+      });
+    }
+    if (const auto error = skip_new_line(state))
+    {
+      return result_type::error(*error);
+    }
+
+    return result_type::ok(std::make_shared<ast::stmt::Type>(
+      position,
+      name,
+      type
+    ));
   }
 
   static result_type
@@ -482,22 +536,42 @@ namespace snek::parser::stmt
   }
 
   result_type
-  parse(State& state)
+  parse(
+    State& state,
+    bool is_top_level,
+    const std::optional<ast::Position>& position
+  )
   {
     if (state.eof())
     {
       return result_type::error({
-        std::nullopt,
+        position,
         U"Unexpected end of input; Missing statement."
       });
     }
     switch (state.current->kind())
     {
       case cst::Kind::KeywordImport:
-        return parse_import_stmt(state);
+        if (is_top_level)
+        {
+          return parse_import_stmt(state);
+        } else {
+          return result_type::error({
+            position,
+            U"Unexpected `import'."
+          });
+        }
 
       case cst::Kind::KeywordExport:
-        return parse_export_stmt(state);
+        if (is_top_level)
+        {
+          return parse_export_stmt(state);
+        } else {
+          return result_type::error({
+            position,
+            U"Unexpected `export'."
+          });
+        }
 
       case cst::Kind::KeywordIf:
         return parse_if_stmt(state);

@@ -117,7 +117,11 @@ namespace snek::parser::stmt
 {
   using result_type = peelo::result<std::shared_ptr<ast::stmt::Base>, Error>;
 
-  result_type parse(State& state);
+  result_type parse(
+    State& state,
+    bool is_top_level = false,
+    const std::optional<ast::Position>& position = std::nullopt
+  );
   result_type parse_block(State& state, const ast::Position& position);
 }
 

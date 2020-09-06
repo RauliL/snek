@@ -25,46 +25,140 @@
  */
 #include <snek/ast/expr/base.hpp>
 #include <snek/ast/stmt/export.hpp>
+#include <snek/ast/type/base.hpp>
 #include <snek/scope.hpp>
 
 namespace snek::ast::stmt
 {
-  Export::Export(
+  ExportExpr::ExportExpr(
     const Position& position,
     const std::u32string& name,
-    const std::shared_ptr<expr::RValue>& value
+    const std::shared_ptr<expr::RValue>& expr
   )
     : Base(position)
     , m_name(name)
-    , m_value(value) {}
+    , m_expr(expr) {}
 
   std::u32string
-  Export::to_string() const
+  ExportExpr::to_string() const
   {
-    return U"export " + m_name + U" = " + m_value->to_string();
+    return U"export " + m_name + U" = " + m_expr->to_string();
   }
 
   void
-  Export::exec(
+  ExportExpr::exec(
     Interpreter& interpreter,
     Scope& scope,
     ExecContext& context
   ) const
   {
-    const auto value = m_value->eval(interpreter, scope);
+    const auto result = m_expr->eval(interpreter, scope);
 
-    if (!value)
+    if (!result)
     {
-      context.error() = value.error();
+      context.error() = result.error();
     }
-    else if (!scope.add_variable(m_name, value.value(), true))
+    else if (!scope.add_variable(m_name, result.value()))
+    {
+      context.error() = {
+        position(),
+        U"Variable `" + m_name + U"' has already been defined."
+      };
+    }
+    else if (!scope.add_exported_variable(m_name, result.value()))
     {
       context.error() = {
         position(),
         U"Export `" + m_name + U"' has already been defined."
       };
+    }
+  }
+
+  ExportType::ExportType(
+    const Position& position,
+    const std::u32string& name,
+    const std::shared_ptr<type::Base>& type
+  )
+    : Base(position)
+    , m_name(name)
+    , m_type(type) {}
+
+  std::u32string
+  ExportType::to_string() const
+  {
+    return U"export type " + m_name + U" = " + m_type->to_string();
+  }
+
+  void
+  ExportType::exec(
+    Interpreter& interpreter,
+    Scope& scope,
+    ExecContext& context
+  ) const
+  {
+    const auto result = m_type->eval(interpreter, scope);
+
+    if (!result)
+    {
+      context.error() = result.error();
+    }
+    else if (!scope.add_type(m_name, result.value()))
+    {
+      context.error() = {
+        position(),
+        U"Type `" + m_name + U"' has already been defined."
+      };
+    }
+    else if (!scope.add_exported_type(m_name, result.value()))
+    {
+      context.error() = {
+        position(),
+        U"Export `" + m_name + U"' has already been defined."
+      };
+    }
+  }
+
+  ExportName::ExportName(const Position& position, const std::u32string& name)
+    : Base(position)
+    , m_name(name) {}
+
+  std::u32string
+  ExportName::to_string() const
+  {
+    return U"export " + m_name;
+  }
+
+  void
+  ExportName::exec(
+    Interpreter& interpreter,
+    Scope& scope,
+    ExecContext& context
+  ) const
+  {
+    if (const auto value = scope.find_variable(m_name))
+    {
+      if (!scope.add_exported_variable(m_name, *value))
+      {
+        context.error() = {
+          position(),
+          U"Export `" + m_name + U"' has already been defined."
+        };
+      }
+    }
+    else if (const auto type = scope.find_type(m_name))
+    {
+      if (!scope.add_exported_type(m_name, *type))
+      {
+        context.error() = {
+          position(),
+          U"Export `" + m_name + U"' has already been defined."
+        };
+      }
     } else {
-      context.value() = value.value();
+      context.error() = {
+        position(),
+        U"Unknown variable or type: `" + m_name + U"'."
+      };
     }
   }
 }

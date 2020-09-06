@@ -45,7 +45,11 @@ namespace snek::parser
 
     while (!state.eof())
     {
-      const auto statement = stmt::parse(state);
+      const auto statement = stmt::parse(
+        state,
+        true,
+        state.current->position()
+      );
 
       if (!statement)
       {
