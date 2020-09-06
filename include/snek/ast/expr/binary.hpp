@@ -42,6 +42,13 @@ namespace snek::ast::expr
     Gt,
     Lte,
     Gte,
+    And,
+    Or,
+    BitwiseXor,
+    LeftShift,
+    RightShift,
+    LogicalAnd,
+    LogicalOr,
   };
 
   class Binary final : public RValue

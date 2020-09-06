@@ -95,6 +95,11 @@ namespace snek::cst
     Gt,
     Lte,
     Gte,
+    BitwiseXor,
+    LeftShift,
+    RightShift,
+    LogicalAnd,
+    LogicalOr,
   };
 
   inline bool is_identifier_start(char32_t c)

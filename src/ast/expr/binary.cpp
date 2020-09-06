@@ -449,6 +449,133 @@ namespace snek::ast::expr
     });
   }
 
+  static RValue::result_type
+  op_bitwise_xor(
+    const Position& position,
+    const value::Ptr& left,
+    const value::Ptr& right,
+    const Interpreter& interpreter
+  )
+  {
+    const auto left_kind = left->kind();
+    const auto right_kind = right->kind();
+
+    if (is_num_kind(left_kind) && is_num_kind(right_kind))
+    {
+      return RValue::result_type::ok(make_int(to_int(left) ^ to_int(right)));
+    }
+
+    return RValue::result_type::error({
+      position,
+      U"Cannot xor " +
+      left->type(interpreter)->to_string() +
+      U" with " +
+      right->type(interpreter)->to_string()
+    });
+  }
+
+  static RValue::result_type
+  op_left_shift(
+    const Position& position,
+    const value::Ptr& left,
+    const value::Ptr& right,
+    const Interpreter& interpreter
+  )
+  {
+    const auto left_kind = left->kind();
+    const auto right_kind = right->kind();
+
+    if (is_num_kind(left_kind) && is_num_kind(right_kind))
+    {
+      return RValue::result_type::ok(make_int(to_int(left) << to_int(right)));
+    }
+
+    return RValue::result_type::error({
+      position,
+      U"Cannot shift " +
+      left->type(interpreter)->to_string() +
+      U" with " +
+      right->type(interpreter)->to_string()
+    });
+  }
+
+  static RValue::result_type
+  op_right_shift(
+    const Position& position,
+    const value::Ptr& left,
+    const value::Ptr& right,
+    const Interpreter& interpreter
+  )
+  {
+    const auto left_kind = left->kind();
+    const auto right_kind = right->kind();
+
+    if (is_num_kind(left_kind) && is_num_kind(right_kind))
+    {
+      return RValue::result_type::ok(make_int(to_int(left) >> to_int(right)));
+    }
+
+    return RValue::result_type::error({
+      position,
+      U"Cannot shift " +
+      left->type(interpreter)->to_string() +
+      U" with " +
+      right->type(interpreter)->to_string()
+    });
+  }
+
+  static RValue::result_type
+  op_logical_and(
+    const Position& position,
+    const value::Ptr& left,
+    const value::Ptr& right,
+    const Interpreter& interpreter
+  )
+  {
+    if (left->kind() == value::Kind::Bool &&
+        right->kind() == value::Kind::Bool)
+    {
+      return RValue::result_type::ok(interpreter.bool_value(
+        std::static_pointer_cast<value::Bool>(left)->value() &&
+        std::static_pointer_cast<value::Bool>(right)->value()
+      ));
+    }
+
+    return RValue::result_type::error({
+      position,
+      U"Cannot compare " +
+      left->type(interpreter)->to_string() +
+      U" against " +
+      right->type(interpreter)->to_string()
+    });
+  }
+
+  static RValue::result_type
+  op_logical_or(
+    const Position& position,
+    const value::Ptr& left,
+    const value::Ptr& right,
+    const Interpreter& interpreter
+  )
+  {
+    if (left->kind() == value::Kind::Bool ||
+        right->kind() == value::Kind::Bool)
+    {
+      return RValue::result_type::ok(interpreter.bool_value(
+        std::static_pointer_cast<value::Bool>(left)->value() ||
+        std::static_pointer_cast<value::Bool>(right)->value()
+      ));
+    }
+
+    return RValue::result_type::error({
+      position,
+      U"Cannot compare " +
+      left->type(interpreter)->to_string() +
+      U" against " +
+      right->type(interpreter)->to_string()
+    });
+  }
+
   std::u32string
   Binary::to_string() const
   {
@@ -520,6 +647,46 @@ namespace snek::ast::expr
 
       case BinaryOperator::Gte:
         return op_gte(position(), left.value(), right.value(), interpreter);
+
+      case BinaryOperator::BitwiseXor:
+        return op_bitwise_xor(
+          position(),
+          left.value(),
+          right.value(),
+          interpreter
+        );
+
+      case BinaryOperator::LeftShift:
+        return op_left_shift(
+          position(),
+          left.value(),
+          right.value(),
+          interpreter
+        );
+
+      case BinaryOperator::RightShift:
+        return op_right_shift(
+          position(),
+          left.value(),
+          right.value(),
+          interpreter
+        );
+
+      case BinaryOperator::LogicalAnd:
+        return op_logical_and(
+          position(),
+          left.value(),
+          right.value(),
+          interpreter
+        );
+
+      case BinaryOperator::LogicalOr:
+        return op_logical_or(
+          position(),
+          left.value(),
+          right.value(),
+          interpreter
+        );
     }
 
     return result_type::error({

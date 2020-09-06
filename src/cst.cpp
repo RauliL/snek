@@ -245,6 +245,21 @@ namespace snek::cst
       case Kind::Gte:
         return U"`>='";
 
+      case Kind::BitwiseXor:
+        return U"`^'";
+
+      case Kind::LeftShift:
+        return U"`<<'";
+
+      case Kind::RightShift:
+        return U"`>>'";
+
+      case Kind::LogicalAnd:
+        return U"`&&'";
+
+      case Kind::LogicalOr:
+        return U"`||'";
+
       case Kind::Arrow:
         return U"`->'";
 

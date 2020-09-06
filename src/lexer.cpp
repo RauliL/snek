@@ -448,6 +448,10 @@ namespace snek::lexer
         kind = cst::Kind::BitwiseNot;
         break;
 
+      case '^':
+        kind = cst::Kind::BitwiseXor;
+        break;
+
       case '=':
         kind =
           state.peek_read('=') ?
@@ -478,19 +482,27 @@ namespace snek::lexer
         break;
 
       case '&':
-        kind = cst::Kind::And;
+        kind = state.peek_read('&') ? cst::Kind::LogicalAnd : cst::Kind::And;
         break;
 
       case '|':
-        kind = cst::Kind::Or;
+        kind = state.peek_read('|') ? cst::Kind::LogicalOr : cst::Kind::Or;
         break;
 
       case '<':
-        kind = state.peek_read('=') ? cst::Kind::Lte : cst::Kind::Lt;
+        kind = state.peek_read('<')
+          ? cst::Kind::LeftShift
+          : state.peek_read('=')
+          ? cst::Kind::Lte
+          : cst::Kind::Lt;
         break;
 
       case '>':
-        kind = state.peek_read('=') ? cst::Kind::Gte : cst::Kind::Gt;
+        kind = state.peek_read('>')
+          ? cst::Kind::RightShift
+          : state.peek_read('=')
+          ? cst::Kind::Gte
+          : cst::Kind::Gt;
         break;
 
       default:

@@ -480,7 +480,12 @@ namespace snek::parser::expr
     }
     while (state.peek(cst::Kind::Mul) ||
            state.peek(cst::Kind::Div) ||
-           state.peek(cst::Kind::Mod))
+           state.peek(cst::Kind::Mod) ||
+           state.peek(cst::Kind::BitwiseXor) ||
+           state.peek(cst::Kind::LeftShift) ||
+           state.peek(cst::Kind::RightShift) ||
+           state.peek(cst::Kind::LogicalAnd) ||
+           state.peek(cst::Kind::LogicalOr))
     {
       const auto new_position = state.current->position();
       const auto kind = state.current++->kind();
@@ -494,10 +499,20 @@ namespace snek::parser::expr
         new_position,
         expression.value(),
         kind == cst::Kind::Mul
-          ? ast::expr::BinaryOperator::Mul
-          : kind == cst::Kind::Div
-          ? ast::expr::BinaryOperator::Div
-          : ast::expr::BinaryOperator::Mod,
+        ? ast::expr::BinaryOperator::Mul
+        : kind == cst::Kind::Div
+        ? ast::expr::BinaryOperator::Div
+        : kind == cst::Kind::Mod
+        ? ast::expr::BinaryOperator::Mod
+        : kind == cst::Kind::BitwiseXor
+        ? ast::expr::BinaryOperator::BitwiseXor
+        : kind == cst::Kind::LeftShift
+        ? ast::expr::BinaryOperator::LeftShift
+        : kind == cst::Kind::RightShift
+        ? ast::expr::BinaryOperator::RightShift
+        : kind == cst::Kind::LogicalAnd
+        ? ast::expr::BinaryOperator::LogicalAnd
+        : ast::expr::BinaryOperator::LogicalOr,
         operand.value()
       ));
     }
