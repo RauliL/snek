@@ -51,6 +51,7 @@ ADD_LIBRARY(
   src/ast/expr/null.cpp
   src/ast/expr/record.cpp
   src/ast/expr/str.cpp
+  src/ast/expr/subscript.cpp
   src/ast/expr/unary.cpp
   src/ast/import.cpp
   src/ast/parameter.cpp

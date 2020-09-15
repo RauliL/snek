@@ -35,6 +35,7 @@
 #include <snek/ast/expr/null.hpp>
 #include <snek/ast/expr/record.hpp>
 #include <snek/ast/expr/str.hpp>
+#include <snek/ast/expr/subscript.hpp>
 #include <snek/ast/expr/unary.hpp>
 #include <snek/ast/parameter.hpp>
 #include <snek/ast/record.hpp>
@@ -400,6 +401,34 @@ namespace snek::parser::expr
   }
 
   static result_type
+  parse_subscript_expr(
+    State& state,
+    const ast::Position& position,
+    const std::shared_ptr<ast::expr::RValue>& record
+  )
+  {
+    const auto field_result = parse(state, position);
+
+    if (!field_result)
+    {
+      return field_result;
+    }
+    else if (!state.peek_read(cst::Kind::RightBracket))
+    {
+      return result_type::error({
+        position,
+        U"Missing `]' after the expression.",
+      });
+    }
+
+    return result_type::ok(std::make_shared<ast::expr::Subscript>(
+      position,
+      record,
+      field_result.value()
+    ));
+  }
+
+  static result_type
   parse_selector(
     State& state,
     const std::shared_ptr<ast::expr::RValue>& target
@@ -410,8 +439,12 @@ namespace snek::parser::expr
     if (selector.kind() == cst::Kind::LeftParen)
     {
       return parse_call_expr(state, selector.position(), target);
-    } else {
+    }
+    else if (selector.kind() == cst::Kind::Dot)
+    {
       return parse_field_expr(state, selector.position(), target);
+    } else {
+      return parse_subscript_expr(state, selector.position(), target);
     }
   }
 
@@ -453,7 +486,9 @@ namespace snek::parser::expr
       {
         return result;
       }
-      while (state.peek(cst::Kind::Dot) || state.peek(cst::Kind::LeftParen))
+      while (state.peek(cst::Kind::Dot) ||
+             state.peek(cst::Kind::LeftParen) ||
+             state.peek(cst::Kind::LeftBracket))
       {
         result = parse_selector(state, result.value());
         if (!result)
