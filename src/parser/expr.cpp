@@ -356,7 +356,8 @@ namespace snek::parser::expr
   parse_call_expr(
     State& state,
     const ast::Position& position,
-    const std::shared_ptr<ast::expr::RValue>& callee
+    const std::shared_ptr<ast::expr::RValue>& callee,
+    bool optional
   )
   {
     const auto arguments = parse_expr_list(
@@ -374,7 +375,8 @@ namespace snek::parser::expr
     return result_type::ok(std::make_shared<ast::expr::Call>(
       position,
       callee,
-      arguments.value()
+      arguments.value(),
+      optional
     ));
   }
 
@@ -382,7 +384,8 @@ namespace snek::parser::expr
   parse_field_expr(
     State& state,
     const ast::Position& position,
-    const std::shared_ptr<ast::expr::RValue>& record
+    const std::shared_ptr<ast::expr::RValue>& record,
+    bool optional
   )
   {
     if (state.eof() || state.current->kind() != cst::Kind::Id)
@@ -396,7 +399,8 @@ namespace snek::parser::expr
     return result_type::ok(std::make_shared<ast::expr::Field>(
       position,
       record,
-      *(state.current++)->text()
+      *(state.current++)->text(),
+      optional
     ));
   }
 
@@ -404,7 +408,8 @@ namespace snek::parser::expr
   parse_subscript_expr(
     State& state,
     const ast::Position& position,
-    const std::shared_ptr<ast::expr::RValue>& record
+    const std::shared_ptr<ast::expr::RValue>& record,
+    bool optional
   )
   {
     const auto field_result = parse(state, position);
@@ -424,8 +429,60 @@ namespace snek::parser::expr
     return result_type::ok(std::make_shared<ast::expr::Subscript>(
       position,
       record,
-      field_result.value()
+      field_result.value(),
+      optional
     ));
+  }
+
+  static result_type
+  parse_conditional_selector(
+    State& state,
+    const std::shared_ptr<ast::expr::RValue>& target
+  )
+  {
+    const auto position = state.current++->position();
+
+    if (state.eof())
+    {
+      return result_type::error({
+        position,
+        U"Unexpected end of input after `?.'."
+      });
+    }
+    switch (state.current->kind())
+    {
+      case cst::Kind::Id:
+        return parse_field_expr(
+          state,
+          state.current->position(),
+          target,
+          true
+        );
+
+      case cst::Kind::LeftBracket:
+        return parse_subscript_expr(
+          state,
+          state.current++->position(),
+          target,
+          true
+        );
+
+      case cst::Kind::LeftParen:
+        return parse_call_expr(
+          state,
+          state.current++->position(),
+          target,
+          true
+        );
+
+      default:
+        return result_type::error({
+          position,
+          U"Unexpected " +
+          cst::to_string(state.current->kind()) +
+          U" after `?.'."
+        });
+    }
   }
 
   static result_type
@@ -438,13 +495,13 @@ namespace snek::parser::expr
 
     if (selector.kind() == cst::Kind::LeftParen)
     {
-      return parse_call_expr(state, selector.position(), target);
+      return parse_call_expr(state, selector.position(), target, false);
     }
     else if (selector.kind() == cst::Kind::Dot)
     {
-      return parse_field_expr(state, selector.position(), target);
+      return parse_field_expr(state, selector.position(), target, false);
     } else {
-      return parse_subscript_expr(state, selector.position(), target);
+      return parse_subscript_expr(state, selector.position(), target, false);
     }
   }
 
@@ -488,10 +545,17 @@ namespace snek::parser::expr
       }
       while (state.peek(cst::Kind::Dot) ||
              state.peek(cst::Kind::LeftParen) ||
-             state.peek(cst::Kind::LeftBracket))
+             state.peek(cst::Kind::LeftBracket) ||
+             state.peek(cst::Kind::ConditionalDot))
       {
-        result = parse_selector(state, result.value());
-        if (!result)
+        if (state.peek(cst::Kind::ConditionalDot))
+        {
+          if (!(result = parse_conditional_selector(state, result.value())))
+          {
+            return result;
+          }
+        }
+        else if (!(result = parse_selector(state, result.value())))
         {
           return result;
         }
