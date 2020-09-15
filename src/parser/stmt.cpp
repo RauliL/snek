@@ -479,7 +479,12 @@ namespace snek::parser::stmt
 
     if (target->kind() != ast::expr::Kind::LValue)
     {
-      return result_type::error({ position, U"Cannot assign into TODO." });
+      return result_type::error({
+        position,
+        U"Cannot assign into " +
+        target->to_string() +
+        U"."
+      });
     }
     if (state.peek_func())
     {
