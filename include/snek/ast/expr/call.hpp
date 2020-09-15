@@ -37,7 +37,8 @@ namespace snek::ast::expr
     explicit Call(
       const Position& position,
       const std::shared_ptr<RValue>& callee,
-      const std::vector<std::shared_ptr<RValue>>& arguments
+      const std::vector<std::shared_ptr<RValue>>& arguments,
+      bool optional
     );
 
     inline const std::shared_ptr<RValue>& callee() const
@@ -50,6 +51,11 @@ namespace snek::ast::expr
       return m_arguments;
     }
 
+    inline bool is_optional() const
+    {
+      return m_optional;
+    }
+
     std::u32string to_string() const;
 
     result_type eval(Interpreter& interpreter, const Scope& scope) const;
@@ -57,5 +63,6 @@ namespace snek::ast::expr
   private:
     const std::shared_ptr<RValue> m_callee;
     const std::vector<std::shared_ptr<RValue>> m_arguments;
+    const bool m_optional;
   };
 }

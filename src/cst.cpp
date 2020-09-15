@@ -170,6 +170,9 @@ namespace snek::cst
       case Kind::Dot:
         return U"`.'";
 
+      case Kind::ConditionalDot:
+        return U"`?.'";
+
       case Kind::Comma:
         return U"`,'";
 

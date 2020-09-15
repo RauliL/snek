@@ -24,19 +24,36 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <snek/ast/expr/field.hpp>
-#include <snek/type/base.hpp>
-#include <snek/value/record.hpp>
+#include <snek/interpreter.hpp>
 
 namespace snek::ast::expr
 {
   Field::Field(
     const Position& position,
     const std::shared_ptr<RValue>& record_expression,
-    const std::u32string& field
+    const std::u32string& field,
+    bool optional
   )
     : RValue(position)
     , m_record_expression(record_expression)
-    , m_field(field) {}
+    , m_field(field)
+    , m_optional(optional) {}
+
+  std::u32string
+  Field::to_string() const
+  {
+    std::u32string result;
+
+    result += m_record_expression->to_string();
+    if (m_optional)
+    {
+      result += U'?';
+    }
+    result += U'.';
+    result += m_field;
+
+    return result;
+  }
 
   RValue::result_type
   Field::eval(Interpreter& interpreter, const Scope& scope) const
@@ -49,7 +66,11 @@ namespace snek::ast::expr
       std::shared_ptr<value::Record> record;
       value::Record::const_iterator record_field;
 
-      if (value->kind() != value::Kind::Record)
+      if (m_optional && value->kind() == value::Kind::Null)
+      {
+        return result_type::ok(interpreter.null_value());
+      }
+      else if (value->kind() != value::Kind::Record)
       {
         return result_type::error({
           position(),

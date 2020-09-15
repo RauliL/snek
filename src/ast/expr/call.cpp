@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <snek/ast/expr/call.hpp>
+#include <snek/interpreter.hpp>
 #include <snek/value/func.hpp>
 
 namespace snek::ast::expr
@@ -31,11 +32,13 @@ namespace snek::ast::expr
   Call::Call(
     const Position& position,
     const std::shared_ptr<RValue>& callee,
-    const std::vector<std::shared_ptr<RValue>>& arguments
+    const std::vector<std::shared_ptr<RValue>>& arguments,
+    bool optional
   )
     : RValue(position)
     , m_callee(callee)
-    , m_arguments(arguments) {}
+    , m_arguments(arguments)
+    , m_optional(optional) {}
 
   std::u32string
   Call::to_string() const
@@ -43,6 +46,10 @@ namespace snek::ast::expr
     std::u32string result;
 
     result += m_callee->to_string();
+    if (m_optional)
+    {
+      result += U"?.";
+    }
     result += U'(';
     for (std::size_t i = 0; i < m_arguments.size(); ++i)
     {
@@ -66,6 +73,10 @@ namespace snek::ast::expr
     if (!callee)
     {
       return callee;
+    }
+    else if (m_optional && callee.value()->kind() == value::Kind::Null)
+    {
+      return result_type::ok(interpreter.null_value());
     }
     else if (callee.value()->kind() != value::Kind::Func)
     {

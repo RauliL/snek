@@ -48,6 +48,7 @@ namespace snek::cst
     LeftBrace,
     RightBrace,
     Dot,
+    ConditionalDot,
     Comma,
     Colon,
     Semicolon,

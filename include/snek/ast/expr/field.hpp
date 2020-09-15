@@ -35,7 +35,8 @@ namespace snek::ast::expr
     explicit Field(
       const Position& position,
       const std::shared_ptr<RValue>& record_expression,
-      const std::u32string& field
+      const std::u32string& field,
+      bool optional
     );
 
     inline const std::shared_ptr<RValue>& record_expression() const
@@ -48,15 +49,18 @@ namespace snek::ast::expr
       return m_field;
     }
 
-    inline std::u32string to_string() const
+    inline bool is_optional() const
     {
-      return m_record_expression->to_string() + U'.' + m_field;
+      return m_optional;
     }
+
+    std::u32string to_string() const;
 
     result_type eval(Interpreter& interpreter, const Scope& scope) const;
 
   private:
     const std::shared_ptr<RValue> m_record_expression;
     const std::u32string m_field;
+    const bool m_optional;
   };
 }

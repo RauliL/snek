@@ -24,8 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <snek/ast/expr/subscript.hpp>
-#include <snek/type/base.hpp>
-#include <snek/value/record.hpp>
+#include <snek/interpreter.hpp>
 #include <snek/value/str.hpp>
 
 namespace snek::ast::expr
@@ -33,11 +32,30 @@ namespace snek::ast::expr
   Subscript::Subscript(
     const Position& position,
     const std::shared_ptr<RValue>& record_expression,
-    const std::shared_ptr<RValue>& field_expression
+    const std::shared_ptr<RValue>& field_expression,
+    bool optional
   )
     : RValue(position)
     , m_record_expression(record_expression)
-    , m_field_expression(field_expression) {}
+    , m_field_expression(field_expression)
+    , m_optional(optional) {}
+
+  std::u32string
+  Subscript::to_string() const
+  {
+    std::u32string result;
+
+    result += m_record_expression->to_string();
+    if (m_optional)
+    {
+      result += U"?.";
+    }
+    result += U'[';
+    result += m_field_expression->to_string();
+    result += U']';
+
+    return result;
+  }
 
   RValue::result_type
   Subscript::eval(Interpreter& interpreter, const Scope& scope) const
@@ -54,7 +72,11 @@ namespace snek::ast::expr
         std::shared_ptr<value::Str> field_name;
         value::Record::const_iterator record_field;
 
-        if (record_result.value()->kind() != value::Kind::Record)
+        if (m_optional && record_result.value()->kind() == value::Kind::Null)
+        {
+          return result_type::ok(interpreter.null_value());
+        }
+        else if (record_result.value()->kind() != value::Kind::Record)
         {
           return result_type::error({
             m_record_expression->position(),
@@ -87,6 +109,8 @@ namespace snek::ast::expr
             U"'."
           });
         }
+
+        return result_type::ok(record_field->second);
       }
 
       return field_result;

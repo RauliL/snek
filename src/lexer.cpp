@@ -710,6 +710,17 @@ namespace snek::lexer
           : cst::Kind::Gt;
         break;
 
+      case '?':
+        if (!state.peek_read('.'))
+        {
+          return token_result_type::error({
+            position,
+            U"Unexpected `?'.",
+          });
+        }
+        kind = cst::Kind::ConditionalDot;
+        break;
+
       default:
         return token_result_type::error({
           position,
