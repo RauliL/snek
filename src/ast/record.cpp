@@ -40,7 +40,9 @@ namespace snek::ast::record
   {
     return result_type({
       position(),
-      U"Cannot assign into TODO."
+      U"Cannot assign into " +
+      to_string() +
+      U"."
     });
   }
 
