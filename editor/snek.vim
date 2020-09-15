@@ -1,15 +1,20 @@
 " Vim syntax file
 " Language:    Snek
 " Maintainer:  Rauli Laine <rauli.laine@iki.fi>
-" Last Change: 2020 Sep 02
+" Last Change: 2020 Sep 15
 
 if exists("b:current_syntax")
   finish
 endif
 
+" Syntax: Comments
+syn keyword snekTodo FIXME NOTE NOTES TODO XXX contained
+syn match snekComment "#.*$" contains=snekTodo
+
 " Syntax: Reserved keywords
 syn keyword snekBoolean false true
-syn keyword snekStatement break continue null pass return
+syn keyword snekSpecial null
+syn keyword snekStatement break continue null pass return type
 syn keyword snekConditional else if
 syn keyword snekRepeat while
 syn keyword snekInclude as export from import
@@ -28,7 +33,11 @@ hi def link snekConditional Conditional
 hi def link snekRepeat Repeat
 hi def link snekInclude Include
 hi def link snekStringEscape Special
-hi def link snekString String
+hi def link snekComment Comment
+hi def link snekTodo Todo
 hi def link snekBoolean Boolean
+hi def link snekSpecial Constant
+hi def link snekString String
+hi def link snekNumber Number
 
 let b:current_syntax = "snek"
