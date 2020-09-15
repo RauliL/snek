@@ -34,9 +34,9 @@
 
 namespace snek::lexer
 {
-  using token_result_type = peelo::result<cst::Token, Error>;
   using iterator = std::u32string::const_iterator;
   using keyword_container = std::unordered_map<std::u32string, cst::Kind>;
+  using token_result_type = peelo::result<cst::Token, Error>;
 
   static const keyword_container reserved_keywords =
   {
@@ -69,6 +69,16 @@ namespace snek::lexer
     return std::isdigit(c) || c == '_';
   }
 
+  static inline token_result_type
+  make_token(
+    const ast::Position& position,
+    cst::Kind kind,
+    const std::optional<std::u32string>& text = std::nullopt
+  )
+  {
+    return token_result_type::ok(cst::Token(position, kind, text));
+  }
+
   namespace
   {
     struct State
@@ -76,16 +86,15 @@ namespace snek::lexer
       iterator current;
       const iterator end;
       ast::Position position;
-      std::stack<char32_t> separator_stack;
 
       inline bool eof() const
       {
         return current >= end;
       }
 
-      inline bool peek(char32_t c) const
+      inline bool peek(char32_t c, std::size_t offset = 0) const
       {
-        return !eof() && *current == c;
+        return current + offset < end && *(current + offset) == c;
       }
 
       inline bool peek_read(char32_t c)
@@ -122,20 +131,258 @@ namespace snek::lexer
     };
   }
 
-  static inline bool
-  is_indent(char32_t c)
-  {
-    return c == ' ' || c == '\t';
-  }
+  static cst::Token lex_identifier(State&);
+  static token_result_type lex_string_literal(State&);
+  static token_result_type lex_number_literal(State&);
+  static token_result_type lex_operator(State&);
 
-  static inline token_result_type
-  make_token(
-    const ast::Position& position,
-    cst::Kind kind,
-    const std::optional<std::u32string>& text = std::nullopt
+  // TODO: Add support for explicit line joining with `\'
+  static std::optional<Error>
+  lex_logical_line(
+    State& state,
+    std::vector<cst::Token>& tokens,
+    std::stack<int>& indent_stack
   )
   {
-    return token_result_type::ok(cst::Token(position, kind, text));
+    const auto position = state.position;
+    int indent = 0;
+    int separator_count = 0;
+
+    // Parse indentation at beginning of the line.
+    while (state.peek(' ') || state.peek('\t'))
+    {
+      indent += state.advance() == '\t' ? 8 : 1;
+    }
+
+    // If there is an comment after the initial indentation, skip that and call
+    // it a day.
+    if (state.peek_read('#'))
+    {
+      while (!state.eof())
+      {
+        const auto c = state.advance();
+
+        if (c == '\n')
+        {
+          break;
+        }
+      }
+
+      return std::nullopt;
+    }
+
+    // If it's an empty line, then do nothing else.
+    if (state.eof() || state.peek_read('\n'))
+    {
+      return std::nullopt;
+    }
+
+    // Then check if the indentation has changed from previous line.
+    if (indent_stack.empty())
+    {
+      if (indent > 0)
+      {
+        indent_stack.push(indent);
+        tokens.push_back(cst::Token(position, cst::Kind::Indent));
+      }
+    } else {
+      auto previous_indent = indent_stack.top();
+
+      if (previous_indent > indent)
+      {
+        do
+        {
+          if (indent_stack.empty())
+          {
+            break;
+          }
+          previous_indent = indent_stack.top();
+          indent_stack.pop();
+          tokens.push_back(cst::Token(position, cst::Kind::Dedent));
+          if (previous_indent < indent)
+          {
+            return std::make_optional<Error>({
+              position,
+              U"Indentation mismatch."
+            });
+          }
+        }
+        while (previous_indent > indent);
+      }
+      else if (previous_indent < indent)
+      {
+        indent_stack.push(indent);
+        tokens.push_back(cst::Token(position, cst::Kind::Indent));
+      }
+    }
+
+    // Lex tokens after initial indent.
+    for (;;)
+    {
+      // End of input.
+      if (state.eof())
+      {
+        break;
+      }
+
+      // End of line.
+      if (state.peek_read('\n') && !separator_count)
+      {
+        tokens.push_back(cst::Token(
+          {
+            state.position.file,
+            state.position.line,
+            state.position.column - 1
+          },
+          cst::Kind::NewLine
+        ));
+        break;
+      }
+
+      // Skip whitespace before the next token.
+      if (std::isspace(*state.current))
+      {
+        state.advance();
+        continue;
+      }
+
+      // Skip comments.
+      if (state.peek_read('#'))
+      {
+        while (!state.eof())
+        {
+          const auto c = state.advance();
+
+          if (c == '\n')
+          {
+            break;
+          }
+        }
+        break;
+      }
+
+      // Separators.
+      if (state.peek('(') || state.peek('[') || state.peek('{'))
+      {
+        const auto position = state.position;
+        const auto c = state.advance();
+
+        ++separator_count;
+        tokens.push_back(cst::Token(
+          position,
+          c == '('
+            ? cst::Kind::LeftParen
+            : c == '['
+            ? cst::Kind::LeftBracket
+            : cst::Kind::LeftBrace
+        ));
+        continue;
+      }
+
+      if (state.peek(')') || state.peek(']') || state.peek('}'))
+      {
+        const auto position = state.position;
+        const auto c = state.advance();
+
+        if (separator_count > 0)
+        {
+          --separator_count;
+        }
+        tokens.push_back(cst::Token(
+          position,
+          c == ')'
+            ? cst::Kind::RightParen
+            : c == ']'
+            ? cst::Kind::RightBracket
+            : cst::Kind::RightBrace
+        ));
+        continue;
+      }
+
+      // Is it identifier?
+      if (cst::is_identifier_start(*state.current))
+      {
+        tokens.push_back(lex_identifier(state));
+        continue;
+      }
+
+      // Is it string literal?
+      if (state.peek('"') || state.peek('\''))
+      {
+        const auto result = lex_string_literal(state);
+
+        if (!result)
+        {
+          return result.error();
+        }
+        tokens.push_back(result.value());
+        continue;
+      }
+
+      // TODO: Add support for binary literals.
+
+      // Is it number literal?
+      if (std::isdigit(*state.current))
+      {
+        const auto result = lex_number_literal(state);
+
+        if (!result)
+        {
+          return result.error();
+        }
+        tokens.push_back(result.value());
+        continue;
+      }
+
+      // Otherwise it must be an operator.
+      const auto result = lex_operator(state);
+
+      if (!result)
+      {
+        return result.error();
+      }
+      tokens.push_back(result.value());
+    }
+
+    return std::nullopt;
+  }
+
+  result_type
+  lex(
+    const std::u32string& source,
+    const std::u32string& file,
+    int line,
+    int column
+  )
+  {
+    State state = {
+      std::begin(source),
+      std::end(source),
+      { file, line, column },
+    };
+    std::vector<cst::Token> tokens;
+    std::stack<int> indent_stack;
+
+    while (!state.eof())
+    {
+      if (const auto error = lex_logical_line(state, tokens, indent_stack))
+      {
+        return result_type::error(*error);
+      }
+    }
+
+    if (!indent_stack.empty())
+    {
+      tokens.push_back(cst::Token(state.position, cst::Kind::NewLine));
+      do
+      {
+        indent_stack.pop();
+        tokens.push_back(cst::Token(state.position, cst::Kind::Dedent));
+      }
+      while (!indent_stack.empty());
+    }
+
+    return result_type::ok(tokens);
   }
 
   static cst::Token
@@ -398,48 +645,6 @@ namespace snek::lexer
         kind = cst::Kind::Semicolon;
         break;
 
-      case '(':
-        kind = cst::Kind::LeftParen;
-        state.separator_stack.push(')');
-        break;
-
-      case ')':
-        kind = cst::Kind::RightParen;
-        if (!state.separator_stack.empty() &&
-            state.separator_stack.top() == ')')
-        {
-          state.separator_stack.pop();
-        }
-        break;
-
-      case '[':
-        kind = cst::Kind::LeftBracket;
-        state.separator_stack.push(']');
-        break;
-
-      case ']':
-        kind = cst::Kind::RightBracket;
-        if (!state.separator_stack.empty() &&
-            state.separator_stack.top() == ']')
-        {
-          state.separator_stack.pop();
-        }
-        break;
-
-      case '{':
-        kind = cst::Kind::LeftBrace;
-        state.separator_stack.push('}');
-        break;
-
-      case '}':
-        kind = cst::Kind::RightBrace;
-        if (!state.separator_stack.empty() &&
-            state.separator_stack.top() == '}')
-        {
-          state.separator_stack.pop();
-        }
-        break;
-
       case '!':
         kind = state.peek_read('=') ? cst::Kind::Ne : cst::Kind::Not;
         break;
@@ -513,141 +718,5 @@ namespace snek::lexer
     }
 
     return make_token(position, kind);
-  }
-
-  result_type
-  lex(
-    const std::u32string& source,
-    const std::u32string& file,
-    int line,
-    int column
-  )
-  {
-    State state = {
-      std::begin(source),
-      std::end(source),
-      { file, line, column },
-    };
-    std::vector<cst::Token> tokens;
-    std::stack<int> level_stack;
-
-    while (!state.eof())
-    {
-      if (state.separator_stack.empty() && is_new_line(*state.current))
-      {
-        const auto position = state.position;
-        int indent = 0;
-
-        do
-        {
-          state.advance();
-        }
-        while (!state.eof() && is_new_line(*state.current));
-        tokens.push_back(cst::Token(position, cst::Kind::NewLine));
-        if (state.eof())
-        {
-          break;
-        }
-        while (!state.eof() && is_indent(*state.current))
-        {
-          indent += state.advance() == '\t' ? 8 : 1;
-        }
-        if (level_stack.empty())
-        {
-          if (indent > 0)
-          {
-            tokens.push_back(cst::Token(position, cst::Kind::Indent));
-            level_stack.push(indent);
-          }
-        } else {
-          auto previous_indent = level_stack.top();
-
-          if (previous_indent > indent)
-          {
-            do
-            {
-              if (level_stack.empty())
-              {
-                break;
-              }
-              tokens.push_back(cst::Token(position, cst::Kind::Dedent));
-              previous_indent = level_stack.top();
-              level_stack.pop();
-              if (previous_indent < indent)
-              {
-                return result_type::error({
-                  position,
-                  U"Indentation mismatch."
-                });
-              }
-            }
-            while (previous_indent > indent);
-          }
-          else if (previous_indent < indent)
-          {
-            tokens.push_back(cst::Token(position, cst::Kind::Indent));
-            level_stack.push(indent);
-          }
-        }
-      }
-
-      // Skip whitespace.
-      while (!state.eof() && std::isspace(*state.current))
-      {
-        state.advance();
-      }
-
-      if (state.eof())
-      {
-        break;
-      }
-
-      // Identifier?
-      if (cst::is_identifier_start(*state.current))
-      {
-        tokens.push_back(lex_identifier(state));
-      }
-      // String literal?
-      else if (state.peek('"') || state.peek('\''))
-      {
-        const auto result = lex_string_literal(state);
-
-        if (!result)
-        {
-          return result_type::error(result.error());
-        }
-        tokens.push_back(result.value());
-      }
-      // Number literal?
-      else if (std::isdigit(*state.current) || (
-        (*state.current == '-' || *state.current == '+') &&
-        state.current + 1 < state.end &&
-        std::isdigit(*(state.current + 1))
-      ))
-      {
-        const auto result = lex_number_literal(state);
-
-        if (!result)
-        {
-          return result_type::error(result.error());
-        }
-        tokens.push_back(result.value());
-      } else {
-        const auto result = lex_operator(state);
-
-        if (!result)
-        {
-          return result_type::error(result.error());
-        }
-        tokens.push_back(result.value());
-      }
-    }
-    while (!level_stack.empty())
-    {
-      level_stack.pop();
-      tokens.push_back(cst::Token(state.position, cst::Kind::Dedent));
-    }
-
-    return result_type::ok(tokens);
   }
 }
