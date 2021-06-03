@@ -46,6 +46,7 @@ namespace snek::parser::type
     { U"Float", ast::type::BuiltinKind::Float },
     { U"Int", ast::type::BuiltinKind::Int },
     { U"Num", ast::type::BuiltinKind::Num },
+    { U"Record", ast::type::BuiltinKind::Record },
     { U"Str", ast::type::BuiltinKind::Str },
     { U"Void", ast::type::BuiltinKind::Void },
   };

@@ -36,6 +36,7 @@ namespace snek::type
     Float,
     Int,
     Num,
+    Record,
     Str,
     Void,
   };

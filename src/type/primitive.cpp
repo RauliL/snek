@@ -53,6 +53,9 @@ namespace snek::type
       case PrimitiveKind::Num:
         return kind == value::Kind::Float || kind == value::Kind::Int;
 
+      case PrimitiveKind::Record:
+        return kind == value::Kind::Record;
+
       case PrimitiveKind::Str:
         return kind == value::Kind::Str;
 
@@ -90,6 +93,9 @@ namespace snek::type
 
       case PrimitiveKind::Num:
         return U"Num";
+
+      case PrimitiveKind::Record:
+        return U"Record";
 
       case PrimitiveKind::Str:
         return U"Str";

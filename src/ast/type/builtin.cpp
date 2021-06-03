@@ -36,6 +36,7 @@ namespace snek::ast::type
     { BuiltinKind::Float, U"Float" },
     { BuiltinKind::Int, U"Int" },
     { BuiltinKind::Num, U"Num" },
+    { BuiltinKind::Record, U"Record" },
     { BuiltinKind::Str, U"Str" },
     { BuiltinKind::Void, U"Void" },
   };
@@ -74,6 +75,9 @@ namespace snek::ast::type
 
       case BuiltinKind::Num:
         return result_type::ok(interpreter.num_type());
+
+      case BuiltinKind::Record:
+        return result_type::ok(interpreter.record_type());
 
       case BuiltinKind::Str:
         return result_type::ok(interpreter.str_type());

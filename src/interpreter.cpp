@@ -78,6 +78,7 @@ namespace snek
     , m_float_type(make_primitive_type(type::PrimitiveKind::Float))
     , m_int_type(make_primitive_type(type::PrimitiveKind::Int))
     , m_num_type(make_primitive_type(type::PrimitiveKind::Num))
+    , m_record_type(make_primitive_type(type::PrimitiveKind::Record))
     , m_str_type(make_primitive_type(type::PrimitiveKind::Str))
     , m_void_type(make_primitive_type(type::PrimitiveKind::Void))
     , m_null_value(std::make_shared<value::Null>())

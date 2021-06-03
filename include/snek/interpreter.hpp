@@ -80,6 +80,11 @@ namespace snek
       return m_num_type;
     }
 
+    inline const type::Ptr& record_type() const
+    {
+      return m_record_type;
+    }
+
     inline const type::Ptr& str_type() const
     {
       return m_str_type;
@@ -138,6 +143,7 @@ namespace snek
     type::Ptr m_float_type;
     type::Ptr m_int_type;
     type::Ptr m_num_type;
+    type::Ptr m_record_type;
     type::Ptr m_str_type;
     type::Ptr m_void_type;
     value::NullPtr m_null_value;
