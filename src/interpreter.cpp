@@ -61,6 +61,7 @@ namespace snek
   namespace api::debug { Scope create(const Interpreter&); }
   namespace api::io { Scope create(const Interpreter&); }
   namespace api::list { Scope create(const Interpreter&); }
+  namespace api::record { Scope create(const Interpreter&); }
   namespace api::str { Scope create(const Interpreter&); }
 
 #if defined(_WIN32)
@@ -89,6 +90,7 @@ namespace snek
     m_modules[U"debug"] = api::debug::create(*this);
     m_modules[U"io"] = api::io::create(*this);
     m_modules[U"list"] = api::list::create(*this);
+    m_modules[U"record"] = api::record::create(*this);
     m_modules[U"str"] = api::str::create(*this);
   }
 
