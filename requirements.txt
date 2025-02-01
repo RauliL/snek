@@ -1,5 +1,0 @@
-jarro2783/cxxopts@v2.2.1 -X header
-martinmoene/lest@v1.35.1 -X header
-peelonet/peelo-prompt@v0.3.1
-peelonet/peelo-result@5f09c27 -X header
-peelonet/peelo-unicode@v0.2.0

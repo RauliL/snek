@@ -23,3 +23,81 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include <deque>
+#include <stack>
+
+#include "snek/parser/token.hpp"
+
+namespace snek::parser
+{
+  class Lexer final
+  {
+  public:
+    DEFAULT_COPY_AND_ASSIGN(Lexer);
+
+    using iterator = std::string::const_iterator;
+
+    Lexer(
+      const iterator& begin,
+      const iterator& end,
+      const std::u32string& filename = U"<eval>",
+      int line = 1,
+      int column = 1
+    )
+      : m_current(begin)
+      , m_end(end)
+      , m_position{ filename, line, column } {}
+
+    inline const Position& position() const
+    {
+      return m_position;
+    }
+
+    Token ReadToken();
+
+    void ReadToken(Token::Kind expected);
+
+    void UnreadToken(const Token& token);
+
+    bool PeekToken(Token::Kind expected);
+
+    bool PeekNextButOneToken(Token::Kind expected);
+
+    bool PeekReadToken(Token::Kind expected);
+
+    std::u32string ReadId();
+
+  private:
+    void LexLogicalLine();
+
+    Token LexOperator();
+
+    Token LexId();
+
+    Token LexString();
+
+    Token LexNumber();
+
+    char32_t LexEscapeSequence();
+
+    inline bool HasMoreChars() const
+    {
+      return m_current < m_end;
+    }
+
+    char32_t ReadChar();
+
+    bool PeekChar(char expected) const;
+
+    bool PeekReadChar(char expected);
+
+  private:
+    iterator m_current;
+    iterator m_end;
+    Position m_position;
+    std::deque<Token> m_token_queue;
+    std::stack<int> m_indent_stack;
+  };
+}

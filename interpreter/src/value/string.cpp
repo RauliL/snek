@@ -23,3 +23,23 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include "snek/interpreter/value.hpp"
+#include "snek/parser/utils.hpp"
+
+namespace snek::interpreter::value
+{
+  bool
+  String::Equals(const Base& that) const
+  {
+    return (
+      that.kind() == Kind::String &&
+      !m_value.compare(static_cast<const String*>(&that)->m_value)
+    );
+  }
+
+  std::u32string
+  String::ToSource() const
+  {
+    return parser::utils::ToJsonString(m_value);
+  }
+}

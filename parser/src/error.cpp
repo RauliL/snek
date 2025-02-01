@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2020-2025, Rauli Laine
+ * Copyright (c) 2025, Rauli Laine
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -23,3 +23,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include "snek/error.hpp"
+
+namespace snek
+{
+  std::u32string
+  Error::ToString() const
+  {
+    if (position)
+    {
+      return position->ToString().append(U": ").append(message);
+    }
+
+    return message;
+  }
+}

@@ -23,3 +23,67 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include "snek/interpreter/runtime.hpp"
+
+namespace snek::interpreter::prototype
+{
+  /**
+   * Object#==(this, other) => Boolean
+   *
+   * Tests whether two objects are equal with each other.
+   */
+  static value::ptr
+  Equals(
+    Runtime&,
+    const std::vector<value::ptr>& arguments
+  )
+  {
+    return std::make_shared<value::Boolean>(value::Equals(
+      arguments[0],
+      arguments[1]
+    ));
+  }
+
+  /**
+   * Object#!=(this, other) => Boolean
+   *
+   * Negates return value of `==`. Can be used to test whether two objects are
+   * not equal with each other.
+   */
+  static value::ptr
+  NotEquals(
+    Runtime& runtime,
+    const std::vector<value::ptr>& arguments
+  )
+  {
+    return std::make_shared<value::Boolean>(!value::ToBoolean(
+      value::CallMethod(
+        runtime,
+        arguments[0],
+        U"==",
+        { arguments[1] }
+      )
+    ));
+  }
+
+  void
+  MakeObject(const Runtime* runtime, value::Record::container_type& fields)
+  {
+    fields[U"=="] = value::Function::MakeNative(
+      {
+        Parameter(U"this"),
+        Parameter(U"other")
+      },
+      runtime->boolean_type(),
+      Equals
+    );
+    fields[U"!="] = value::Function::MakeNative(
+      {
+        Parameter(U"this"),
+        Parameter(U"other")
+      },
+      runtime->boolean_type(),
+      NotEquals
+    );
+  }
+}

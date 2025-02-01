@@ -23,3 +23,76 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include <memory>
+#include <vector>
+
+#include "snek/parser/lexer.hpp"
+#include "snek/parser/node.hpp"
+
+namespace snek::parser::expression
+{
+  class Base;
+
+  using ptr = std::shared_ptr<Base>;
+}
+
+namespace snek::parser::type
+{
+  class Base;
+
+  using ptr = std::shared_ptr<Base>;
+}
+
+namespace snek::parser::parameter
+{
+  class Base final : public Node
+  {
+  public:
+    DISALLOW_COPY_AND_ASSIGN(Base);
+
+    explicit Base(
+      const Position& position,
+      const std::u32string& name,
+      const type::ptr& type = nullptr,
+      const expression::ptr& default_value = nullptr
+    )
+      : Node(position)
+      , m_name(name)
+      , m_type(type)
+      , m_default_value(default_value) {}
+
+    inline const std::u32string& name() const
+    {
+      return m_name;
+    }
+
+    inline const type::ptr& type() const
+    {
+      return m_type;
+    }
+
+    inline const expression::ptr& default_value() const
+    {
+      return m_default_value;
+    }
+
+    std::u32string ToString() const override;
+
+  private:
+    const std::u32string m_name;
+    const type::ptr m_type;
+    const expression::ptr m_default_value;
+  };
+
+  using ptr = std::shared_ptr<Base>;
+
+  ptr Parse(Lexer& lexer);
+
+  std::vector<ptr>
+  ParseList(
+    Lexer& lexer,
+    bool read_opening_parenthesis = true
+  );
+}

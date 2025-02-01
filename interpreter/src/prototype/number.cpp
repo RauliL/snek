@@ -1,0 +1,366 @@
+/*
+ * Copyright (c) 2020-2025, Rauli Laine
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+#include <climits>
+#include <cmath>
+
+#include "snek/interpreter/runtime.hpp"
+
+namespace snek::interpreter::prototype
+{
+  static inline const value::Number*
+  AsNumber(const value::ptr& value)
+  {
+    return static_cast<value::Number*>(value.get());
+  }
+
+  static int
+  DoCompare(const std::vector<value::ptr>& arguments)
+  {
+    const auto a = AsNumber(arguments[0]);
+    const auto b = AsNumber(arguments[1]);
+
+    if (a->kind() == value::Kind::Float || b->kind() == value::Kind::Float)
+    {
+      const auto x = a->ToFloat();
+      const auto y = b->ToFloat();
+
+      return x > y ? 1 : x < y ? -1 : 0;
+    } else {
+      const auto x = a->ToInt();
+      const auto y = b->ToInt();
+
+      return x > y ? 1 : x < y ? -1 : 0;
+    }
+  }
+
+  template<class FloatOp, class IntOp>
+  static value::ptr
+  DoOp(const std::vector<value::ptr>& arguments)
+  {
+    const auto a = AsNumber(arguments[0]);
+    const auto b = AsNumber(arguments[1]);
+    const auto result = FloatOp()(a->ToFloat(), b->ToFloat());
+
+    if (
+      a->kind() == value::Kind::Int &&
+      b->kind() == value::Kind::Int &&
+      std::fabs(result) <= static_cast<double>(INT64_MAX)
+    )
+    {
+      // Repeat the operation with full integer precision.
+      return std::make_shared<value::Int>(IntOp()(a->ToInt(), b->ToInt()));
+    }
+
+    return std::make_shared<value::Float>(result);
+  }
+
+  template<class Op>
+  static value::ptr
+  DoBitOp(const std::vector<value::ptr>& arguments)
+  {
+    const auto a = AsNumber(arguments[0]);
+    const auto b = AsNumber(arguments[1]);
+
+    return std::make_shared<value::Int>(Op()(a->ToInt(), b->ToInt()));
+  }
+
+  /**
+   * Number#+(this: Number, other: Number) => Number
+   *
+   * Performs addition on the two given numbers.
+   */
+  static value::ptr
+  Add(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return DoOp<std::plus<double>, std::plus<std::int64_t>>(arguments);
+  }
+
+  /**
+   * Number#-(this: Number, other: Number) => Number
+   *
+   * Performs substraction on the two given numbers.
+   */
+  static value::ptr
+  Sub(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return DoOp<std::minus<double>, std::minus<std::int64_t>>(arguments);
+  }
+
+  /**
+   * Number#*(this: Number, other: Number) => Number
+   *
+   * Performs multiplication on the two given numbers.
+   */
+  static value::ptr
+  Mul(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return DoOp<
+      std::multiplies<double>,
+      std::multiplies<std::int64_t>
+    >(arguments);
+  }
+
+  /**
+   * Number#/(this: Number, other: Number) => Number
+   *
+   * Performs division on the two given numbers.
+   */
+  static value::ptr
+  Div(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return DoOp<std::divides<double>, std::divides<std::int64_t>>(arguments);
+  }
+
+  /**
+   * Number#&(this: Number, other: Number) => Int
+   *
+   * Performs bitwise and on the two given numbers.
+   */
+  static value::ptr
+  BitwiseAnd(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return DoBitOp<std::bit_and<std::int64_t>>(arguments);
+  }
+
+  /**
+   * Number#|(this: Number, other: Number) => Int
+   *
+   * Performs bitwise and on the two given numbers.
+   */
+  static value::ptr
+  BitwiseOr(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return DoBitOp<std::bit_or<std::int64_t>>(arguments);
+  }
+
+  /**
+   * Number#^(this: Number, other: Number) => Int
+   *
+   * Performs bitwise and on the two given numbers.
+   */
+  static value::ptr
+  BitwiseXor(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return DoBitOp<std::bit_xor<std::int64_t>>(arguments);
+  }
+
+  /**
+   * Number#~(this: Number) => Int
+   *
+   * Flips the bits of the value.
+   */
+  static value::ptr
+  BitwiseNot(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return std::make_shared<value::Int>(~AsNumber(arguments[0])->ToInt());
+  }
+
+  /**
+   * Number#<<(this: Number, other: Number) => Int
+   *
+   * Returns the first value with bits shifted left by the second value.
+   */
+  static value::ptr
+  LeftShift(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return std::make_shared<value::Int>(
+      AsNumber(arguments[0])->ToInt() << AsNumber(arguments[1])->ToInt()
+    );
+  }
+
+  /**
+   * Number#>>this: Number, other: Number) => Int
+   *
+   * Returns the first value with bits shifted right by the second value.
+   */
+  static value::ptr
+  RightShift(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return std::make_shared<value::Int>(
+      AsNumber(arguments[0])->ToInt() >> AsNumber(arguments[1])->ToInt()
+    );
+  }
+
+  /**
+   * Number#<(this: Number, other: Number) => Boolean
+   *
+   * Returns true if number value is less than the other one.
+   */
+  static value::ptr
+  LessThan(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return std::make_shared<value::Boolean>(DoCompare(arguments) < 0);
+  }
+
+  /**
+   * Number#>(this: Number, other: Number) => Boolean
+   *
+   * Returns true if number value is greater than the other one.
+   */
+  static value::ptr
+  GreaterThan(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return std::make_shared<value::Boolean>(DoCompare(arguments) > 0);
+  }
+
+  /**
+   * Number#<=(this: Number, other: Number) => Boolean
+   *
+   * Returns true if number value is less than the other one or equal.
+   */
+  static value::ptr
+  LessThanOrEqual(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return std::make_shared<value::Boolean>(DoCompare(arguments) <= 0);
+  }
+
+  /**
+   * Number#>=(this: Number, other: Number) => Boolean
+   *
+   * Returns true if number value is greater than the other one or equal.
+   */
+  static value::ptr
+  GreaterThanOrEqual(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return std::make_shared<value::Boolean>(DoCompare(arguments) >= 0);
+  }
+
+  void
+  MakeNumber(const Runtime* runtime, value::Record::container_type& fields)
+  {
+    fields[U"+"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->number_type(),
+      Add
+    );
+    fields[U"-"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->number_type(),
+      Sub
+    );
+    fields[U"*"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->number_type(),
+      Mul
+    );
+    fields[U"/"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->number_type(),
+      Div
+    );
+    fields[U"&"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->int_type(),
+      BitwiseAnd
+    );
+    fields[U"|"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->int_type(),
+      BitwiseOr
+    );
+    fields[U"^"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->int_type(),
+      BitwiseXor
+    );
+    fields[U"~"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+      },
+      runtime->int_type(),
+      BitwiseNot
+    );
+    fields[U"<<"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->int_type(),
+      LeftShift
+    );
+    fields[U">>"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->int_type(),
+      RightShift
+    );
+    fields[U"<"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->boolean_type(),
+      LessThan
+    );
+    fields[U">"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->boolean_type(),
+      GreaterThan
+    );
+    fields[U"<="] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->boolean_type(),
+      LessThanOrEqual
+    );
+    fields[U">="] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->boolean_type(),
+      GreaterThanOrEqual
+    );
+  }
+}

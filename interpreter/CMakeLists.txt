@@ -1,0 +1,71 @@
+project(SnekInterpreter)
+
+add_library(
+  SnekInterpreter
+  ./src/api.cpp
+  ./src/evaluate.cpp
+  ./src/execute.cpp
+  ./src/parameter.cpp
+  ./src/prototype/list.cpp
+  ./src/prototype/object.cpp
+  ./src/prototype/number.cpp
+  ./src/prototype/record.cpp
+  ./src/prototype/string.cpp
+  ./src/resolve/parameter.cpp
+  ./src/resolve/expression.cpp
+  ./src/resolve/statement.cpp
+  ./src/resolve/type.cpp
+  ./src/runtime.cpp
+  ./src/scope.cpp
+  ./src/type.cpp
+  ./src/value.cpp
+  ./src/value/boolean.cpp
+  ./src/value/float.cpp
+  ./src/value/function.cpp
+  ./src/value/int.cpp
+  ./src/value/list.cpp
+  ./src/value/record.cpp
+  ./src/value/string.cpp
+)
+
+target_include_directories(
+  SnekInterpreter
+  PUBLIC
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+)
+target_link_libraries(
+  SnekInterpreter
+  SnekParser
+)
+target_compile_features(
+  SnekInterpreter
+  PRIVATE
+    cxx_std_17
+)
+if(MSVC)
+  target_compile_options(
+    SnekInterpreter
+    PRIVATE
+      /W4 /WX
+  )
+else()
+  target_compile_options(
+    SnekInterpreter
+    PRIVATE
+      -Wall -Werror
+  )
+endif()
+
+if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
+  install(
+    TARGETS
+      SnekInterpreter
+    LIBRARY
+      DESTINATION lib
+  )
+  install(
+    DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/include
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.hpp"
+  )
+endif()

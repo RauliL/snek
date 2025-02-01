@@ -23,3 +23,45 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include "snek/interpreter/value.hpp"
+#include "snek/parser/statement.hpp"
+
+namespace snek::interpreter
+{
+  class Jump
+  {
+  public:
+    DEFAULT_COPY_AND_ASSIGN(Jump);
+
+    Jump(
+      const Position& position,
+      parser::statement::JumpKind kind,
+      const value::ptr& value = nullptr
+    )
+      : m_position(position)
+      , m_kind(kind)
+      , m_value(value) {}
+
+    inline const Position& position() const
+    {
+      return m_position;
+    }
+
+    inline parser::statement::JumpKind kind() const
+    {
+      return m_kind;
+    }
+
+    inline const value::ptr& value() const
+    {
+      return m_value;
+    }
+
+  private:
+    Position m_position;
+    parser::statement::JumpKind m_kind;
+    value::ptr m_value;
+  };
+}

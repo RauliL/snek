@@ -23,3 +23,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include "snek/interpreter/resolve.hpp"
+
+namespace snek::interpreter
+{
+  using namespace parser::parameter;
+
+  Parameter
+  ResolveParameter(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const ptr& parameter
+  )
+  {
+    return Parameter(
+      parameter->name(),
+      ResolveType(runtime, scope, parameter->type()),
+      parameter->default_value(),
+      parameter->position()
+    );
+  }
+
+  std::vector<Parameter>
+  ResolveParameterList(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const std::vector<ptr>& parameters
+  )
+  {
+    std::vector<Parameter> result;
+
+    result.reserve(parameters.size());
+    for (const auto& parameter : parameters)
+    {
+      result.push_back(ResolveParameter(runtime, scope, parameter));
+    }
+
+    return result;
+  }
+}

@@ -23,3 +23,24 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include <string>
+
+namespace snek
+{
+  /**
+   * Represents position in source code.
+   */
+  struct Position
+  {
+    std::u32string filename;
+    int line;
+    int column;
+
+    /**
+     * Returns human readable form of the position.
+     */
+    std::u32string ToString() const;
+  };
+}

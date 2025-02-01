@@ -23,3 +23,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include <optional>
+
+#include "snek/position.hpp"
+
+namespace snek
+{
+  struct Error final
+  {
+    std::optional<Position> position;
+    std::u32string message;
+
+    std::u32string ToString() const;
+  };
+}

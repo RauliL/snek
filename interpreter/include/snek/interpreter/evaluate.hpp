@@ -23,3 +23,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include "snek/interpreter/runtime.hpp"
+#include "snek/parser/expression.hpp"
+
+namespace snek::interpreter
+{
+  value::ptr
+  EvaluateExpression(
+    Runtime& runtime,
+    const Scope::ptr& scope,
+    const parser::expression::ptr& expression
+  );
+}

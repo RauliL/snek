@@ -23,3 +23,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include "snek/error.hpp"
+#include "snek/parser/element.hpp"
+#include "snek/parser/expression.hpp"
+
+namespace snek::parser::element
+{
+  ptr
+  Parse(Lexer& lexer)
+  {
+    const auto token = lexer.ReadToken();
+    Kind kind = Kind::Value;
+
+    if (token.kind() == Token::Kind::Spread)
+    {
+      kind = Kind::Spread;
+    } else {
+      lexer.UnreadToken(token);
+    }
+
+    return std::make_shared<Base>(
+      token.position(),
+      kind,
+      expression::Parse(lexer)
+    );
+  }
+
+  std::u32string
+  Base::ToString() const
+  {
+    return m_kind == Kind::Spread
+      ? U"..." + m_expression->ToString()
+      : m_expression->ToString();
+  }
+}
