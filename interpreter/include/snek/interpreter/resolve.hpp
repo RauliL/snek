@@ -23,3 +23,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include "snek/interpreter/runtime.hpp"
+#include "snek/interpreter/type.hpp"
+#include "snek/parser/expression.hpp"
+#include "snek/parser/parameter.hpp"
+#include "snek/parser/statement.hpp"
+#include "snek/parser/type.hpp"
+
+namespace snek::interpreter
+{
+  type::ptr
+  ResolveType(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const parser::type::ptr& type
+  );
+
+  Parameter
+  ResolveParameter(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const parser::parameter::ptr& parameter
+  );
+
+  std::vector<Parameter>
+  ResolveParameterList(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const std::vector<parser::parameter::ptr>& parameters
+  );
+
+  type::ptr
+  ResolveExpression(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const parser::expression::ptr& expression
+  );
+
+  type::ptr
+  ResolveStatement(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const parser::statement::ptr& statement
+  );
+}

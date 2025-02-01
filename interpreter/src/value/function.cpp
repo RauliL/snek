@@ -1,0 +1,333 @@
+/*
+ * Copyright (c) 2020-2025, Rauli Laine
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * 1. Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ * 2. Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+#include "snek/error.hpp"
+#include "snek/interpreter/evaluate.hpp"
+#include "snek/interpreter/execute.hpp"
+#include "snek/interpreter/jump.hpp"
+#include "snek/interpreter/value.hpp"
+
+namespace snek::interpreter::value
+{
+  namespace
+  {
+    class NativeFunction final : public Function
+    {
+    public:
+      explicit NativeFunction(
+        const std::vector<Parameter>& parameters,
+        const type::ptr& return_type,
+        const callback_type& callback
+      )
+        : Function()
+        , m_parameters(parameters)
+        , m_return_type(return_type)
+        , m_callback(callback) {}
+
+      inline const std::vector<Parameter>& parameters() const override
+      {
+        return m_parameters;
+      }
+
+      inline const type::ptr& return_type() const override
+      {
+        return m_return_type;
+      }
+
+      ptr
+      Call(
+        const std::optional<Position>& position,
+        Runtime& runtime,
+        const std::vector<ptr>& arguments
+      ) const override
+      {
+        const auto parameters_size = m_parameters.size();
+        const auto arguments_size = arguments.size();
+        std::vector<ptr> callback_arguments;
+
+        callback_arguments.reserve(parameters_size);
+        for (std::size_t i = 0; i < parameters_size; ++i)
+        {
+          const auto& parameter = m_parameters[i];
+          ptr argument;
+
+          if (i < arguments_size)
+          {
+            argument = arguments[i];
+          }
+          else if (const auto default_value = parameter.default_value())
+          {
+            argument = EvaluateExpression(
+              runtime,
+              runtime.root_scope(),
+              default_value
+            );
+          } else {
+            throw Error({ position, U"Too few arguments." });
+          }
+          if (!parameter.Accepts(runtime, argument))
+          {
+            throw Error{
+              parameter.position(),
+              value::ToString(argument) +
+              U" cannot be assigned to " +
+              parameter.ToString()
+            };
+          }
+          callback_arguments.push_back(argument);
+        }
+
+        return m_callback(runtime, callback_arguments);
+      }
+
+    private:
+      const std::vector<Parameter> m_parameters;
+      const type::ptr m_return_type;
+      const callback_type m_callback;
+    };
+
+    class ScriptedFunction final : public Function
+    {
+    public:
+      explicit ScriptedFunction(
+        const std::vector<Parameter>& parameters,
+        const type::ptr& return_type,
+        const parser::statement::ptr& body,
+        const Scope::ptr& enclosing_scope
+      )
+        : Function()
+        , m_parameters(parameters)
+        , m_return_type(return_type)
+        , m_body(body)
+        , m_enclosing_scope(enclosing_scope) {}
+
+      inline const std::vector<Parameter>& parameters() const override
+      {
+        return m_parameters;
+      }
+
+      inline const type::ptr& return_type() const override
+      {
+        return m_return_type;
+      }
+
+      ptr
+      Call(
+        const std::optional<Position>& position,
+        Runtime& runtime,
+        const std::vector<ptr>& arguments
+      ) const override
+      {
+        const auto parameters_size = m_parameters.size();
+        const auto arguments_size = arguments.size();
+        const auto scope = std::make_shared<Scope>(
+          m_enclosing_scope
+            ? m_enclosing_scope
+            : runtime.root_scope()
+        );
+
+        for (std::size_t i = 0; i < parameters_size; ++i)
+        {
+          const auto& parameter = m_parameters[i];
+          ptr argument;
+
+          if (arguments_size < i)
+          {
+            argument = arguments[i];
+          }
+          else if (const auto default_value = parameter.default_value())
+          {
+            argument = EvaluateExpression(runtime, scope, default_value);
+          } else {
+            throw Error{ position, U"Too few arguments." };
+          }
+          if (!parameter.Accepts(runtime, argument))
+          {
+            throw Error{
+              parameter.position(),
+              value::ToString(argument) +
+              U" cannot be assigned to " +
+              parameter.ToString()
+            };
+          }
+          scope->DeclareVariable(
+            parameter.position(),
+            parameter.name(),
+            argument,
+            false
+          );
+        }
+        try
+        {
+          ExecuteStatement(runtime, scope, m_body);
+        }
+        catch (const Jump& jump)
+        {
+          if (jump.kind() == parser::statement::JumpKind::Return)
+          {
+            return jump.value();
+          }
+
+          throw Error{
+            jump.position(),
+            U"Unexpected `" +
+            parser::statement::Jump::ToString(jump.kind())
+            + U"'."
+          };
+        }
+
+        return nullptr;
+      }
+
+    private:
+      const std::vector<Parameter> m_parameters;
+      const type::ptr m_return_type;
+      const parser::statement::ptr m_body;
+      const Scope::ptr m_enclosing_scope;
+    };
+
+    class BoundFunction final : public Function
+    {
+    public:
+      explicit BoundFunction(
+        const ptr& this_value,
+        const std::shared_ptr<Function>& function
+      )
+        : Function()
+        , m_this_value(this_value)
+        , m_function(function) {}
+
+      inline const std::vector<Parameter>& parameters() const override
+      {
+        return m_function->parameters();
+      }
+
+      inline const type::ptr& return_type() const override
+      {
+        return m_function->return_type();
+      }
+
+      inline ptr
+      Call(
+        const std::optional<Position>& position,
+        Runtime& runtime,
+        const std::vector<ptr>& arguments
+      ) const override
+      {
+        std::vector<ptr> bound_arguments(arguments);
+
+        bound_arguments.insert(std::begin(bound_arguments), m_this_value);
+
+        return m_function->Call(
+          position,
+          runtime,
+          bound_arguments
+        );
+      }
+
+    private:
+      const ptr m_this_value;
+      const std::shared_ptr<Function> m_function;
+    };
+  }
+
+  std::shared_ptr<Function>
+  Function::MakeNative(
+    const std::vector<Parameter>& parameters,
+    const type::ptr& return_type,
+    const callback_type& callback
+  )
+  {
+    return std::make_shared<NativeFunction>(
+      parameters,
+      return_type,
+      callback
+    );
+  }
+
+  std::shared_ptr<Function>
+  Function::MakeScripted(
+    const std::vector<Parameter>& parameters,
+    const type::ptr& return_type,
+    const parser::statement::ptr& body,
+    const Scope::ptr& enclosing_scope
+  )
+  {
+    return std::make_shared<ScriptedFunction>(
+      parameters,
+      return_type,
+      body,
+      enclosing_scope
+    );
+  }
+
+  std::shared_ptr<Function>
+  Function::Bind(
+    const ptr& this_value,
+    const std::shared_ptr<Function>& function
+  )
+  {
+    return std::make_shared<BoundFunction>(this_value, function);
+  }
+
+  bool
+  Function::Equals(const Base& that) const
+  {
+    if (that.kind() == Kind::Function)
+    {
+      // TODO: Parameter and return type comparison.
+      return this == static_cast<const Function*>(&that);
+    }
+
+    return false;
+  }
+
+  std::u32string
+  Function::ToString() const
+  {
+    bool first = true;
+    std::u32string result(1, U'(');
+
+    for (const auto& parameter : parameters())
+    {
+      if (first)
+      {
+        first = false;
+      } else {
+        result.append(U", ");
+      }
+      result.append(parameter.ToString());
+    }
+    result.append(U") => ");
+    if (const auto rtype = return_type())
+    {
+      result.append(rtype->ToString());
+    } else {
+      result.append(U"null");
+    }
+
+    return result;
+  }
+}

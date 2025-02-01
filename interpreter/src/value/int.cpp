@@ -23,3 +23,30 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include "snek/interpreter/value.hpp"
+#include "snek/parser/utils.hpp"
+
+namespace snek::interpreter::value
+{
+  bool
+  Int::Equals(const Base& that) const
+  {
+    switch (that.kind())
+    {
+      case Kind::Int:
+        return m_value == static_cast<const Int*>(&that)->m_value;
+
+      case Kind::Float:
+        return m_value == static_cast<const Float*>(&that)->value();
+
+      default:
+        return false;
+    }
+  }
+
+  std::u32string
+  Int::ToString() const
+  {
+    return parser::utils::IntToString(m_value);
+  }
+}

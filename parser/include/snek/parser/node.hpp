@@ -23,3 +23,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include "snek/position.hpp"
+
+namespace snek::parser
+{
+  class Node
+  {
+  public:
+    Node(const Position& position)
+      : m_position(position) {}
+
+    inline const Position& position() const
+    {
+      return m_position;
+    }
+
+    virtual std::u32string ToString() const = 0;
+
+  private:
+    Position m_position;
+  };
+}

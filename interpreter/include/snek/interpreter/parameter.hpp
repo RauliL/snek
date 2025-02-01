@@ -23,3 +23,74 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include "snek/parser/expression.hpp"
+
+namespace snek::interpreter
+{
+  class Runtime;
+
+  namespace type
+  {
+    class Base;
+
+    using ptr = std::shared_ptr<Base>;
+  }
+
+  namespace value
+  {
+    class Base;
+
+    using ptr = std::shared_ptr<Base>;
+  }
+
+  class Parameter final
+  {
+  public:
+    DEFAULT_COPY_AND_ASSIGN(Parameter);
+
+    Parameter(
+      const std::u32string& name,
+      const type::ptr& type = nullptr,
+      const parser::expression::ptr& default_value = nullptr,
+      const std::optional<Position>& position = std::nullopt
+    )
+      : m_position(position)
+      , m_name(name)
+      , m_type(type)
+      , m_default_value(default_value) {}
+
+    inline const std::optional<Position>& position() const
+    {
+      return m_position;
+    }
+
+    inline const std::u32string& name() const
+    {
+      return m_name;
+    }
+
+    inline const type::ptr& type() const
+    {
+      return m_type;
+    }
+
+    inline const parser::expression::ptr& default_value() const
+    {
+      return m_default_value;
+    }
+
+    bool Accepts(const Runtime& runtime, const value::ptr& value) const;
+
+    bool Accepts(const Parameter& that) const;
+
+    std::u32string ToString() const;
+
+  private:
+    std::optional<Position> m_position;
+    std::u32string m_name;
+    type::ptr m_type;
+    parser::expression::ptr m_default_value;
+  };
+}

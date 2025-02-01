@@ -23,3 +23,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include "snek/interpreter/parameter.hpp"
+#include "snek/interpreter/type.hpp"
+
+namespace snek::interpreter
+{
+  bool
+  Parameter::Accepts(const Runtime& runtime, const value::ptr& value) const
+  {
+    return m_type ? m_type->Accepts(runtime, value) : true;
+  }
+
+  bool
+  Parameter::Accepts(const Parameter& that) const
+  {
+    return m_type ? m_type->Accepts(that.m_type) : true;
+  }
+
+  std::u32string
+  Parameter::ToString() const
+  {
+    std::u32string result(m_name);
+
+    if (m_type)
+    {
+      result.append(U": ").append(m_type->ToString());
+    }
+    if (m_default_value)
+    {
+      result.append(U" = ").append(m_default_value->ToString());
+    }
+
+    return result;
+  }
+}

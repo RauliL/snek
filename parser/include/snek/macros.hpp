@@ -23,3 +23,16 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#define DEFAULT_COPY_AND_ASSIGN(TypeName) \
+  TypeName(const TypeName&) = default; \
+  TypeName(TypeName&&) = default; \
+  TypeName& operator=(const TypeName&) = default; \
+  TypeName& operator=(TypeName&&) = default
+
+#define DISALLOW_COPY_AND_ASSIGN(TypeName) \
+  TypeName(const TypeName&) = delete; \
+  TypeName(TypeName&&) = delete; \
+  void operator=(const TypeName&) = delete; \
+  void operator=(TypeName&&) = delete

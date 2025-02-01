@@ -1,35 +1,41 @@
-import print from "io"
+#!/usr/bin/env snek
 
 type Cat = {
     mood: Int,
     hungry: Int,
     energy: Int,
-    meow: () -> Void,
+    meow: () -> null,
 }
 
-newCat = () -> Cat => {
+const newCat = () -> Cat => {
     mood: 0,
     hungry: 0,
     energy: 0,
-    meow: () -> Void => print("meow!"),
+    meow: () => print("meow!"),
 }
 
-feed = (cat: Cat) -> Cat => {
+const feed = (cat: Cat) -> Cat => {
     ...cat,
     mood: cat.mood + 1,
     hungry: cat.hungry - 1,
 }
 
-play = (cat: Cat) -> Cat => {
+const play = (cat: Cat) -> Cat => {
     ...cat,
     mood: cat.mood + 1,
     energy: cat.energy - 1,
 }
 
-sleep = (cat: Cat) -> Cat => {
+const sleep = (cat: Cat) -> Cat => {
     ...cat,
     hungry: cat.hungry + 1,
     energy: cat.energy + 1,
 }
 
-sleep(play(feed(newCat()))).meow()
+sleep(
+    play(
+        feed(
+            newCat()
+        )
+    )
+).meow()

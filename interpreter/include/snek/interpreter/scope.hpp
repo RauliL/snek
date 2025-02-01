@@ -23,3 +23,65 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include "snek/interpreter/type.hpp"
+#include "snek/interpreter/value.hpp"
+
+namespace snek::interpreter
+{
+  struct Variable
+  {
+    value::ptr value;
+    bool read_only;
+  };
+
+  class Scope
+  {
+  public:
+    DEFAULT_COPY_AND_ASSIGN(Scope);
+
+    using ptr = std::shared_ptr<Scope>;
+    using variable_container_type = std::unordered_map<
+      std::u32string,
+      Variable
+    >;
+    using type_container_type = std::unordered_map<
+      std::u32string,
+      type::ptr
+    >;
+
+    static ptr MakeRootScope(const Runtime* runtime);
+
+    explicit Scope(const ptr& parent = nullptr)
+      : m_parent(parent) {}
+
+    bool FindVariable(const std::u32string& name, value::ptr& slot) const;
+
+    void DeclareVariable(
+      const std::optional<Position>& position,
+      const std::u32string& name,
+      const value::ptr& value,
+      bool read_only
+    );
+
+    void SetVariable(
+      const std::optional<Position>& position,
+      const std::u32string& name,
+      const value::ptr& value
+    );
+
+    bool FindType(const std::u32string& name, type::ptr& slot) const;
+
+    void DeclareType(
+      const std::optional<Position>& position,
+      const std::u32string& name,
+      const type::ptr& type
+    );
+
+  private:
+    ptr m_parent;
+    variable_container_type m_variables;
+    type_container_type m_types;
+  };
+}

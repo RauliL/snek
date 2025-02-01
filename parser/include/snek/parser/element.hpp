@@ -23,3 +23,59 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include <memory>
+
+#include "snek/parser/lexer.hpp"
+
+namespace snek::parser::expression
+{
+  class Base;
+
+  using ptr = std::shared_ptr<Base>;
+}
+
+namespace snek::parser::element
+{
+  enum class Kind
+  {
+    Spread,
+    Value,
+  };
+
+  class Base final : public Node
+  {
+  public:
+    DISALLOW_COPY_AND_ASSIGN(Base);
+
+    explicit Base(
+      const Position& position,
+      Kind kind,
+      const expression::ptr& expression
+    )
+      : Node(position)
+      , m_kind(kind)
+      , m_expression(expression) {}
+
+    inline Kind kind() const
+    {
+      return m_kind;
+    };
+
+    inline const expression::ptr& expression() const
+    {
+      return m_expression;
+    }
+
+    std::u32string ToString() const override;
+
+  private:
+    const Kind m_kind;
+    const expression::ptr m_expression;
+  };
+
+  using ptr = std::shared_ptr<Base>;
+
+  ptr Parse(Lexer& lexer);
+}

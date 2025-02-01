@@ -23,3 +23,35 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#pragma once
+
+#include <cctype>
+#include <cstdint>
+#include <string>
+
+namespace snek::parser::utils
+{
+  inline bool
+  IsNewLine(char c)
+  {
+    return c == '\r' || c == '\n';
+  }
+
+  bool IsIdStart(char32_t c);
+
+  bool IsIdPart(char32_t c);
+
+  bool IsId(const std::u32string& text);
+
+  inline bool
+  IsNumberPart(char c)
+  {
+    return c == '_' || std::isdigit(c);
+  }
+
+  std::u32string IntToString(std::int64_t value);
+
+  std::u32string DoubleToString(double value);
+
+  std::u32string ToJsonString(const std::u32string& input);
+}

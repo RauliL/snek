@@ -23,3 +23,46 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <iostream>
+
+#include <peelo/unicode/encoding/utf8.hpp>
+
+#include "snek/interpreter/runtime.hpp"
+
+namespace snek::interpreter::api
+{
+  /**
+   * print(object: any) => null
+   *
+   * Outputs string representation of given object into standard output stream.
+   */
+  static value::ptr
+  Print(
+    Runtime&,
+    const std::vector<value::ptr>& arguments
+  )
+  {
+    using peelo::unicode::encoding::utf8::encode;
+
+    std::cout << encode(value::ToString(arguments[0])) << std::endl;
+
+    return nullptr;
+  }
+
+  void
+  AddGlobalFunctions(const Runtime* runtime, const Scope::ptr& scope)
+  {
+    scope->DeclareVariable(
+      std::nullopt,
+      U"print",
+      value::Function::MakeNative(
+        {
+          Parameter(U"object", runtime->any_type())
+        },
+        runtime->void_type(),
+        Print
+      ),
+      true
+    );
+  }
+}
