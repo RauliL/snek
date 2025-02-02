@@ -28,10 +28,93 @@
 
 namespace snek::interpreter::prototype
 {
-  static inline const value::List*
-  AsList(const value::ptr& value)
+  template<class T>
+  static inline const T*
+  As(const value::ptr& value)
   {
-    return static_cast<const value::List*>(value.get());
+    return static_cast<const T*>(value.get());
+  }
+
+  /**
+   * List#filter(this: List, callback: Function) => List
+   *
+   * Constructs new list which contains elements from this one for which the
+   * given callback function has returned true for.
+   */
+  static value::ptr
+  Filter(
+    Runtime& runtime,
+    const std::vector<value::ptr>& arguments
+  )
+  {
+    const auto list = As<value::List>(arguments[0]);
+    const auto callback = As<value::Function>(arguments[1]);
+    const auto size = list->GetSize();
+    std::vector<value::ptr> result;
+
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      const auto element = list->At(i);
+
+      if (value::ToBoolean(
+        callback->Call(std::nullopt, runtime, { element }))
+      )
+      {
+        result.push_back(element);
+      }
+    }
+
+    return value::List::Make(result);
+  }
+
+  /**
+   * List#forEach(this: List, callback: Function) => null
+   *
+   * Iterates the list and invokes given callback function with each list
+   * element given as argument.
+   */
+  static value::ptr
+  ForEach(
+    Runtime& runtime,
+    const std::vector<value::ptr>& arguments
+  )
+  {
+    const auto list = As<value::List>(arguments[0]);
+    const auto callback = As<value::Function>(arguments[1]);
+    const auto size = list->GetSize();
+
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      callback->Call(std::nullopt, runtime, { list->At(i) });
+    }
+
+    return nullptr;
+  }
+
+  /**
+   * List#map(this: List, callback: Function) => List
+   *
+   * Constructs new list from return values of given callback function when
+   * called with element of this list as an argument.
+   */
+  static value::ptr
+  Map(
+    Runtime& runtime,
+    const std::vector<value::ptr>& arguments
+  )
+  {
+    const auto list = As<value::List>(arguments[0]);
+    const auto callback = As<value::Function>(arguments[1]);
+    const auto size = list->GetSize();
+    std::vector<value::ptr> result;
+
+    result.reserve(size);
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      result.push_back(callback->Call(std::nullopt, runtime, { list->At(i) }));
+    }
+
+    return value::List::Make(result);
   }
 
   /**
@@ -45,7 +128,9 @@ namespace snek::interpreter::prototype
     const std::vector<value::ptr>& arguments
   )
   {
-    return std::make_shared<value::Int>(AsList(arguments[0])->GetSize());
+    return std::make_shared<value::Int>(As<value::List>(
+      arguments[0]
+    )->GetSize());
   }
 
   /**
@@ -60,7 +145,7 @@ namespace snek::interpreter::prototype
     const std::vector<value::ptr>& arguments
   )
   {
-    const auto list = AsList(arguments[0]);
+    const auto list = As<value::List>(arguments[0]);
     const auto size = list->GetSize();
     auto index = std::static_pointer_cast<value::Number>(
       arguments[1]
@@ -102,6 +187,48 @@ namespace snek::interpreter::prototype
   void
   MakeList(const Runtime* runtime, value::Record::container_type& fields)
   {
+    fields[U"filter"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->list_type()),
+        Parameter(
+          U"callback",
+          std::make_shared<type::Function>(
+            std::vector<Parameter>{ Parameter(U"element") },
+            runtime->boolean_type()
+          )
+        ),
+      },
+      runtime->list_type(),
+      Filter
+    );
+    fields[U"forEach"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->list_type()),
+        Parameter(
+          U"callback",
+          std::make_shared<type::Function>(
+            std::vector<Parameter>{ Parameter(U"element") },
+            runtime->any_type()
+          )
+        ),
+      },
+      runtime->void_type(),
+      ForEach
+    );
+    fields[U"map"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->list_type()),
+        Parameter(
+          U"callback",
+          std::make_shared<type::Function>(
+            std::vector<Parameter>{ Parameter(U"element") },
+            runtime->any_type()
+          )
+        )
+      },
+      runtime->list_type(),
+      Map
+    );
     fields[U"size"] = value::Function::MakeNative(
       {
         Parameter(U"this", runtime->list_type())
