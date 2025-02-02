@@ -67,7 +67,7 @@ namespace snek::parser::statement
 
   ptr Parse(Lexer& lexer, bool is_top_level);
 
-  ptr ParseBlock(const Position& position, Lexer& lexer);
+  ptr ParseBlock(Lexer& lexer);
 
   class Block final : public Base
   {

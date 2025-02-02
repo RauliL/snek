@@ -38,61 +38,159 @@ namespace snek::parser::statement
     }
   }
 
+  static ptr
+  ParseJump(Lexer& lexer)
+  {
+    const auto token = lexer.ReadToken();
+    expression::ptr value;
+
+    if (
+      token.kind() == Token::Kind::KeywordReturn &&
+      !lexer.PeekToken(Token::Kind::Eof) &&
+      !lexer.PeekToken(Token::Kind::NewLine) &&
+      !lexer.PeekToken(Token::Kind::Semicolon)
+    )
+    {
+      value = expression::Parse(lexer);
+    }
+
+    return std::make_shared<Jump>(
+      token.position(),
+      static_cast<JumpKind>(token.kind()),
+      value
+    );
+  }
+
+  static ptr
+  ParseDeclareVar(Lexer& lexer)
+  {
+    const auto token = lexer.ReadToken();
+    const auto name = lexer.ReadId();
+    expression::ptr value;
+
+    if (lexer.PeekReadToken(Token::Kind::Assign))
+    {
+      value = expression::Parse(lexer);
+    }
+
+    return std::make_shared<DeclareVar>(
+      token.position(),
+      token.kind() == Token::Kind::KeywordConst,
+      name,
+      value
+    );
+  }
+
+  static ptr
+  ParseDeclareType(Lexer& lexer)
+  {
+    const auto position = lexer.ReadToken().position();
+    const auto name = lexer.ReadId();
+
+    lexer.ReadToken(Token::Kind::Assign);
+
+    return std::make_shared<DeclareType>(position, name, type::Parse(lexer));
+  }
+
+  static ptr
+  ParseSimpleStatement(Lexer& lexer, bool is_top_level)
+  {
+    const auto token = lexer.PeekToken();
+    ptr statement;
+
+    switch (token.kind())
+    {
+      case Token::Kind::Eof:
+        throw Error{
+          token.position(),
+          U"Unexpected end of input; Missing statement."
+        };
+
+      case Token::Kind::KeywordPass:
+        lexer.ReadToken();
+        break;
+
+      case Token::Kind::KeywordBreak:
+      case Token::Kind::KeywordContinue:
+      case Token::Kind::KeywordReturn:
+        statement = ParseJump(lexer);
+        break;
+
+      // TODO: import statement
+      // TODO: export statement
+
+      case Token::Kind::KeywordConst:
+      case Token::Kind::KeywordLet:
+        statement = ParseDeclareVar(lexer);
+        break;
+
+      case Token::Kind::KeywordType:
+        statement = ParseDeclareType(lexer);
+        break;
+
+      default:
+        statement = std::make_shared<Expression>(expression::Parse(lexer));
+        break;
+    }
+
+    if (lexer.PeekReadToken(Token::Kind::Semicolon))
+    {
+      return std::make_shared<Block>(
+        statement->position(),
+        Block::container_type{
+          statement,
+          ParseSimpleStatement(lexer, is_top_level)
+        }
+      );
+    }
+
+    SkipNewLine(lexer);
+
+    return statement;
+  }
+
   ptr
-  ParseBlock(const Position& position, Lexer& lexer)
+  ParseBlock(Lexer& lexer)
   {
     if (lexer.PeekReadToken(Token::Kind::NewLine))
     {
+      const auto position = lexer.position();
       statement::Block::container_type statements;
 
-      if (!lexer.PeekReadToken(Token::Kind::Indent))
-      {
-        throw Error{ position, U"Missing block." };
-      }
+      lexer.ReadToken(Token::Kind::Indent);
       do
       {
-        statements.push_back(Parse(lexer, false));
+        if (!lexer.PeekReadToken(Token::Kind::NewLine))
+        {
+          statements.push_back(Parse(lexer, false));
+        }
       }
-      while (
-        !lexer.PeekToken(Token::Kind::Eof) &&
-        !lexer.PeekReadToken(Token::Kind::Dedent)
-      );
+      while (!lexer.PeekReadToken(Token::Kind::Dedent));
 
       return std::make_shared<Block>(position, statements);
     }
 
-    return Parse(lexer, false);
+    return ParseSimpleStatement(lexer, false);
   }
 
   static ptr
-  ParseExpression(Lexer& lexer, const Token& token)
+  ParseIf(Lexer& lexer)
   {
-    expression::ptr expression;
-
-    lexer.UnreadToken(token);
-    expression = expression::Parse(lexer);
-    SkipNewLine(lexer);
-
-    return std::make_shared<Expression>(expression);
-  }
-
-  static ptr
-  ParseIf(const Position& position, Lexer& lexer)
-  {
+    const auto position = lexer.ReadToken().position();
     const auto condition = expression::Parse(lexer);
     ptr then_statement;
     ptr else_statement;
 
-    lexer.PeekReadToken(Token::Kind::Colon);
-    then_statement = ParseBlock(position, lexer);
+    lexer.ReadToken(Token::Kind::Colon);
+    then_statement = ParseBlock(lexer);
     if (lexer.PeekReadToken(Token::Kind::KeywordElse))
     {
       if (lexer.PeekToken(Token::Kind::KeywordIf))
       {
-        else_statement = ParseIf(lexer.ReadToken().position(), lexer);
+        else_statement = ParseIf(lexer);
       } else {
         lexer.ReadToken(Token::Kind::Colon);
-        else_statement = ParseBlock(position, lexer);
+        else_statement = ParseBlock(lexer);
       }
     }
 
@@ -105,93 +203,31 @@ namespace snek::parser::statement
   }
 
   static ptr
-  ParseWhile(const Position& position, Lexer& lexer)
+  ParseWhile(Lexer& lexer)
   {
+    const auto position = lexer.ReadToken().position();
     const auto condition = expression::Parse(lexer);
 
     lexer.ReadToken(Token::Kind::Colon);
 
-    return std::make_shared<While>(
-      position,
-      condition,
-      ParseBlock(position, lexer)
-    );
-  }
-
-  static ptr
-  ParseDeclareVar(const Token& token, Lexer& lexer)
-  {
-    const auto name = lexer.ReadId();
-    expression::ptr value;
-
-    if (lexer.PeekReadToken(Token::Kind::Assign))
-    {
-      value = expression::Parse(lexer);
-    }
-    SkipNewLine(lexer);
-
-    return std::make_shared<DeclareVar>(
-      token.position(),
-      token.kind() == Token::Kind::KeywordConst,
-      name,
-      value
-    );
-  }
-
-  static ptr
-  ParseDeclareType(const Position& position, Lexer& lexer)
-  {
-    const auto name = lexer.ReadId();
-    type::ptr type;
-
-    lexer.ReadToken(Token::Kind::Assign);
-    type = type::Parse(lexer);
-    SkipNewLine(lexer);
-
-    return std::make_shared<DeclareType>(position, name, type);
+    return std::make_shared<While>(position, condition, ParseBlock(lexer));
   }
 
   ptr
-  Parse(Lexer& lexer, bool)
+  Parse(Lexer& lexer, bool is_top_level)
   {
-    const auto token = lexer.ReadToken();
+    const auto token = lexer.PeekToken();
 
     switch (token.kind())
     {
-      case Token::Kind::Eof:
-        throw Error{
-          token.position(),
-          U"Unexpected end of input; Missing statement."
-        };
-
-      case Token::Kind::KeywordPass:
-        SkipNewLine(lexer);
-
-        return nullptr;
-
-      // TODO: import statement
-      // TODO: export statement
-
       case Token::Kind::KeywordIf:
-        return ParseIf(token.position(), lexer);
+        return ParseIf(lexer);
 
       case Token::Kind::KeywordWhile:
-        return ParseWhile(token.position(), lexer);
-
-      // TODO: break statement
-      // TODO: continue statement
-      // TODO: return statement
-      // TODO: variable declaration
-
-      case Token::Kind::KeywordConst:
-      case Token::Kind::KeywordLet:
-        return ParseDeclareVar(token, lexer);
-
-      case Token::Kind::KeywordType:
-        return ParseDeclareType(token.position(), lexer);
+        return ParseWhile(lexer);
 
       default:
-        return ParseExpression(lexer, token);
+        return ParseSimpleStatement(lexer, is_top_level);
     }
   }
 

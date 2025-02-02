@@ -55,6 +55,14 @@ namespace snek::parser
     { U"while", Token::Kind::KeywordWhile },
   };
 
+  const Position&
+  Lexer::position() const
+  {
+    return m_token_queue.empty()
+      ? m_position
+      : m_token_queue.front().position();
+  }
+
   Token
   Lexer::ReadToken()
   {
@@ -111,6 +119,24 @@ namespace snek::parser
     if (token.kind() != Token::Kind::Eof)
     {
       m_token_queue.push_front(token);
+    }
+  }
+
+  Token
+  Lexer::PeekToken()
+  {
+    for (;;)
+    {
+      if (m_token_queue.empty())
+      {
+        if (!HasMoreChars())
+        {
+          return Token(m_position, Token::Kind::Eof);
+        }
+        LexLogicalLine();
+      } else {
+        return m_token_queue.front();
+      }
     }
   }
 

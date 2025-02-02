@@ -228,7 +228,7 @@ namespace snek::parser::expression
       );
     } else {
       lexer.ReadToken(Token::Kind::Colon);
-      body = statement::ParseBlock(position, lexer);
+      body = statement::ParseBlock(lexer);
     }
 
     return std::make_shared<Function>(position, parameters, return_type, body);

@@ -50,16 +50,15 @@ namespace snek::parser
       , m_end(end)
       , m_position{ filename, line, column } {}
 
-    inline const Position& position() const
-    {
-      return m_position;
-    }
+    const Position& position() const;
 
     Token ReadToken();
 
     void ReadToken(Token::Kind expected);
 
     void UnreadToken(const Token& token);
+
+    Token PeekToken();
 
     bool PeekToken(Token::Kind expected);
 
