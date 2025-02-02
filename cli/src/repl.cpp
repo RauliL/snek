@@ -150,7 +150,10 @@ namespace snek::cli
       {
         const auto value = runtime.RunScript(scope, source, U"<repl>", line);
 
-        std::cout << encode(interpreter::value::ToSource(value)) << std::endl;
+        if (!interpreter::value::IsNull(value))
+        {
+          std::cout << encode(interpreter::value::ToSource(value)) << std::endl;
+        }
       }
       catch (const Error& e)
       {
