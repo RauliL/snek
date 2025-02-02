@@ -723,7 +723,7 @@ namespace snek::parser::expression
 
     if (m_op)
     {
-      result.append(ToString(*m_op));
+      result.append(1, U' ').append(ToString(*m_op));
     }
 
     return result.append(U"= ").append(m_value->ToString());
