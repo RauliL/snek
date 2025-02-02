@@ -217,11 +217,15 @@ namespace snek::interpreter::value
       )
         : Function()
         , m_this_value(this_value)
-        , m_function(function) {}
+        , m_function(function)
+        , m_parameters(
+            std::begin(function->parameters()) + 1,
+            std::end(function->parameters())
+          ) {}
 
       inline const std::vector<Parameter>& parameters() const override
       {
-        return m_function->parameters();
+        return m_parameters;
       }
 
       inline const type::ptr& return_type() const override
@@ -250,6 +254,7 @@ namespace snek::interpreter::value
     private:
       const ptr m_this_value;
       const std::shared_ptr<Function> m_function;
+      const std::vector<Parameter> m_parameters;
     };
   }
 
