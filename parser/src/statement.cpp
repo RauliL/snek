@@ -133,7 +133,11 @@ namespace snek::parser::statement
         break;
     }
 
-    if (lexer.PeekReadToken(Token::Kind::Semicolon))
+    if (
+      lexer.PeekReadToken(Token::Kind::Semicolon) &&
+      !lexer.PeekToken(Token::Kind::Eof) &&
+      !lexer.PeekToken(Token::Kind::NewLine)
+    )
     {
       return std::make_shared<Block>(
         statement->position(),
