@@ -114,16 +114,16 @@ namespace snek::parser::expression
   public:
     enum class Operator
     {
-      Add = static_cast<int>(Token::Kind::Add),
-      Sub = static_cast<int>(Token::Kind::Sub),
-      Mul = static_cast<int>(Token::Kind::Mul),
-      Div = static_cast<int>(Token::Kind::Div),
-      Mod = static_cast<int>(Token::Kind::Mod),
-      BitwiseAnd = static_cast<int>(Token::Kind::BitwiseAnd),
-      BitwiseOr = static_cast<int>(Token::Kind::BitwiseOr),
-      BitwiseXor = static_cast<int>(Token::Kind::BitwiseXor),
-      LeftShift = static_cast<int>(Token::Kind::LeftShift),
-      RightShift = static_cast<int>(Token::Kind::RightShift),
+      Add = static_cast<int>(Token::Kind::AssignAdd),
+      Sub = static_cast<int>(Token::Kind::AssignSub),
+      Mul = static_cast<int>(Token::Kind::AssignMul),
+      Div = static_cast<int>(Token::Kind::AssignDiv),
+      Mod = static_cast<int>(Token::Kind::AssignMod),
+      BitwiseAnd = static_cast<int>(Token::Kind::AssignBitwiseAnd),
+      BitwiseOr = static_cast<int>(Token::Kind::AssignBitwiseOr),
+      BitwiseXor = static_cast<int>(Token::Kind::AssignBitwiseXor),
+      LeftShift = static_cast<int>(Token::Kind::AssignLeftShift),
+      RightShift = static_cast<int>(Token::Kind::AssignRightShift),
     };
 
     explicit Assign(
