@@ -164,7 +164,7 @@ namespace snek::interpreter::value
 
   inline std::u32string ToString(const ptr& value)
   {
-    return value ? value->ToString() : U"null";
+    return value ? value->ToString() : U"";
   }
 
   std::u32string ToString(Kind kind);
