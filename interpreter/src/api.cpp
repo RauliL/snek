@@ -50,19 +50,19 @@ namespace snek::interpreter::api
   }
 
   void
-  AddGlobalFunctions(const Runtime* runtime, const Scope::ptr& scope)
+  AddGlobalVariables(
+    const Runtime* runtime,
+    Scope::variable_container_type& variables
+  )
   {
-    scope->DeclareVariable(
-      std::nullopt,
-      U"print",
+    variables[U"print"] =
+    {
       value::Function::MakeNative(
-        {
-          Parameter(U"object", runtime->any_type())
-        },
+        { Parameter(U"object", runtime->any_type()) },
         runtime->void_type(),
         Print
       ),
       true
-    );
+    };
   }
 }

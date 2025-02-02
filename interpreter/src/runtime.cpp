@@ -34,11 +34,6 @@ namespace snek::interpreter
   using prototype_type = value::Record::container_type;
   using prototype_constructor = void(*)(const Runtime*, prototype_type&);
 
-  namespace api
-  {
-    void AddGlobalFunctions(const Runtime*, const Scope::ptr&);
-  }
-
   namespace prototype
   {
     void MakeList(const Runtime*, prototype_type&);
@@ -108,10 +103,7 @@ namespace snek::interpreter
         prototype::MakeString
       ))
 
-    , m_root_scope(Scope::MakeRootScope(this))
-    {
-      api::AddGlobalFunctions(this, m_root_scope);
-    }
+    , m_root_scope(Scope::MakeRootScope(this)) {}
 
   value::ptr
   Runtime::RunScript(

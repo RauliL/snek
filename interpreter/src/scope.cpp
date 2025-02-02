@@ -28,6 +28,11 @@
 
 namespace snek::interpreter
 {
+  namespace api
+  {
+    void AddGlobalVariables(const Runtime*, Scope::variable_container_type&);
+  }
+
   Scope::ptr
   Scope::MakeRootScope(const Runtime* runtime)
   {
@@ -52,6 +57,8 @@ namespace snek::interpreter
     scope->m_variables[U"Object"] = { runtime->object_prototype(), true };
     scope->m_variables[U"Record"] = { runtime->record_prototype(), true };
     scope->m_variables[U"String"] = { runtime->string_prototype(), true };
+
+    api::AddGlobalVariables(runtime, scope->m_variables);
 
     return scope;
   }
