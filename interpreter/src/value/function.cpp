@@ -153,7 +153,7 @@ namespace snek::interpreter::value
           const auto& parameter = m_parameters[i];
           ptr argument;
 
-          if (arguments_size < i)
+          if (i < arguments_size)
           {
             argument = arguments[i];
           }
