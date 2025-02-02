@@ -44,16 +44,10 @@ namespace snek::interpreter
     const Function* type
   )
   {
-    std::vector<Parameter> parameters;
-    type::ptr return_type;
-
-    for (const auto& parameter : type->parameters())
-    {
-      parameters.push_back(ResolveParameter(runtime, scope, parameter));
-    }
-    return_type = ResolveType(runtime, scope, type->return_type());
-
-    return std::make_shared<type::Function>(parameters, return_type);
+    return std::make_shared<type::Function>(
+      ResolveParameterList(runtime, scope, type->parameters()),
+      ResolveType(runtime, scope, type->return_type())
+    );
   }
 
   static type::ptr
