@@ -95,21 +95,25 @@ namespace snek::interpreter
   )
   {
     const auto& name = type->name();
-    type::ptr slot;
 
     if (!name.compare(U"any"))
     {
-      slot = runtime.any_type();
+      return runtime.any_type();
     }
-    else if (!scope->FindType(name, slot))
+    else if (scope)
     {
-      throw Error{
-        type->position(),
-        U"Unrecognized type: `" + name + U"'."
-      };
+      type::ptr slot;
+
+      if (scope->FindType(name, slot))
+      {
+        return slot;
+      }
     }
 
-    return slot;
+    throw Error{
+      type->position(),
+      U"Unrecognized type: `" + name + U"'."
+    };
   }
 
   static type::ptr
