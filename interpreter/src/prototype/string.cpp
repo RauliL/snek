@@ -23,6 +23,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <peelo/unicode/ctype/tolower.hpp>
+#include <peelo/unicode/ctype/toupper.hpp>
+
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter::prototype
@@ -48,6 +51,58 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * String#toLower(this: String) => String
+   *
+   * Converts string into lower case.
+   */
+  static value::ptr
+  ToLower(
+    Runtime&,
+    const std::vector<value::ptr>& arguments
+  )
+  {
+    using peelo::unicode::ctype::tolower;
+
+    const auto& s = AsString(arguments[0]);
+    const auto length = s.length();
+    std::u32string result;
+
+    result.reserve(length);
+    for (std::size_t i = 0; i < length; ++i)
+    {
+      result.append(1, tolower(s[i]));
+    }
+
+    return std::make_shared<value::String>(result);
+  }
+
+  /**
+   * String#toUpper(this: String) => String
+   *
+   * Converts string into upper case.
+   */
+  static value::ptr
+  ToUpper(
+    Runtime&,
+    const std::vector<value::ptr>& arguments
+  )
+  {
+    using peelo::unicode::ctype::toupper;
+
+    const auto& s = AsString(arguments[0]);
+    const auto length = s.length();
+    std::u32string result;
+
+    result.reserve(length);
+    for (std::size_t i = 0; i < length; ++i)
+    {
+      result.append(1, toupper(s[i]));
+    }
+
+    return std::make_shared<value::String>(result);
+  }
+
+  /**
    * String#+(this: String, other: String) => String
    *
    * Concatenates two strings with each other.
@@ -67,12 +122,21 @@ namespace snek::interpreter::prototype
   MakeString(const Runtime* runtime, value::Record::container_type& fields)
   {
     fields[U"length"] = value::Function::MakeNative(
-      {
-        Parameter(U"this", runtime->string_type())
-      },
+      { Parameter(U"this", runtime->string_type()) },
       runtime->int_type(),
       Length
     );
+    fields[U"toLower"] = value::Function::MakeNative(
+      { Parameter(U"this", runtime->string_type() )},
+      runtime->string_type(),
+      ToLower
+    );
+    fields[U"toUpper"] = value::Function::MakeNative(
+      { Parameter(U"this", runtime->string_type() )},
+      runtime->string_type(),
+      ToUpper
+    );
+
     fields[U"+"] = value::Function::MakeNative(
       {
         Parameter(U"this", runtime->string_type()),
