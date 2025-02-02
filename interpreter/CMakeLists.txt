@@ -1,5 +1,7 @@
 project(SnekInterpreter)
 
+include(../cmake/utils.cmake)
+
 add_library(
   SnekInterpreter
   ./src/api.cpp
@@ -42,19 +44,7 @@ target_compile_features(
   PRIVATE
     cxx_std_17
 )
-if(MSVC)
-  target_compile_options(
-    SnekInterpreter
-    PRIVATE
-      /W4 /WX
-  )
-else()
-  target_compile_options(
-    SnekInterpreter
-    PRIVATE
-      -Wall -Werror
-  )
-endif()
+enable_all_warnings(SnekInterpreter)
 
 if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_SOURCE_DIR)
   install(

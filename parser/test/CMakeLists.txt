@@ -1,4 +1,5 @@
 include(FetchContent)
+include(../../cmake/utils.cmake)
 
 FetchContent_Declare(
   Catch2
@@ -25,19 +26,7 @@ foreach(TEST_FILENAME ${TEST_SOURCES})
     PUBLIC
       cxx_std_17
   )
-  if(MSVC)
-    target_compile_options(
-      ${TEST_NAME}
-      PRIVATE
-        /W4 /WX
-    )
-  else()
-    target_compile_options(
-      ${TEST_NAME}
-      PRIVATE
-        -Wall -Werror
-    )
-  endif()
+  enable_all_warnings(${TEST_NAME})
   target_link_libraries(
     ${TEST_NAME}
     Catch2::Catch2WithMain

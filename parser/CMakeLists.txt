@@ -1,6 +1,7 @@
 project(SnekParser)
 
 include(FetchContent)
+include(../cmake/utils.cmake)
 
 FetchContent_Declare(
   PeeloUnicode
@@ -40,19 +41,7 @@ target_compile_features(
   PRIVATE
     cxx_std_17
 )
-if(MSVC)
-  target_compile_options(
-    SnekParser
-    PRIVATE
-      /W4 /WX
-  )
-else()
-  target_compile_options(
-    SnekParser
-    PRIVATE
-      -Wall -Werror
-  )
-endif()
+enable_all_warnings(SnekParser)
 
 add_subdirectory(test)
 
