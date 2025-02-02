@@ -350,7 +350,7 @@ namespace snek::parser::expression
 
       return std::make_shared<Unary>(
         token.position(),
-        token.kind(),
+        static_cast<Unary::Operator>(token.kind()),
         ParseUnary(lexer)
       );
     }
@@ -444,7 +444,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::Mod)
     )
     {
-      const auto op = lexer.ReadToken().kind();
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseUnary(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -463,7 +463,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::Sub)
     )
     {
-      const auto op = lexer.ReadToken().kind();
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseMultiplicative(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -482,7 +482,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::RightShift)
     )
     {
-      const auto op = lexer.ReadToken().kind();
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseAdditive(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -503,7 +503,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::GreaterThanEqual)
     )
     {
-      const auto op = lexer.ReadToken().kind();
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseShift(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -522,7 +522,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::NotEqual)
     )
     {
-      const auto op = lexer.ReadToken().kind();
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseRelational(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -538,7 +538,7 @@ namespace snek::parser::expression
 
     while (lexer.PeekToken(Token::Kind::BitwiseAnd))
     {
-      const auto op = lexer.ReadToken().kind();
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseEquality(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -554,7 +554,7 @@ namespace snek::parser::expression
 
     while (lexer.PeekToken(Token::Kind::BitwiseXor))
     {
-      const auto op = lexer.ReadToken().kind();
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseBitwiseAnd(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -570,7 +570,7 @@ namespace snek::parser::expression
 
     while (lexer.PeekToken(Token::Kind::BitwiseOr))
     {
-      const auto op = lexer.ReadToken().kind();
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseBitwiseXor(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -586,7 +586,7 @@ namespace snek::parser::expression
 
     while (lexer.PeekToken(Token::Kind::LogicalAnd))
     {
-      const auto op = lexer.ReadToken().kind();
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseBitwiseOr(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -602,7 +602,7 @@ namespace snek::parser::expression
 
     while (lexer.PeekToken(Token::Kind::LogicalOr))
     {
-      const auto op = lexer.ReadToken().kind();
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseLogicalAnd(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -668,7 +668,9 @@ namespace snek::parser::expression
         token.position(),
         expression,
         value,
-        kind == Token::Kind::Assign ? std::nullopt : std::make_optional(kind)
+        kind == Token::Kind::Assign
+          ? std::nullopt
+          : std::make_optional(static_cast<Assign::Operator>(kind))
       );
     }
 
@@ -676,43 +678,42 @@ namespace snek::parser::expression
   }
 
   std::u32string
-  Assign::ToString(Token::Kind op)
+  Assign::ToString(Operator op)
   {
     switch (op)
     {
-      case Token::Kind::Add:
+      case Operator::Add:
         return U"+";
 
-      case Token::Kind::Sub:
+      case Operator::Sub:
         return U"-";
 
-      case Token::Kind::Mul:
+      case Operator::Mul:
         return U"*";
 
-      case Token::Kind::Div:
+      case Operator::Div:
         return U"/";
 
-      case Token::Kind::Mod:
+      case Operator::Mod:
         return U"%";
 
-      case Token::Kind::BitwiseAnd:
+      case Operator::BitwiseAnd:
         return U"&";
 
-      case Token::Kind::BitwiseOr:
+      case Operator::BitwiseOr:
         return U"|";
 
-      case Token::Kind::BitwiseXor:
+      case Operator::BitwiseXor:
         return U"^";
 
-      case Token::Kind::LeftShift:
+      case Operator::LeftShift:
         return U"<<";
 
-      case Token::Kind::RightShift:
+      case Operator::RightShift:
         return U">>";
-
-      default:
-        return U"unknown";
     }
+
+    return U"unknown";
   }
 
   std::u32string
@@ -729,67 +730,66 @@ namespace snek::parser::expression
   }
 
   std::u32string
-  Binary::ToString(Token::Kind op)
+  Binary::ToString(Operator op)
   {
     switch (op)
     {
-      case Token::Kind::Add:
+      case Operator::Add:
         return U"+";
 
-      case Token::Kind::Sub:
+      case Operator::Sub:
         return U"-";
 
-      case Token::Kind::Mul:
+      case Operator::Mul:
         return U"*";
 
-      case Token::Kind::Div:
+      case Operator::Div:
         return U"/";
 
-      case Token::Kind::Mod:
+      case Operator::Mod:
         return U"%";
 
-      case Token::Kind::BitwiseAnd:
+      case Operator::BitwiseAnd:
         return U"&";
 
-      case Token::Kind::BitwiseOr:
+      case Operator::BitwiseOr:
         return U"|";
 
-      case Token::Kind::BitwiseXor:
+      case Operator::BitwiseXor:
         return U"^";
 
-      case Token::Kind::Equal:
+      case Operator::Equal:
         return U"==";
 
-      case Token::Kind::NotEqual:
+      case Operator::NotEqual:
         return U"!=";
 
-      case Token::Kind::LessThan:
+      case Operator::LessThan:
         return U"<";
 
-      case Token::Kind::GreaterThan:
+      case Operator::GreaterThan:
         return U">";
 
-      case Token::Kind::LessThanEqual:
+      case Operator::LessThanEqual:
         return U"<=";
 
-      case Token::Kind::GreaterThanEqual:
+      case Operator::GreaterThanEqual:
         return U">=";
 
-      case Token::Kind::LeftShift:
+      case Operator::LeftShift:
         return U"<<";
 
-      case Token::Kind::RightShift:
+      case Operator::RightShift:
         return U">>";
 
-      case Token::Kind::LogicalAnd:
+      case Operator::LogicalAnd:
         return U"&&";
 
-      case Token::Kind::LogicalOr:
+      case Operator::LogicalOr:
         return U"||";
-
-      default:
-        return U"unknown";
     }
+
+    return U"unknown";
   }
 
   std::u32string
@@ -950,25 +950,24 @@ namespace snek::parser::expression
   }
 
   std::u32string
-  Unary::ToString(Token::Kind op)
+  Unary::ToString(Operator op)
   {
     switch (op)
     {
-      case Token::Kind::Add:
+      case Operator::Add:
         return U"+";
 
-      case Token::Kind::BitwiseNot:
+      case Operator::BitwiseNot:
         return U"~";
 
-      case Token::Kind::Not:
+      case Operator::Not:
         return U"!";
 
-      case Token::Kind::Sub:
+      case Operator::Sub:
         return U"-";
-
-      default:
-        return U"unknown";
     }
+
+    return U"unknown";
   }
 
   std::u32string

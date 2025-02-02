@@ -47,6 +47,13 @@ namespace snek::interpreter
     return static_cast<const T*>(field.get());
   }
 
+  template<class T>
+  static inline const T*
+  As(const value::ptr& value)
+  {
+    return static_cast<const T*>(value.get());
+  }
+
   static void
   EvaluateElement(
     Runtime& runtime,
@@ -64,17 +71,17 @@ namespace snek::interpreter
           scope,
           element->expression()
         );
-        std::shared_ptr<value::List> value_list;
+        const value::List* value_list;
         std::size_t size;
 
-        if (value::KindOf(value) != value::Kind::List)
+        if (!value::IsList(value))
         {
           throw Error{
             element->position(),
             U"Spread element must be a list."
           };
         }
-        value_list = std::static_pointer_cast<value::List>(value);
+        value_list = As<value::List>(value);
         size = value_list->GetSize();
         list.reserve(list.size() + size);
         for (std::size_t i = 0; i < size; ++i)
@@ -130,16 +137,22 @@ namespace snek::interpreter
   )
   {
     const auto& name = field->name();
-    value::ptr value;
 
-    if (!scope->FindVariable(name, value))
+    if (scope)
     {
-      throw Error{
-        field->position(),
-        U"Unrecognized variable: `" + name + U"'."
-      };
+      value::ptr value;
+
+      if (scope->FindVariable(name, value))
+      {
+        record[name] = value;
+        return;
+      }
     }
-    record[name] = value;
+
+    throw Error{
+      field->position(),
+      U"Unrecognized variable: `" + name + U"'."
+    };
   }
 
   static void
@@ -236,11 +249,10 @@ namespace snek::interpreter
     }
     if (variable->kind() == Kind::Id)
     {
-      scope->SetVariable(
-        position,
-        std::static_pointer_cast<Id>(variable)->identifier(),
-        value
-      );
+      if (scope)
+      {
+        scope->SetVariable(position, As<Id>(variable)->identifier(), value);
+      }
     } else {
       throw Error({
         expression->position(),
@@ -263,12 +275,12 @@ namespace snek::interpreter
 
     switch (op)
     {
-      case parser::Token::Kind::LogicalAnd:
+      case Binary::Operator::LogicalAnd:
         return value::ToBoolean(left)
           ? EvaluateExpression(runtime, scope, expression->right())
           : left;
 
-      case parser::Token::Kind::LogicalOr:
+      case Binary::Operator::LogicalOr:
         return value::ToBoolean(left)
           ? left
           : EvaluateExpression(runtime, scope, expression->right());
@@ -349,17 +361,22 @@ namespace snek::interpreter
   static value::ptr
   EvaluateId(const Scope::ptr& scope, const Id* expression)
   {
-    value::ptr slot;
+    const auto& id = expression->identifier();
 
-    if (!scope->FindVariable(expression->identifier(), slot))
+    if (scope)
     {
-      throw Error{
-        expression->position(),
-        U"Unrecognized identifier: `" + expression->identifier() + U"'."
-      };
+      value::ptr slot;
+
+      if (scope->FindVariable(id, slot))
+      {
+        return slot;
+      }
     }
 
-    return slot;
+    throw Error{
+      expression->position(),
+      U"Unrecognized variable: `" + id + U"'."
+    };
   }
 
   static value::ptr
@@ -482,6 +499,27 @@ namespace snek::interpreter
     );
   }
 
+  static std::u32string
+  GetMethodName(Unary::Operator op)
+  {
+    switch (op)
+    {
+      case Unary::Operator::Add:
+        return U"+@";
+
+      case Unary::Operator::BitwiseNot:
+        return U"~";
+
+      case Unary::Operator::Not:
+        return U"!";
+
+      case Unary::Operator::Sub:
+        return U"-@";
+    }
+
+    throw Error{ std::nullopt, U"Unknown unary operator." };
+  }
+
   static value::ptr
   EvaluateUnary(
     Runtime& runtime,
@@ -496,20 +534,18 @@ namespace snek::interpreter
       expression->operand()
     );
 
-    switch (op)
+    if (op == Unary::Operator::Not)
     {
-      case parser::Token::Kind::Not:
-        return std::make_shared<value::Boolean>(!value::ToBoolean(operand));
-
-      default:
-        return value::CallMethod(
-          runtime,
-          operand,
-          Unary::ToString(op),
-          {},
-          expression->position()
-        );
+      return std::make_shared<value::Boolean>(!value::ToBoolean(operand));
     }
+
+    return value::CallMethod(
+      runtime,
+      operand,
+      GetMethodName(op),
+      {},
+      expression->position()
+    );
   }
 
   value::ptr

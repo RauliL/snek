@@ -57,8 +57,8 @@ namespace snek::interpreter
   {
     switch (expression->op())
     {
-      case parser::Token::Kind::LogicalAnd:
-      case parser::Token::Kind::LogicalOr:
+      case Binary::Operator::LogicalAnd:
+      case Binary::Operator::LogicalOr:
         return type::Reify(
           runtime,
           {
@@ -191,7 +191,7 @@ namespace snek::interpreter
     const Unary* expression
   )
   {
-    return expression->op() == parser::Token::Kind::Not
+    return expression->op() == Unary::Operator::Not
       ? runtime.boolean_type()
       : nullptr;
   }

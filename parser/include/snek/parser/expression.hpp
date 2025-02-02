@@ -112,11 +112,25 @@ namespace snek::parser::expression
   class Assign final : public Base
   {
   public:
+    enum class Operator
+    {
+      Add = static_cast<int>(Token::Kind::Add),
+      Sub = static_cast<int>(Token::Kind::Sub),
+      Mul = static_cast<int>(Token::Kind::Mul),
+      Div = static_cast<int>(Token::Kind::Div),
+      Mod = static_cast<int>(Token::Kind::Mod),
+      BitwiseAnd = static_cast<int>(Token::Kind::BitwiseAnd),
+      BitwiseOr = static_cast<int>(Token::Kind::BitwiseOr),
+      BitwiseXor = static_cast<int>(Token::Kind::BitwiseXor),
+      LeftShift = static_cast<int>(Token::Kind::LeftShift),
+      RightShift = static_cast<int>(Token::Kind::RightShift),
+    };
+
     explicit Assign(
       const Position& position,
       const ptr& variable,
       const ptr& value,
-      const std::optional<Token::Kind>& op = std::nullopt
+      const std::optional<Operator>& op = std::nullopt
     )
       : Base(position)
       , m_variable(variable)
@@ -138,25 +152,47 @@ namespace snek::parser::expression
       return m_value;
     }
 
-    inline const std::optional<Token::Kind>& op() const
+    inline const std::optional<Operator>& op() const
     {
       return m_op;
     }
 
-    static std::u32string ToString(Token::Kind op);
+    static std::u32string ToString(Operator op);
 
     std::u32string ToString() const override;
 
   private:
     const ptr m_variable;
     const ptr m_value;
-    const std::optional<Token::Kind> m_op;
+    const std::optional<Operator> m_op;
   };
 
   class Binary final : public Base
   {
   public:
-    explicit Binary(const ptr& left, Token::Kind op, const ptr& right)
+    enum class Operator
+    {
+      Add = static_cast<int>(Token::Kind::Add),
+      Sub = static_cast<int>(Token::Kind::Sub),
+      Mul = static_cast<int>(Token::Kind::Mul),
+      Div = static_cast<int>(Token::Kind::Div),
+      Mod = static_cast<int>(Token::Kind::Mod),
+      BitwiseAnd = static_cast<int>(Token::Kind::BitwiseAnd),
+      BitwiseOr = static_cast<int>(Token::Kind::BitwiseOr),
+      BitwiseXor = static_cast<int>(Token::Kind::BitwiseXor),
+      Equal = static_cast<int>(Token::Kind::Equal),
+      NotEqual = static_cast<int>(Token::Kind::NotEqual),
+      LessThan = static_cast<int>(Token::Kind::LessThan),
+      GreaterThan = static_cast<int>(Token::Kind::GreaterThan),
+      LessThanEqual = static_cast<int>(Token::Kind::LessThanEqual),
+      GreaterThanEqual = static_cast<int>(Token::Kind::GreaterThanEqual),
+      LeftShift = static_cast<int>(Token::Kind::LeftShift),
+      RightShift = static_cast<int>(Token::Kind::RightShift),
+      LogicalAnd = static_cast<int>(Token::Kind::LogicalAnd),
+      LogicalOr = static_cast<int>(Token::Kind::LogicalOr),
+    };
+
+    explicit Binary(const ptr& left, Operator op, const ptr& right)
       : Base(left->position())
       , m_left(left)
       , m_op(op)
@@ -172,7 +208,7 @@ namespace snek::parser::expression
       return m_left;
     }
 
-    inline Token::Kind op() const
+    inline Operator op() const
     {
       return m_op;
     }
@@ -182,13 +218,13 @@ namespace snek::parser::expression
       return m_right;
     }
 
-    static std::u32string ToString(Token::Kind op);
+    static std::u32string ToString(Operator op);
 
     std::u32string ToString() const override;
 
   private:
     const ptr m_left;
-    const Token::Kind m_op;
+    const Operator m_op;
     const ptr m_right;
   };
 
@@ -598,7 +634,17 @@ namespace snek::parser::expression
   class Unary final : public Base
   {
   public:
-    explicit Unary(const Position& position, Token::Kind op, const ptr& operand)
+    enum class Operator
+    {
+      Not = static_cast<int>(Token::Kind::Not),
+      Add = static_cast<int>(Token::Kind::Add),
+      Sub = static_cast<int>(Token::Kind::Sub),
+      BitwiseNot = static_cast<int>(Token::Kind::BitwiseNot),
+    };
+
+    static std::u32string GetMethodName(Operator op);
+
+    explicit Unary(const Position& position, Operator op, const ptr& operand)
       : Base(position)
       , m_op(op)
       , m_operand(operand) {}
@@ -608,7 +654,7 @@ namespace snek::parser::expression
       return Kind::Unary;
     }
 
-    inline Token::Kind op() const
+    inline Operator op() const
     {
       return m_op;
     }
@@ -618,12 +664,12 @@ namespace snek::parser::expression
       return m_operand;
     }
 
-    static std::u32string ToString(Token::Kind op);
+    static std::u32string ToString(Operator op);
 
     std::u32string ToString() const override;
 
   private:
-    const Token::Kind m_op;
+    const Operator m_op;
     const ptr m_operand;
   };
 }
