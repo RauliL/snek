@@ -39,8 +39,10 @@ namespace snek::parser
         return U"line terminator";
 
       case Token::Kind::Indent:
+        return U"indent";
+
       case Token::Kind::Dedent:
-        return U"indentation";
+        return U"dedent";
 
       case Token::Kind::LeftParen:
         return U"`('";
