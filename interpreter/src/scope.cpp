@@ -126,10 +126,7 @@ namespace snek::interpreter
     {
       m_parent->SetVariable(position, name, value);
     } else {
-      throw Error{
-        position,
-        U"Unrecognized variable: `" + name + U"'."
-      };
+      throw Error{ position, U"Unknown variable: `" + name + U"'." };
     }
   }
 

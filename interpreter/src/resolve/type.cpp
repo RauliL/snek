@@ -104,10 +104,7 @@ namespace snek::interpreter
       }
     }
 
-    throw Error{
-      type->position(),
-      U"Unrecognized type: `" + name + U"'."
-    };
+    throw Error{ type->position(), U"Unknown type: `" + name + U"'." };
   }
 
   static type::ptr

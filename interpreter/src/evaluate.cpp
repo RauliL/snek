@@ -149,10 +149,7 @@ namespace snek::interpreter
       }
     }
 
-    throw Error{
-      field->position(),
-      U"Unrecognized variable: `" + name + U"'."
-    };
+    throw Error{ field->position(), U"Unknown variable: `" + name + U"'." };
   }
 
   static void
@@ -373,10 +370,7 @@ namespace snek::interpreter
       }
     }
 
-    throw Error{
-      expression->position(),
-      U"Unrecognized variable: `" + id + U"'."
-    };
+    throw Error{ expression->position(), U"Unknown variable: `" + id + U"'." };
   }
 
   static value::ptr
