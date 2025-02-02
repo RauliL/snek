@@ -36,6 +36,13 @@
 namespace snek::parser::expression
 {
   template<class T>
+  static inline const T*
+  As(const ptr& expression)
+  {
+    return static_cast<const T*>(expression.get());
+  }
+
+  template<class T>
   static std::vector<T>
   ParseMultiple(
     const Position& position,
@@ -95,6 +102,10 @@ namespace snek::parser::expression
   PeekFunction(Lexer& lexer)
   {
     return (
+      // ()
+      (
+        lexer.PeekToken(Token::Kind::RightBrace)
+      ) ||
       // ():
       (
         lexer.PeekToken(Token::Kind::RightParen) &&
@@ -121,6 +132,38 @@ namespace snek::parser::expression
         lexer.PeekNextButOneToken(Token::Kind::Comma)
       )
     );
+  }
+
+  static parameter::ptr
+  ToParameter(const ptr& expression)
+  {
+    if (expression->kind() == Kind::Id)
+    {
+      return std::make_shared<parameter::Base>(
+        expression->position(),
+        As<Id>(expression)->identifier()
+      );
+    }
+    else if (expression->kind() == Kind::Assign)
+    {
+      const auto assign = As<Assign>(expression);
+      const auto variable = assign->variable();
+
+      if (!assign->op() && variable->kind() == Kind::Id)
+      {
+        return std::make_shared<parameter::Base>(
+          expression->position(),
+          As<Id>(variable)->identifier()
+        );
+      }
+    }
+
+    throw Error{
+      expression->position(),
+      U"Unexpected `" +
+      expression->ToString() +
+      U"'; Missing function."
+    };
   }
 
   static inline std::vector<ptr>
@@ -163,9 +206,12 @@ namespace snek::parser::expression
   }
 
   static ptr
-  ParseFunction(const Position& position, Lexer& lexer)
+  ParseFunctionRest(
+    const Position& position,
+    const std::vector<parameter::ptr>& parameters,
+    Lexer& lexer
+  )
   {
-    const auto parameters = parameter::ParseList(lexer, false);
     type::ptr return_type;
     statement::ptr body;
 
@@ -189,6 +235,16 @@ namespace snek::parser::expression
   }
 
   static ptr
+  ParseFunction(const Position& position, Lexer& lexer)
+  {
+    return ParseFunctionRest(
+      position,
+      parameter::ParseList(lexer, false),
+      lexer)
+    ;
+  }
+
+  static ptr
   ParseParenthesized(const Position& position, Lexer& lexer)
   {
     if (!PeekFunction(lexer))
@@ -196,6 +252,14 @@ namespace snek::parser::expression
       const auto expression = Parse(lexer);
 
       lexer.ReadToken(Token::Kind::RightParen);
+      if (
+        lexer.PeekToken(Token::Kind::Arrow) ||
+        lexer.PeekToken(Token::Kind::FatArrow) ||
+        lexer.PeekToken(Token::Kind::Colon)
+      )
+      {
+        return ParseFunctionRest(position, { ToParameter(expression) }, lexer);
+      }
 
       return expression;
     }
