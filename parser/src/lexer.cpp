@@ -239,25 +239,16 @@ namespace snek::parser
         m_token_queue.push_back(Token(position, Token::Kind::Indent));
       }
     } else {
-      auto previous_indent = m_indent_stack.top();
+      const auto previous_indent = m_indent_stack.top();
 
       if (previous_indent > indent)
       {
         do
         {
-          if (m_indent_stack.empty())
-          {
-            break;
-          }
-          previous_indent = m_indent_stack.top();
           m_indent_stack.pop();
           m_token_queue.push_back(Token(position, Token::Kind::Dedent));
-          if (previous_indent < indent)
-          {
-            throw Error{ m_position, U"Indentation mismatch." };
-          }
         }
-        while (previous_indent > indent);
+        while (!m_indent_stack.empty() && m_indent_stack.top() > indent);
       }
       else if (previous_indent < indent)
       {
