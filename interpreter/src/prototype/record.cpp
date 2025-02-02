@@ -29,6 +29,13 @@
 
 namespace snek::interpreter::prototype
 {
+  template<class T>
+  static inline const T*
+  As(const value::ptr& value)
+  {
+    return static_cast<const T*>(value.get());
+  }
+
   /**
    * Record#[](this: Record, name: String) => any
    *
@@ -40,12 +47,8 @@ namespace snek::interpreter::prototype
     const std::vector<value::ptr>& arguments
   )
   {
-    const auto& key = static_cast<const value::String*>(
-      arguments[1].get()
-    )->value();
-    const auto result = static_cast<const value::Record*>(
-      arguments[0].get()
-    )->GetOwnProperty(key);
+    const auto& key = As<value::String>(arguments[1])->value();
+    const auto result = As<value::Record>(arguments[0])->GetOwnProperty(key);
 
     if (result)
     {
@@ -54,7 +57,7 @@ namespace snek::interpreter::prototype
 
     throw Error{
       std::nullopt,
-      value::ToString(arguments[0]) +
+      value::ToString(value::KindOf(arguments[0])) +
       U" has no property `" +
       parser::utils::ToJsonString(key) +
       U"'."
@@ -66,7 +69,7 @@ namespace snek::interpreter::prototype
   {
     fields[U"[]"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->list_type()),
+        Parameter(U"this", runtime->record_type()),
         Parameter(U"name", runtime->string_type())
       },
       runtime->any_type(),
