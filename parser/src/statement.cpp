@@ -54,8 +54,8 @@ namespace snek::parser::statement
         statements.push_back(Parse(lexer, false));
       }
       while (
-        lexer.PeekToken(Token::Kind::Eof) ||
-        lexer.PeekReadToken(Token::Kind::Dedent)
+        !lexer.PeekToken(Token::Kind::Eof) &&
+        !lexer.PeekReadToken(Token::Kind::Dedent)
       );
 
       return std::make_shared<Block>(position, statements);
