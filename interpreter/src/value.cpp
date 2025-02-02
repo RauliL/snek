@@ -28,6 +28,13 @@
 
 namespace snek::interpreter::value
 {
+  template<class T>
+  static inline const T*
+  As(const ptr& value)
+  {
+    return static_cast<const T*>(value.get());
+  }
+
   ptr
   GetPrototypeOf(const Runtime& runtime, const ptr& value)
   {
@@ -88,30 +95,26 @@ namespace snek::interpreter::value
         return *property;
       }
     }
-
-    auto prototype = GetPrototypeOf(runtime, value);
-
-    while (prototype)
+    for (
+      auto prototype = GetPrototypeOf(runtime, value);
+      IsRecord(prototype);
+      prototype = GetPrototypeOf(runtime, prototype)
+    )
     {
-      if (IsRecord(prototype))
-      {
-        if (const auto property = static_cast<const Record*>(
-            prototype.get()
-          )->GetOwnProperty(name)
-        )
-        {
-          if (IsFunction(*property))
-          {
-            return Function::Bind(
-              value,
-              std::static_pointer_cast<Function>(*property)
-            );
-          }
+      const auto property = As<Record>(prototype)->GetOwnProperty(name);
 
-          return *property;
+      if (property)
+      {
+        if (IsFunction(*property))
+        {
+          return Function::Bind(
+            value,
+            std::static_pointer_cast<Function>(*property)
+          );
         }
+
+        return *property;
       }
-      prototype = GetPrototypeOf(runtime, prototype);
     }
 
     return std::nullopt;
