@@ -92,6 +92,33 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * List#join(this: List, separator: String) => String
+   *
+   * Constructs an string where each element in the list is converted into
+   * string and separated from each other with the given separator.
+   */
+  static value::ptr
+  Join(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  {
+    const auto list = As<value::List>(arguments[0]);
+    const auto& separator = As<value::String>(arguments[1])->value();
+    const auto size = list->GetSize();
+    std::u32string result;
+
+    // TODO: Add support for overloading `toString`.
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      if (i > 0)
+      {
+        result.append(separator);
+      }
+      result.append(value::ToString(list->At(i)));
+    }
+
+    return std::make_shared<value::String>(result);
+  }
+
+  /**
    * List#map(this: List, callback: Function) => List
    *
    * Constructs new list from return values of given callback function when
@@ -254,6 +281,14 @@ namespace snek::interpreter::prototype
       },
       runtime->void_type(),
       ForEach
+    );
+    fields[U"join"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->list_type() ),
+        Parameter(U"separator", runtime->string_type())
+      },
+      runtime->string_type(),
+      Join
     );
     fields[U"map"] = value::Function::MakeNative(
       {

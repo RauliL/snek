@@ -28,6 +28,22 @@
 namespace snek::interpreter::prototype
 {
   /**
+   * Object#toString(this) => String
+   *
+   * Creates string representation of the object.
+   */
+  static value::ptr
+  ToString(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    if (value::IsString(arguments[0]))
+    {
+      return arguments[0];
+    }
+
+    return std::make_shared<value::String>(value::ToString(arguments[0]));
+  }
+
+  /**
    * Object#==(this, other) => Boolean
    *
    * Tests whether two objects are equal with each other.
@@ -69,6 +85,12 @@ namespace snek::interpreter::prototype
   void
   MakeObject(const Runtime* runtime, value::Record::container_type& fields)
   {
+    fields[U"toString"] = value::Function::MakeNative(
+      { Parameter(U"this") },
+      runtime->string_type(),
+      ToString
+    );
+
     fields[U"=="] = value::Function::MakeNative(
       {
         Parameter(U"this"),
