@@ -36,6 +36,7 @@ namespace snek::interpreter
 
   namespace prototype
   {
+    void MakeBoolean(const Runtime*, prototype_type&);
     void MakeList(const Runtime*, prototype_type&);
     void MakeNumber(const Runtime*, prototype_type&);
     void MakeObject(const Runtime*, prototype_type&);
@@ -83,7 +84,11 @@ namespace snek::interpreter
         m_object_prototype,
         prototype::MakeNumber
       ))
-    , m_boolean_prototype(MakePrototype(this, m_object_prototype))
+    , m_boolean_prototype(MakePrototype(
+        this,
+        m_object_prototype,
+        prototype::MakeBoolean
+      ))
     , m_float_prototype(MakePrototype(this, m_number_prototype))
     , m_function_prototype(MakePrototype(this, m_object_prototype))
     , m_int_prototype(MakePrototype(this, m_number_prototype))
