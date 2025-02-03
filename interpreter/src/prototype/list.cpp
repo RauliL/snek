@@ -42,10 +42,7 @@ namespace snek::interpreter::prototype
    * given callback function has returned true for.
    */
   static value::ptr
-  Filter(
-    Runtime& runtime,
-    const std::vector<value::ptr>& arguments
-  )
+  Filter(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
     const auto callback = As<value::Function>(arguments[1]);
@@ -74,10 +71,7 @@ namespace snek::interpreter::prototype
    * element given as argument.
    */
   static value::ptr
-  ForEach(
-    Runtime& runtime,
-    const std::vector<value::ptr>& arguments
-  )
+  ForEach(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
     const auto callback = As<value::Function>(arguments[1]);
@@ -98,7 +92,7 @@ namespace snek::interpreter::prototype
    * string and separated from each other with the given separator.
    */
   static value::ptr
-  Join(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  Join(Runtime&, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
     const auto& separator = As<value::String>(arguments[1])->value();
@@ -125,10 +119,7 @@ namespace snek::interpreter::prototype
    * called with element of this list as an argument.
    */
   static value::ptr
-  Map(
-    Runtime& runtime,
-    const std::vector<value::ptr>& arguments
-  )
+  Map(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
     const auto callback = As<value::Function>(arguments[1]);
@@ -153,10 +144,7 @@ namespace snek::interpreter::prototype
    * first element of the list is instead used as the initial value.
    */
   static value::ptr
-  Reduce(
-    Runtime& runtime,
-    const std::vector<value::ptr>& arguments
-  )
+  Reduce(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
     const auto callback = As<value::Function>(arguments[1]);
@@ -190,10 +178,7 @@ namespace snek::interpreter::prototype
    * Returns size of the list.
    */
   static value::ptr
-  Size(
-    Runtime&,
-    const std::vector<value::ptr>& arguments
-  )
+  Size(Runtime&, const std::vector<value::ptr>& arguments)
   {
     return std::make_shared<value::Int>(As<value::List>(
       arguments[0]
@@ -207,10 +192,7 @@ namespace snek::interpreter::prototype
    * exception will be thrown.
    */
   static value::ptr
-  At(
-    Runtime&,
-    const std::vector<value::ptr>& arguments
-  )
+  At(Runtime&, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
     const auto size = list->GetSize();
@@ -240,10 +222,7 @@ namespace snek::interpreter::prototype
    * Concatenates contents of two lists together.
    */
   static value::ptr
-  Concat(
-    Runtime&,
-    const std::vector<value::ptr>& arguments
-  )
+  Concat(Runtime&, const std::vector<value::ptr>& arguments)
   {
     return value::List::Concat(
       std::static_pointer_cast<value::List>(arguments[0]),
