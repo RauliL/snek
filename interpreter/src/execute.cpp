@@ -28,6 +28,7 @@
 #include "snek/interpreter/execute.hpp"
 #include "snek/interpreter/jump.hpp"
 #include "snek/interpreter/resolve.hpp"
+#include "snek/parser/import.hpp"
 
 namespace snek::interpreter
 {
@@ -65,7 +66,8 @@ namespace snek::interpreter
     scope->DeclareType(
       statement->position(),
       statement->name(),
-      ResolveType(runtime, scope, statement->type())
+      ResolveType(runtime, scope, statement->type()),
+      statement->exported()
     );
 
     return nullptr;
@@ -84,7 +86,8 @@ namespace snek::interpreter
       statement->position(),
       statement->name(),
       value,
-      statement->read_only()
+      statement->read_only(),
+      statement->exported()
     );
 
     return value;
@@ -108,6 +111,127 @@ namespace snek::interpreter
     else if (const auto else_statement = statement->else_statement())
     {
       return ExecuteStatement(runtime, scope, else_statement);
+    }
+
+    return nullptr;
+  }
+
+  static void
+  ImportNamed(
+    const Scope::ptr& module,
+    const Scope::ptr& scope,
+    const parser::import::Named* specifier
+  )
+  {
+    const auto& position = specifier->position();
+    const auto& name = specifier->name();
+    const auto& alias = specifier->alias();
+    value::ptr value_slot;
+
+    if (module->FindVariable(name, value_slot, true))
+    {
+      scope->DeclareVariable(
+        position,
+        alias ? *alias : name,
+        value_slot,
+        true,
+        false
+      );
+      return;
+    } else {
+      type::ptr type_slot;
+
+      if (module->FindType(name, type_slot, true))
+      {
+        scope->DeclareType(position, alias ? *alias : name, type_slot, false);
+        return;
+      }
+    }
+
+    throw Error{ position, U"Module does not export `" + name + U"'." };
+  }
+
+  static void
+  ImportStar(
+    const Scope::ptr& module,
+    const Scope::ptr& scope,
+    const parser::import::Star* specifier
+  )
+  {
+    const auto position = specifier->position();
+    const auto& alias = specifier->alias();
+    const auto exported_variables = module->GetExportedVariables();
+
+    if (alias)
+    {
+      value::Record::container_type fields;
+
+      // TODO: Find out what to do with exported types.
+      for (const auto& variable : exported_variables)
+      {
+        fields[variable.first] = variable.second;
+      }
+      scope->DeclareVariable(
+        position,
+        *alias,
+        std::make_shared<value::Record>(fields),
+        true,
+        false
+      );
+    } else {
+      for (const auto& variable : exported_variables)
+      {
+        scope->DeclareVariable(
+          position,
+          variable.first,
+          variable.second,
+          true,
+          false
+        );
+      }
+      for (const auto& type : module->GetExportedTypes())
+      {
+        scope->DeclareType(position, type.first, type.second, false);
+      }
+    }
+  }
+
+  static value::ptr
+  ExecuteImport(
+    Runtime& runtime,
+    const Scope::ptr& scope,
+    const Import* statement
+  )
+  {
+    const auto module = runtime.ImportModule(
+      statement->position(),
+      statement->path()
+    );
+
+    for (const auto& specifier : statement->specifiers())
+    {
+      if (!specifier)
+      {
+        continue;
+      }
+      switch (specifier->kind())
+      {
+        case parser::import::Kind::Named:
+          ImportNamed(
+            module,
+            scope,
+            static_cast<const parser::import::Named*>(specifier.get())
+          );
+          break;
+
+        case parser::import::Kind::Star:
+          ImportStar(
+            module,
+            scope,
+            static_cast<const parser::import::Star*>(specifier.get())
+          );
+          break;
+      }
     }
 
     return nullptr;
@@ -201,6 +325,9 @@ namespace snek::interpreter
 
       case Kind::If:
         return ExecuteIf(runtime, scope, As<If>(statement));
+
+      case Kind::Import:
+        return ExecuteImport(runtime, scope, As<Import>(statement));
 
       case Kind::Jump:
         ExecuteJump(

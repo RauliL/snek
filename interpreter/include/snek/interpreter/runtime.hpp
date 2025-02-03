@@ -29,12 +29,29 @@
 
 namespace snek::interpreter
 {
+  Scope::ptr
+  ImportFilesystemModule(
+    const std::optional<Position>& position,
+    Runtime&,
+    const std::u32string& path
+  );
+
   class Runtime
   {
   public:
+    using module_importer_type = std::function<
+      Scope::ptr(
+        const std::optional<Position>&,
+        Runtime&,
+        const std::u32string&
+      )
+    >;
+
     DEFAULT_COPY_AND_ASSIGN(Runtime);
 
-    explicit Runtime();
+    Runtime(
+      const module_importer_type& module_importer = ImportFilesystemModule
+    );
 
     inline const type::ptr& any_type() const
     {
@@ -144,6 +161,11 @@ namespace snek::interpreter
       int column = 1
     );
 
+    Scope::ptr ImportModule(
+      const std::optional<Position>& position,
+      const std::u32string& path
+    );
+
   private:
     type::ptr m_any_type;
     type::ptr m_boolean_type;
@@ -167,5 +189,8 @@ namespace snek::interpreter
     value::ptr m_string_prototype;
 
     Scope::ptr m_root_scope;
+
+    module_importer_type m_module_importer;
+    std::unordered_map<std::u32string, Scope::ptr> m_imported_modules;
   };
 }

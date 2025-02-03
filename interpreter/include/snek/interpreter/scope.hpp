@@ -30,16 +30,23 @@
 
 namespace snek::interpreter
 {
-  struct Variable
-  {
-    value::ptr value;
-    bool read_only;
-  };
-
   class Scope
   {
   public:
     DEFAULT_COPY_AND_ASSIGN(Scope);
+
+    struct Variable
+    {
+      value::ptr value;
+      bool read_only;
+      bool exported;
+    };
+
+    struct TypeDefinition
+    {
+      type::ptr type;
+      bool exported;
+    };
 
     using ptr = std::shared_ptr<Scope>;
     using variable_container_type = std::unordered_map<
@@ -48,7 +55,7 @@ namespace snek::interpreter
     >;
     using type_container_type = std::unordered_map<
       std::u32string,
-      type::ptr
+      TypeDefinition
     >;
 
     static ptr MakeRootScope(const Runtime* runtime);
@@ -56,13 +63,24 @@ namespace snek::interpreter
     explicit Scope(const ptr& parent = nullptr)
       : m_parent(parent) {}
 
-    bool FindVariable(const std::u32string& name, value::ptr& slot) const;
+    std::vector<std::pair<std::u32string, value::ptr>>
+    GetExportedVariables() const;
+
+    std::vector<std::pair<std::u32string, type::ptr>>
+    GetExportedTypes() const;
+
+    bool FindVariable(
+      const std::u32string& name,
+      value::ptr& slot,
+      bool imported = false
+    ) const;
 
     void DeclareVariable(
       const std::optional<Position>& position,
       const std::u32string& name,
       const value::ptr& value,
-      bool read_only
+      bool read_only = false,
+      bool exported = false
     );
 
     void SetVariable(
@@ -71,12 +89,17 @@ namespace snek::interpreter
       const value::ptr& value
     );
 
-    bool FindType(const std::u32string& name, type::ptr& slot) const;
+    bool FindType(
+      const std::u32string& name,
+      type::ptr& slot,
+      bool imported = false
+    ) const;
 
     void DeclareType(
       const std::optional<Position>& position,
       const std::u32string& name,
-      const type::ptr& type
+      const type::ptr& type,
+      bool exported = false
     );
 
   private:

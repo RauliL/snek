@@ -23,82 +23,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
+#include <fstream>
 
-#include <deque>
-#include <stack>
+#include <peelo/unicode/encoding/utf8.hpp>
 
-#include "snek/parser/token.hpp"
+#include "snek/error.hpp"
+#include "snek/interpreter/runtime.hpp"
 
-namespace snek::parser
+namespace snek::interpreter
 {
-  class Lexer final
+  Scope::ptr
+  ImportFilesystemModule(
+    const std::optional<Position>& position,
+    Runtime& runtime,
+    const std::u32string& path
+  )
   {
-  public:
-    DEFAULT_COPY_AND_ASSIGN(Lexer);
+    using peelo::unicode::encoding::utf8::encode;
 
-    using iterator = std::string::const_iterator;
+    std::ifstream ifs(encode(path));
+    std::string source;
+    Scope::ptr module;
 
-    Lexer(
-      const iterator& begin,
-      const iterator& end,
-      const std::u32string& filename = U"<eval>",
-      int line = 1,
-      int column = 1
-    )
-      : m_current(begin)
-      , m_end(end)
-      , m_position{ filename, line, column } {}
-
-    const Position& position() const;
-
-    Token ReadToken();
-
-    void ReadToken(Token::Kind expected);
-
-    void UnreadToken(const Token& token);
-
-    Token PeekToken();
-
-    bool PeekToken(Token::Kind expected);
-
-    bool PeekNextButOneToken(Token::Kind expected);
-
-    bool PeekReadToken(Token::Kind expected);
-
-    std::u32string ReadId();
-
-    std::u32string ReadString();
-
-  private:
-    void LexLogicalLine();
-
-    Token LexOperator();
-
-    Token LexId();
-
-    Token LexString();
-
-    Token LexNumber();
-
-    char32_t LexEscapeSequence();
-
-    inline bool HasMoreChars() const
+    if (!ifs.good())
     {
-      return m_current < m_end;
+      throw Error{ position, U"Unable to find module `" + path + U"'." };
     }
+    source.append(
+      std::istreambuf_iterator<char>(ifs),
+      std::istreambuf_iterator<char>()
+    );
+    ifs.close();
+    module = std::make_shared<Scope>(runtime.root_scope());
+    runtime.RunScript(module, source, path);
 
-    char32_t ReadChar();
-
-    bool PeekChar(char expected) const;
-
-    bool PeekReadChar(char expected);
-
-  private:
-    iterator m_current;
-    iterator m_end;
-    Position m_position;
-    std::deque<Token> m_token_queue;
-    std::stack<int> m_indent_stack;
-  };
+    return module;
+  }
 }

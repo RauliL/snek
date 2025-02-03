@@ -24,8 +24,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "snek/error.hpp"
+#include "snek/parser/import.hpp"
 #include "snek/parser/statement.hpp"
 #include "snek/parser/type.hpp"
+#include "snek/parser/utils.hpp"
 
 namespace snek::parser::statement
 {
@@ -62,7 +64,7 @@ namespace snek::parser::statement
   }
 
   static ptr
-  ParseDeclareVar(Lexer& lexer)
+  ParseDeclareVar(Lexer& lexer, bool exported = false)
   {
     const auto token = lexer.ReadToken();
     const auto name = lexer.ReadId();
@@ -75,6 +77,7 @@ namespace snek::parser::statement
 
     return std::make_shared<DeclareVar>(
       token.position(),
+      exported,
       token.kind() == Token::Kind::KeywordConst,
       name,
       value
@@ -82,14 +85,70 @@ namespace snek::parser::statement
   }
 
   static ptr
-  ParseDeclareType(Lexer& lexer)
+  ParseDeclareType(Lexer& lexer, bool exported = false)
   {
     const auto position = lexer.ReadToken().position();
     const auto name = lexer.ReadId();
 
     lexer.ReadToken(Token::Kind::Assign);
 
-    return std::make_shared<DeclareType>(position, name, type::Parse(lexer));
+    return std::make_shared<DeclareType>(
+      position,
+      exported,
+      name,
+      type::Parse(lexer)
+    );
+  }
+
+  static ptr
+  ParseImport(Lexer& lexer)
+  {
+    const auto position = lexer.ReadToken().position();
+    Import::container_type specifiers;
+    std::u32string path;
+
+    do
+    {
+      // To allow dangling commas.
+      if (!specifiers.empty() && lexer.PeekToken(Token::Kind::KeywordFrom))
+      {
+        break;
+      }
+      specifiers.push_back(import::ParseSpecifier(lexer));
+    }
+    while (lexer.PeekReadToken(Token::Kind::Colon));
+    lexer.PeekReadToken(Token::Kind::KeywordFrom);
+    path = lexer.ReadString();
+    SkipNewLine(lexer);
+
+    return std::make_shared<Import>(position, specifiers, path);
+  }
+
+  static ptr
+  ParseExport(Lexer& lexer)
+  {
+    const auto token = lexer.ReadToken();
+    ptr statement;
+
+    if (
+      lexer.PeekToken(Token::Kind::KeywordLet) ||
+      lexer.PeekToken(Token::Kind::KeywordConst)
+    )
+    {
+      statement = ParseDeclareVar(lexer, true);
+    }
+    else if (lexer.PeekToken(Token::Kind::KeywordType))
+    {
+      statement = ParseDeclareType(lexer, true);
+    } else {
+      throw Error{
+        token.position(),
+        U"Unexpected " + lexer.PeekToken().ToString() + U" after `export'."
+      };
+    }
+    SkipNewLine(lexer);
+
+    return statement;
   }
 
   static ptr
@@ -115,9 +174,6 @@ namespace snek::parser::statement
       case Token::Kind::KeywordReturn:
         statement = ParseJump(lexer);
         break;
-
-      // TODO: import statement
-      // TODO: export statement
 
       case Token::Kind::KeywordConst:
       case Token::Kind::KeywordLet:
@@ -248,6 +304,28 @@ namespace snek::parser::statement
       case Token::Kind::KeywordWhile:
         return ParseWhile(lexer);
 
+      case Token::Kind::KeywordImport:
+        if (!is_top_level)
+        {
+          throw Error{
+            token.position(),
+            U"Imports are only allowed at top level."
+          };
+        }
+
+        return ParseImport(lexer);
+
+      case Token::Kind::KeywordExport:
+        if (!is_top_level)
+        {
+          throw Error{
+            token.position(),
+            U"Exports are only allowed at top level."
+          };
+        }
+
+        return ParseExport(lexer);
+
       default:
         return ParseSimpleStatement(lexer, is_top_level);
     }
@@ -256,15 +334,29 @@ namespace snek::parser::statement
   std::u32string
   DeclareType::ToString() const
   {
-    return U"type " + m_name + U" = " + m_type->ToString();
+    std::u32string result;
+
+    if (m_exported)
+    {
+      result.append(U"export ");
+    }
+    return result
+      .append(U"type ")
+      .append(m_name)
+      .append(U" = ")
+      .append(m_type->ToString());
   }
 
   std::u32string
   DeclareVar::ToString() const
   {
-    std::u32string result(m_read_only ? U"const " : U"let ");
+    std::u32string result;
 
-    result.append(m_name);
+    if (m_exported)
+    {
+      result.append(U"export ");
+    }
+    result.append(m_read_only ? U"const " : U"let ").append(m_name);
     if (m_value)
     {
       result.append(U" = ").append(m_value->ToString());
@@ -287,6 +379,24 @@ namespace snek::parser::statement
     }
 
     return result;
+  }
+
+  std::u32string
+  Import::ToString() const
+  {
+    std::u32string result(U"import ");
+    const auto size = m_specifiers.size();
+
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      if (i > 0)
+      {
+        result.append(U", ");
+      }
+      result.append(m_specifiers[i]->ToString());
+    }
+
+    return result.append(U" from ").append(utils::ToJsonString(m_path));
   }
 
   std::u32string

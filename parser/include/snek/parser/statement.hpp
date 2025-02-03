@@ -30,6 +30,13 @@
 
 #include "snek/parser/expression.hpp"
 
+namespace snek::parser::import
+{
+  class Base;
+
+  using ptr = std::shared_ptr<Base>;
+}
+
 namespace snek::parser::statement
 {
   enum class Kind
@@ -39,6 +46,7 @@ namespace snek::parser::statement
     DeclareVar,
     Expression,
     If,
+    Import,
     Jump,
     While,
   };
@@ -107,16 +115,23 @@ namespace snek::parser::statement
   public:
     explicit DeclareType(
       const Position& position,
+      bool is_export,
       const std::u32string& name,
       const type::ptr& type
     )
       : Base(position)
+      , m_exported(is_export)
       , m_name(name)
       , m_type(type) {}
 
     inline Kind kind() const override
     {
       return Kind::DeclareType;
+    }
+
+    inline bool exported() const
+    {
+      return m_exported;
     }
 
     inline const std::u32string& name() const
@@ -132,6 +147,7 @@ namespace snek::parser::statement
     std::u32string ToString() const override;
 
   private:
+    const bool m_exported;
     const std::u32string m_name;
     const type::ptr m_type;
   };
@@ -141,11 +157,13 @@ namespace snek::parser::statement
   public:
     explicit DeclareVar(
       const Position& position,
+      bool exported,
       bool read_only,
       const std::u32string& name,
       const expression::ptr& value
     )
       : Base(position)
+      , m_exported(exported)
       , m_read_only(read_only)
       , m_name(name)
       , m_value(value) {}
@@ -153,6 +171,11 @@ namespace snek::parser::statement
     inline Kind kind() const override
     {
       return Kind::DeclareVar;
+    }
+
+    inline bool exported() const
+    {
+      return m_exported;
     }
 
     inline bool read_only() const
@@ -173,6 +196,7 @@ namespace snek::parser::statement
     std::u32string ToString() const override;
 
   private:
+    const bool m_exported;
     const bool m_read_only;
     const std::u32string m_name;
     const expression::ptr m_value;
@@ -244,6 +268,42 @@ namespace snek::parser::statement
     const expression::ptr m_condition;
     const ptr m_then_statement;
     const ptr m_else_statement;
+  };
+
+  class Import final : public Base
+  {
+  public:
+    using container_type = std::vector<import::ptr>;
+
+    explicit Import(
+      const Position& position,
+      const container_type& specifiers,
+      const std::u32string& path
+    )
+      : Base(position)
+      , m_specifiers(specifiers)
+      , m_path(path) {}
+
+    inline Kind kind() const override
+    {
+      return Kind::Import;
+    }
+
+    inline const container_type& specifiers() const
+    {
+      return m_specifiers;
+    }
+
+    inline const std::u32string& path() const
+    {
+      return m_path;
+    }
+
+    std::u32string ToString() const override;
+
+  private:
+    const container_type m_specifiers;
+    const std::u32string m_path;
   };
 
   class Jump final : public Base

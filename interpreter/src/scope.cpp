@@ -38,15 +38,15 @@ namespace snek::interpreter
   {
     auto scope = std::make_shared<Scope>();
 
-    scope->m_types[U"Boolean"] = runtime->boolean_type();
-    scope->m_types[U"Float"] = runtime->float_type();
-    scope->m_types[U"Function"] = runtime->function_type();
-    scope->m_types[U"Int"] = runtime->int_type();
-    scope->m_types[U"List"] = runtime->list_type();
-    scope->m_types[U"Number"] = runtime->number_type();
-    scope->m_types[U"Object"] = runtime->any_type();
-    scope->m_types[U"Record"] = runtime->record_type();
-    scope->m_types[U"String"] = runtime->string_type();
+    scope->m_types[U"Boolean"] = { runtime->boolean_type() };
+    scope->m_types[U"Float"] = { runtime->float_type() };
+    scope->m_types[U"Function"] = { runtime->function_type() };
+    scope->m_types[U"Int"] = { runtime->int_type() };
+    scope->m_types[U"List"] = { runtime->list_type() };
+    scope->m_types[U"Number"] = { runtime->number_type() };
+    scope->m_types[U"Object"] = { runtime->any_type() };
+    scope->m_types[U"Record"] = { runtime->record_type() };
+    scope->m_types[U"String"] = { runtime->string_type() };
 
     scope->m_variables[U"Boolean"] = { runtime->boolean_prototype(), true };
     scope->m_variables[U"Float"] = { runtime->float_prototype(), true };
@@ -63,19 +63,58 @@ namespace snek::interpreter
     return scope;
   }
 
+  std::vector<std::pair<std::u32string, value::ptr>>
+  Scope::GetExportedVariables() const
+  {
+    std::vector<std::pair<std::u32string, value::ptr>> result;
+
+    for (const auto& variable : m_variables)
+    {
+      if (variable.second.exported)
+      {
+        result.push_back(std::make_pair(
+          variable.first,
+          variable.second.value
+        ));
+      }
+    }
+
+    return result;
+  }
+
+  std::vector<std::pair<std::u32string, type::ptr>>
+  Scope::GetExportedTypes() const
+  {
+    std::vector<std::pair<std::u32string, type::ptr>> result;
+
+    for (const auto& type : m_types)
+    {
+      if (type.second.exported)
+      {
+        result.push_back(std::make_pair(type.first, type.second.type));
+      }
+    }
+
+    return result;
+  }
+
   bool
-  Scope::FindVariable(const std::u32string& name, value::ptr& slot) const
+  Scope::FindVariable(
+    const std::u32string& name,
+    value::ptr& slot,
+    bool imported
+  ) const
   {
     const auto it = m_variables.find(name);
 
-    if (it != std::end(m_variables))
+    if (it != std::end(m_variables) && (!imported || it->second.exported))
     {
       slot = it->second.value;
 
       return true;
     }
 
-    return m_parent ? m_parent->FindVariable(name, slot) : false;
+    return m_parent && !imported ? m_parent->FindVariable(name, slot) : false;
   }
 
   void
@@ -83,7 +122,8 @@ namespace snek::interpreter
     const std::optional<Position>& position,
     const std::u32string& name,
     const value::ptr& value,
-    bool read_only
+    bool read_only,
+    bool exported
   )
   {
     const auto it = m_variables.find(name);
@@ -97,7 +137,7 @@ namespace snek::interpreter
         U"' has already been declared."
       };
     }
-    m_variables[name] = Variable{ value, read_only };
+    m_variables[name] = Variable{ value, read_only, exported };
   }
 
   void
@@ -131,24 +171,29 @@ namespace snek::interpreter
   }
 
   bool
-  Scope::FindType(const std::u32string& name, type::ptr& slot) const
+  Scope::FindType(
+    const std::u32string& name,
+    type::ptr& slot,
+    bool imported
+  ) const
   {
     const auto it = m_types.find(name);
 
-    if (it != std::end(m_types))
+    if (it != std::end(m_types) && (!imported || it->second.exported))
     {
-      slot = it->second;
+      slot = it->second.type;
 
       return true;
     }
 
-    return m_parent ? m_parent->FindType(name, slot) : false;
+    return m_parent && !imported ? m_parent->FindType(name, slot) : false;
   }
 
   void Scope::DeclareType(
     const std::optional<Position>& position,
     const std::u32string& name,
-    const type::ptr& type
+    const type::ptr& type,
+    bool exported
   )
   {
     const auto it = m_types.find(name);
@@ -162,6 +207,6 @@ namespace snek::interpreter
         U"' has already been declared."
       };
     }
-    m_types[name] = type;
+    m_types[name] = { type, exported };
   }
 }

@@ -18,6 +18,7 @@ add_library(
   ./src/error.cpp
   ./src/expression.cpp
   ./src/field.cpp
+  ./src/import.cpp
   ./src/lexer.cpp
   ./src/parameter.cpp
   ./src/position.cpp

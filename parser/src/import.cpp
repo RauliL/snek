@@ -23,82 +23,33 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
+#include "snek/error.hpp"
+#include "snek/parser/import.hpp"
 
-#include <deque>
-#include <stack>
-
-#include "snek/parser/token.hpp"
-
-namespace snek::parser
+namespace snek::parser::import
 {
-  class Lexer final
+  static std::optional<std::u32string>
+  ParseAlias(Lexer& lexer)
   {
-  public:
-    DEFAULT_COPY_AND_ASSIGN(Lexer);
-
-    using iterator = std::string::const_iterator;
-
-    Lexer(
-      const iterator& begin,
-      const iterator& end,
-      const std::u32string& filename = U"<eval>",
-      int line = 1,
-      int column = 1
-    )
-      : m_current(begin)
-      , m_end(end)
-      , m_position{ filename, line, column } {}
-
-    const Position& position() const;
-
-    Token ReadToken();
-
-    void ReadToken(Token::Kind expected);
-
-    void UnreadToken(const Token& token);
-
-    Token PeekToken();
-
-    bool PeekToken(Token::Kind expected);
-
-    bool PeekNextButOneToken(Token::Kind expected);
-
-    bool PeekReadToken(Token::Kind expected);
-
-    std::u32string ReadId();
-
-    std::u32string ReadString();
-
-  private:
-    void LexLogicalLine();
-
-    Token LexOperator();
-
-    Token LexId();
-
-    Token LexString();
-
-    Token LexNumber();
-
-    char32_t LexEscapeSequence();
-
-    inline bool HasMoreChars() const
+    if (lexer.PeekReadToken(Token::Kind::KeywordAs))
     {
-      return m_current < m_end;
+      return lexer.ReadId();
     }
 
-    char32_t ReadChar();
+    return std::nullopt;
+  }
 
-    bool PeekChar(char expected) const;
+  ptr
+  ParseSpecifier(Lexer& lexer)
+  {
+    const auto position = lexer.position();
+    std::optional<std::u32string> alias;
 
-    bool PeekReadChar(char expected);
+    if (lexer.PeekReadToken(Token::Kind::Mul))
+    {
+      return std::make_shared<Star>(position, ParseAlias(lexer));
+    }
 
-  private:
-    iterator m_current;
-    iterator m_end;
-    Position m_position;
-    std::deque<Token> m_token_queue;
-    std::stack<int> m_indent_stack;
-  };
+    return std::make_shared<Named>(position, lexer.ReadId(), ParseAlias(lexer));
+  }
 }

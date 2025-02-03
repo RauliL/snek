@@ -44,6 +44,8 @@ namespace snek::parser
     { U"else", Token::Kind::KeywordElse },
     { U"export", Token::Kind::KeywordExport },
     { U"false", Token::Kind::KeywordFalse },
+    { U"for", Token::Kind::KeywordFor },
+    { U"from", Token::Kind::KeywordFrom },
     { U"if", Token::Kind::KeywordIf },
     { U"import", Token::Kind::KeywordImport },
     { U"let", Token::Kind::KeywordLet },
@@ -189,6 +191,24 @@ namespace snek::parser
         U"Unexpected " +
         Token::ToString(token.kind()) +
         U"; Missing identifier."
+      };
+    }
+
+    return *token.text();
+  }
+
+  std::u32string
+  Lexer::ReadString()
+  {
+    const auto token = ReadToken();
+
+    if (token.kind() != Token::Kind::String)
+    {
+      throw Error{
+        token.position(),
+        U"Unexpected " +
+        Token::ToString(token.kind()) +
+        U"; Missing string."
       };
     }
 

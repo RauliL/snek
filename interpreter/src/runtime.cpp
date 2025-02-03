@@ -65,7 +65,7 @@ namespace snek::interpreter
     return std::make_shared<value::Record>(fields);
   }
 
-  Runtime::Runtime()
+  Runtime::Runtime(const module_importer_type& module_importer)
     : m_any_type(std::make_shared<type::Any>())
     , m_boolean_type(std::make_shared<type::Builtin>(type::BuiltinKind::Boolean))
     , m_float_type(std::make_shared<type::Builtin>(type::BuiltinKind::Float))
@@ -123,7 +123,8 @@ namespace snek::interpreter
         prototype::MakeString
       ))
 
-    , m_root_scope(Scope::MakeRootScope(this)) {}
+    , m_root_scope(Scope::MakeRootScope(this))
+    , m_module_importer(module_importer) {}
 
   value::ptr
   Runtime::RunScript(
@@ -165,5 +166,25 @@ namespace snek::interpreter
     }
 
     return value;
+  }
+
+  Scope::ptr
+  Runtime::ImportModule(
+    const std::optional<Position>& position,
+    const std::u32string& path
+  )
+  {
+    const auto cached = m_imported_modules.find(path);
+    Scope::ptr module;
+
+    if (cached == std::end(m_imported_modules))
+    {
+      module = m_module_importer(position, *this, path);
+      m_imported_modules[path] = module;
+    } else {
+      module = cached->second;
+    }
+
+    return module;
   }
 }

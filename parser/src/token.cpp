@@ -218,6 +218,9 @@ namespace snek::parser
       case Token::Kind::KeywordFor:
         return U"`for'";
 
+      case Token::Kind::KeywordFrom:
+        return U"`from'";
+
       case Token::Kind::KeywordIf:
         return U"`if'";
 

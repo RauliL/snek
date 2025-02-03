@@ -111,6 +111,7 @@ namespace snek::parser
       KeywordFalse,
       KeywordElse,
       KeywordFor,
+      KeywordFrom,
       KeywordExport,
       KeywordIf,
       KeywordImport,

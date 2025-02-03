@@ -7,6 +7,7 @@ add_library(
   ./src/api.cpp
   ./src/evaluate.cpp
   ./src/execute.cpp
+  ./src/module.cpp
   ./src/parameter.cpp
   ./src/prototype/boolean.cpp
   ./src/prototype/float.cpp

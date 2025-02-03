@@ -182,6 +182,9 @@ namespace snek::interpreter
           scope,
           As<Expression>(statement)->expression()
         );
+
+      case Kind::Import:
+        return nullptr;
     }
 
     return nullptr;
