@@ -1,0 +1,38 @@
+#!/usr/bin/env snek
+
+type Cat = {
+    mood: Int,
+    hungry: Int,
+    energy: Int,
+}
+
+const CatPrototype = {
+    meow: (this: Cat) => print("meow!"),
+
+    feed: (this: Cat) => {
+        ...this,
+        mood: this.mood + 1,
+        hungry: this.hungry - 1,
+    },
+
+    play: (this: Cat) => {
+        ...this,
+        mood: this.mood + 1,
+        energy: this.energy - 1,
+    },
+
+    sleep: (this: Cat) => {
+        ...this,
+        hungry: this.hungry + 1,
+        energy: this.energy + 1,
+    },
+}
+
+const newCat = () -> Cat => {
+    "[[Prototype]]": CatPrototype,
+    mood: 0,
+    hungry: 0,
+    energy: 0,
+}
+
+newCat().feed().play().sleep().meow()
