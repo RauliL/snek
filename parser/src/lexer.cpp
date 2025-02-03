@@ -599,14 +599,14 @@ namespace snek::parser
     while (HasMoreChars() && utils::IsNumberPart(*m_current));
 
     // Is it a decimal number?
-    if (PeekReadChar(U'.'))
+    if (
+      PeekChar(U'.') &&
+      m_current + 1 < m_end &&
+      std::isdigit(*(m_current + 1))
+    )
     {
       kind = Token::Kind::Float;
-      result.append(1, '.');
-      if (!HasMoreChars() || !std::isdigit(*m_current))
-      {
-        throw Error{ position, U"Missing digits after `.'." };
-      }
+      result.append(1, ReadChar());
       do
       {
         const auto c = ReadChar();
