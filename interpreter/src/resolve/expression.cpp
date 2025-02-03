@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "snek/interpreter/resolve.hpp"
+#include "snek/parser/element.hpp"
 
 namespace snek::interpreter
 {
@@ -34,6 +35,13 @@ namespace snek::interpreter
   As(const ptr& expression)
   {
     return static_cast<const T*>(expression.get());
+  }
+
+  template<class T>
+  inline const T*
+  As(const type::ptr& type)
+  {
+    return static_cast<const T*>(type.get());
   }
 
   static type::ptr
@@ -132,6 +140,62 @@ namespace snek::interpreter
       ResolveParameterList(runtime, scope, expression->parameters()),
       return_type
     );
+  }
+
+  static bool
+  ResolveElement(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const parser::element::ptr& element,
+    std::vector<type::ptr>& resolved_elements
+  )
+  {
+    const auto type = ResolveExpression(runtime, scope, element->expression());
+
+    if (!type)
+    {
+      return false;
+    }
+    else if (element->kind() == parser::element::Kind::Spread)
+    {
+      if (type->kind() == type::Kind::Tuple)
+      {
+        const auto& types = As<type::Tuple>(type)->types();
+
+        resolved_elements.insert(
+          std::end(resolved_elements),
+          std::begin(types),
+          std::end(types)
+        );
+
+        return true;
+      }
+
+      return false;
+    }
+    resolved_elements.push_back(type);
+
+    return true;
+  }
+
+  static type::ptr
+  ResolveList(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const List* expression
+  )
+  {
+    std::vector<type::ptr> resolved_elements;
+
+    for (const auto& element : expression->elements())
+    {
+      if (!ResolveElement(runtime, scope, element, resolved_elements))
+      {
+        return runtime.list_type();
+      }
+    }
+
+    return std::make_shared<type::Tuple>(resolved_elements);
   }
 
   static type::ptr
@@ -234,9 +298,8 @@ namespace snek::interpreter
       case Kind::Int:
         return runtime.int_type();
 
-      // TODO: Actually to try resolve the elements contained in the literal.
       case Kind::List:
-        return runtime.list_type();
+        return ResolveList(runtime, scope, As<List>(expression));
 
       case Kind::Null:
         return runtime.void_type();
