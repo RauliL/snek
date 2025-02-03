@@ -47,6 +47,11 @@ namespace snek::interpreter::value
         return m_elements[index];
       }
 
+      inline std::vector<ptr> ToVector() const override
+      {
+        return m_elements;
+      }
+
     private:
       const container_type m_elements;
     };
@@ -163,5 +168,20 @@ namespace snek::interpreter::value
     }
 
     return result.append(1, U']');
+  }
+
+  std::vector<ptr>
+  List::ToVector() const
+  {
+    const auto size = GetSize();
+    std::vector<ptr> result;
+
+    result.reserve(size);
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      result.push_back(At(i));
+    }
+
+    return result;
   }
 }

@@ -10,6 +10,7 @@ add_library(
   ./src/parameter.cpp
   ./src/prototype/boolean.cpp
   ./src/prototype/float.cpp
+  ./src/prototype/function.cpp
   ./src/prototype/int.cpp
   ./src/prototype/list.cpp
   ./src/prototype/object.cpp

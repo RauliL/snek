@@ -38,6 +38,7 @@ namespace snek::interpreter
   {
     void MakeBoolean(const Runtime*, prototype_type&);
     void MakeFloat(const Runtime*, prototype_type&);
+    void MakeFunction(const Runtime*, prototype_type&);
     void MakeInt(const Runtime*, prototype_type&);
     void MakeList(const Runtime*, prototype_type&);
     void MakeNumber(const Runtime*, prototype_type&);
@@ -96,7 +97,11 @@ namespace snek::interpreter
         m_number_prototype,
         prototype::MakeFloat
       ))
-    , m_function_prototype(MakePrototype(this, m_object_prototype))
+    , m_function_prototype(MakePrototype(
+        this,
+        m_object_prototype,
+        prototype::MakeFunction
+      ))
     , m_int_prototype(MakePrototype(
         this,
         m_number_prototype,

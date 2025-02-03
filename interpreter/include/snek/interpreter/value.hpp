@@ -383,6 +383,8 @@ namespace snek::interpreter::value
     std::u32string ToString() const override;
 
     std::u32string ToSource() const override;
+
+    virtual std::vector<ptr> ToVector() const;
   };
 
   class Record final : public Base
