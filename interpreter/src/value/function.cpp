@@ -330,7 +330,7 @@ namespace snek::interpreter::value
     {
       result.append(rtype->ToString());
     } else {
-      result.append(U"null");
+      result.append(U"any");
     }
 
     return result;
