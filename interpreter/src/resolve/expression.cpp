@@ -329,6 +329,9 @@ namespace snek::interpreter
       case Kind::Record:
         return ResolveRecord(runtime, scope, As<Record>(expression));
 
+      case Kind::Spread:
+        return nullptr;
+
       case Kind::String:
         return std::make_shared<type::String>(As<String>(expression)->value());
 

@@ -293,6 +293,46 @@ namespace snek::interpreter
     }
   }
 
+  static void
+  EvaluateArgument(
+    Runtime& runtime,
+    const Scope::ptr& scope,
+    const ptr& expression,
+    std::vector<value::ptr>& arguments
+  )
+  {
+    if (!expression)
+    {
+      arguments.push_back(nullptr);
+    }
+    else if (expression->kind() == Kind::Spread)
+    {
+      const auto value = EvaluateExpression(
+        runtime,
+        scope,
+        As<Spread>(expression)->expression()
+      );
+
+      if (value::IsList(value))
+      {
+        const auto list = As<value::List>(value);
+        const auto size = list->GetSize();
+
+        for (std::size_t i = 0; i < size; ++i)
+        {
+          arguments.push_back(list->At(i));
+        }
+      } else {
+        throw Error{
+          expression->position(),
+          U"Cannot spread " + value::ToString(value::KindOf(value)) + U"."
+        };
+      }
+    } else {
+      arguments.push_back(EvaluateExpression(runtime, scope, expression));
+    }
+  }
+
   static value::ptr
   EvaluateCall(
     Runtime& runtime,
@@ -318,7 +358,7 @@ namespace snek::interpreter
       arguments.reserve(expression->arguments().size());
       for (const auto& argument : expression->arguments())
       {
-        arguments.push_back(EvaluateExpression(runtime, scope, argument));
+        EvaluateArgument(runtime, scope, argument, arguments);
       }
 
       return function->Call(expression->position(), runtime, arguments);
@@ -597,6 +637,12 @@ namespace snek::interpreter
 
       case Kind::Record:
         return EvaluateRecord(runtime, scope, As<Record>(expression));
+
+      case Kind::Spread:
+        throw Error{
+          expression->position(),
+          U"Unexpected spread expression."
+        };
 
       case Kind::String:
         return std::make_shared<value::String>(

@@ -170,13 +170,21 @@ namespace snek::parser::expression
     };
   }
 
+  static inline ptr
+  ParseArgument(Lexer& lexer)
+  {
+    return lexer.PeekReadToken(Token::Kind::Spread)
+      ? std::make_shared<Spread>(lexer.position(), Parse(lexer))
+      : Parse(lexer);
+  }
+
   static inline std::vector<ptr>
-  ParseArguments(const Position& position, Lexer& lexer)
+  ParseArgumentList(const Position& position, Lexer& lexer)
   {
     return ParseMultiple(
       position,
       lexer,
-      Parse,
+      ParseArgument,
       Token::Kind::RightParen,
       U"argument list"
     );
@@ -385,7 +393,7 @@ namespace snek::parser::expression
           expression = std::make_shared<Call>(
             token.position(),
             expression,
-            ParseArguments(token.position(), lexer),
+            ParseArgumentList(token.position(), lexer),
             false
           );
           break;
@@ -406,7 +414,7 @@ namespace snek::parser::expression
             expression = std::make_shared<Call>(
               token.position(),
               expression,
-              ParseArguments(token.position(), lexer),
+              ParseArgumentList(token.position(), lexer),
               true
             );
           }

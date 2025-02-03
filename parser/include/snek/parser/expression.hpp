@@ -83,6 +83,7 @@ namespace snek::parser::expression
     Null,
     Property,
     Record,
+    Spread,
     Subscript,
     String,
     Ternary,
@@ -522,6 +523,32 @@ namespace snek::parser::expression
 
   private:
     const container_type m_fields;
+  };
+
+  class Spread final : public Base
+  {
+  public:
+    explicit Spread(const Position& position, const ptr& expression)
+      : Base(position)
+      , m_expression(expression) {}
+
+    inline Kind kind() const override
+    {
+      return Kind::Spread;
+    }
+
+    inline const ptr& expression() const
+    {
+      return m_expression;
+    }
+
+    inline std::u32string ToString() const override
+    {
+      return U"..." + m_expression->ToString();
+    }
+
+  private:
+    const ptr m_expression;
   };
 
   class String final : public Base
