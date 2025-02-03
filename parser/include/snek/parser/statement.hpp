@@ -69,6 +69,8 @@ namespace snek::parser::statement
 
   ptr ParseBlock(Lexer& lexer);
 
+  ptr ParseFunctionBody(Lexer& lexer);
+
   class Block final : public Base
   {
   public:

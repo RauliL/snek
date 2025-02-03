@@ -225,25 +225,18 @@ namespace snek::parser::expression
   )
   {
     type::ptr return_type;
-    statement::ptr body;
 
     if (lexer.PeekReadToken(Token::Kind::Arrow))
     {
       return_type = type::Parse(lexer);
     }
-    if (lexer.PeekReadToken(Token::Kind::FatArrow))
-    {
-      body = std::make_shared<statement::Jump>(
-        position,
-        statement::JumpKind::Return,
-        Parse(lexer)
-      );
-    } else {
-      lexer.ReadToken(Token::Kind::Colon);
-      body = statement::ParseBlock(lexer);
-    }
 
-    return std::make_shared<Function>(position, parameters, return_type, body);
+    return std::make_shared<Function>(
+      position,
+      parameters,
+      return_type,
+      statement::ParseFunctionBody(lexer)
+    );
   }
 
   static ptr

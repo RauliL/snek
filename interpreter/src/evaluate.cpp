@@ -115,6 +115,22 @@ namespace snek::interpreter
   }
 
   static void
+  EvaluateFunctionField(
+    Runtime& runtime,
+    const Scope::ptr& scope,
+    const parser::field::Function* field,
+    value::Record::container_type& record
+  )
+  {
+    record[field->name()] = value::Function::MakeScripted(
+      ResolveParameterList(runtime, scope, field->parameters()),
+      ResolveType(runtime, scope, field->return_type()),
+      field->body(),
+      scope
+    );
+  }
+
+  static void
   EvaluateNamedField(
     Runtime& runtime,
     const Scope::ptr& scope,
@@ -190,6 +206,15 @@ namespace snek::interpreter
           runtime,
           scope,
           As<parser::field::Computed>(field),
+          record
+        );
+        break;
+
+      case parser::field::Kind::Function:
+        EvaluateFunctionField(
+          runtime,
+          scope,
+          As<parser::field::Function>(field),
           record
         );
         break;

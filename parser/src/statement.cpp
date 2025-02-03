@@ -177,6 +177,24 @@ namespace snek::parser::statement
     return ParseSimpleStatement(lexer, false);
   }
 
+  ptr
+  ParseFunctionBody(Lexer& lexer)
+  {
+    if (lexer.PeekReadToken(Token::Kind::FatArrow))
+    {
+      const auto value = expression::Parse(lexer);
+
+      return std::make_shared<Jump>(
+        value->position(),
+        JumpKind::Return,
+        value
+      );
+    }
+    lexer.ReadToken(Token::Kind::Colon);
+
+    return ParseBlock(lexer);
+  }
+
   static ptr
   ParseIf(Lexer& lexer)
   {

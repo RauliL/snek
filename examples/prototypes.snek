@@ -1,33 +1,39 @@
 #!/usr/bin/env snek
 
+# This type definition will define what properties a cat has.
 type Cat = {
     mood: Int,
     hungry: Int,
     energy: Int,
 }
 
+# This will act as prototype for cats. These properties (or in this case
+# methods) will be inherited by all cats.
 const CatPrototype = {
-    meow: (this: Cat) => print("meow!"),
+    meow(this: Cat):
+        print("meow!"),
 
-    feed: (this: Cat) => {
+    feed(this: Cat) => {
         ...this,
         mood: this.mood + 1,
         hungry: this.hungry - 1,
     },
 
-    play: (this: Cat) => {
+    play(this: Cat) => {
         ...this,
         mood: this.mood + 1,
         energy: this.energy - 1,
     },
 
-    sleep: (this: Cat) => {
+    sleep(this: Cat) => {
         ...this,
         hungry: this.hungry + 1,
         energy: this.energy + 1,
     },
 }
 
+# This will build a new cat. A special property [[Prototype]] will define the
+# prototype used by the resulting cat.
 const newCat = () -> Cat => {
     "[[Prototype]]": CatPrototype,
     mood: 0,

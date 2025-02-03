@@ -75,6 +75,22 @@ namespace snek::interpreter
   }
 
   static bool
+  ResolveFunction(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const Function* field,
+    type::Record::container_type& resolved_fields
+  )
+  {
+    resolved_fields[field->name()] = std::make_shared<type::Function>(
+      ResolveParameterList(runtime, scope, field->parameters()),
+      ResolveType(runtime, scope, field->return_type())
+    );
+
+    return true;
+  }
+
+  static bool
   ResolveNamed(
     const Runtime& runtime,
     const Scope::ptr& scope,
@@ -162,6 +178,15 @@ namespace snek::interpreter
           As<Computed>(field),
           resolved_fields
         );
+
+      case Kind::Function:
+        return ResolveFunction(
+          runtime,
+          scope,
+          As<Function>(field),
+          resolved_fields
+        );
+        break;
 
       case Kind::Named:
         return ResolveNamed(

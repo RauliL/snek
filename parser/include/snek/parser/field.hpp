@@ -26,10 +26,32 @@
 #pragma once
 
 #include <memory>
+#include <vector>
 
 #include "snek/parser/lexer.hpp"
 
 namespace snek::parser::expression
+{
+  class Base;
+
+  using ptr = std::shared_ptr<Base>;
+}
+
+namespace snek::parser::parameter
+{
+  class Base;
+
+  using ptr = std::shared_ptr<Base>;
+}
+
+namespace snek::parser::statement
+{
+  class Base;
+
+  using ptr = std::shared_ptr<Base>;
+}
+
+namespace snek::parser::type
 {
   class Base;
 
@@ -41,6 +63,7 @@ namespace snek::parser::field
   enum class Kind
   {
     Computed,
+    Function,
     Named,
     Shorthand,
     Spread,
@@ -93,6 +116,56 @@ namespace snek::parser::field
   private:
     const expression::ptr m_key;
     const expression::ptr m_value;
+  };
+
+  class Function final : public Base
+  {
+  public:
+    explicit Function(
+      const Position& position,
+      const std::u32string& name,
+      const std::vector<parameter::ptr>& parameters,
+      const type::ptr& return_type,
+      const statement::ptr& body
+    )
+      : Base(position)
+      , m_name(name)
+      , m_parameters(parameters)
+      , m_return_type(return_type)
+      , m_body(body) {}
+
+    inline Kind kind() const override
+    {
+      return Kind::Function;
+    }
+
+    inline const std::u32string& name() const
+    {
+      return m_name;
+    }
+
+    inline const std::vector<parameter::ptr>& parameters() const
+    {
+      return m_parameters;
+    }
+
+    inline const type::ptr& return_type() const
+    {
+      return m_return_type;
+    }
+
+    inline const statement::ptr& body() const
+    {
+      return m_body;
+    }
+
+    std::u32string ToString() const override;
+
+  private:
+    const std::u32string m_name;
+    const std::vector<parameter::ptr> m_parameters;
+    const type::ptr m_return_type;
+    const statement::ptr m_body;
   };
 
   class Named final : public Base

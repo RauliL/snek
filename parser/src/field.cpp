@@ -26,6 +26,9 @@
 #include "snek/error.hpp"
 #include "snek/parser/field.hpp"
 #include "snek/parser/expression.hpp"
+#include "snek/parser/parameter.hpp"
+#include "snek/parser/statement.hpp"
+#include "snek/parser/type.hpp"
 #include "snek/parser/utils.hpp"
 
 namespace snek::parser::field
@@ -54,9 +57,27 @@ namespace snek::parser::field
   static ptr
   ParseNamed(const Token& token, Lexer& lexer)
   {
+    if (lexer.PeekReadToken(Token::Kind::LeftParen))
+    {
+      const auto parameters = parameter::ParseList(lexer, false);
+      type::ptr return_type;
+
+      if (lexer.PeekReadToken(Token::Kind::Arrow))
+      {
+        return_type = type::Parse(lexer);
+      }
+
+      return std::make_shared<Function>(
+        token.position(),
+        *token.text(),
+        parameters,
+        return_type,
+        statement::ParseFunctionBody(lexer)
+      );
+    }
     // TODO: Figure out how to handle shorthand properties with non-identifier
     // key such as string or number.
-    if (!lexer.PeekReadToken(Token::Kind::Colon))
+    else if (!lexer.PeekReadToken(Token::Kind::Colon))
     {
       return std::make_shared<Shorthand>(token.position(), *token.text());
     }
@@ -101,6 +122,29 @@ namespace snek::parser::field
   Computed::ToString() const
   {
     return U'[' + m_key->ToString() + U"]: " + m_value->ToString();
+  }
+
+  std::u32string
+  Function::ToString() const
+  {
+    std::u32string result(m_name);
+
+    result.append(1, U'(');
+    for (std::size_t i = 0; i < m_parameters.size(); ++i)
+    {
+      if (i > 0)
+      {
+        result.append(U", ");
+      }
+      result.append(m_parameters[i]->ToString());
+    }
+    result.append(1, U')');
+    if (m_return_type)
+    {
+      result.append(U" -> ").append(m_return_type->ToString());
+    }
+
+    return result;
   }
 
   std::u32string
