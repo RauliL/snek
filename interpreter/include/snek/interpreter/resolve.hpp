@@ -68,4 +68,12 @@ namespace snek::interpreter
     const Scope::ptr& scope,
     const parser::statement::ptr& statement
   );
+
+  bool
+  ResolveField(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const parser::field::ptr& field,
+    type::Record::container_type& resolved_fields
+  );
 }

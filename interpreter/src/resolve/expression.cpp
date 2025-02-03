@@ -25,6 +25,7 @@
  */
 #include "snek/interpreter/resolve.hpp"
 #include "snek/parser/element.hpp"
+#include "snek/parser/field.hpp"
 
 namespace snek::interpreter
 {
@@ -213,9 +214,7 @@ namespace snek::interpreter
 
     if (type && type->kind() == type::Kind::Record)
     {
-      const auto& fields = static_cast<const type::Record*>(
-        type.get()
-      )->fields();
+      const auto& fields = As<type::Record>(type)->fields();
       const auto it = fields.find(expression->name());
 
       if (it != std::end(fields))
@@ -230,6 +229,26 @@ namespace snek::interpreter
     }
 
     return nullptr;
+  }
+
+  static type::ptr
+  ResolveRecord(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const Record* expression
+  )
+  {
+    type::Record::container_type resolved_fields;
+
+    for (const auto& field : expression->fields())
+    {
+      if (!ResolveField(runtime, scope, field, resolved_fields))
+      {
+        return runtime.record_type();
+      }
+    }
+
+    return std::make_shared<type::Record>(resolved_fields);
   }
 
   static type::ptr
@@ -307,12 +326,11 @@ namespace snek::interpreter
       case Kind::Property:
         return ResolveProperty(runtime, scope, As<Property>(expression));
 
-      // TODO: Actually try to resolve the fields contained in the literal.
       case Kind::Record:
-        return runtime.record_type();
+        return ResolveRecord(runtime, scope, As<Record>(expression));
 
       case Kind::String:
-        return runtime.string_type();
+        return std::make_shared<type::String>(As<String>(expression)->value());
 
       // TODO: Add special case for lists and records where an element/field
       // lookup is done.

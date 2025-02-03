@@ -357,6 +357,11 @@ namespace snek::interpreter::type
       return Kind::String;
     }
 
+    inline const_reference value() const
+    {
+      return m_value;
+    }
+
     bool Accepts(
       const Runtime& runtime,
       const value::ptr& value

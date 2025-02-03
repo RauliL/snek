@@ -13,6 +13,7 @@ add_library(
   ./src/prototype/number.cpp
   ./src/prototype/record.cpp
   ./src/prototype/string.cpp
+  ./src/resolve/field.cpp
   ./src/resolve/parameter.cpp
   ./src/resolve/expression.cpp
   ./src/resolve/statement.cpp
