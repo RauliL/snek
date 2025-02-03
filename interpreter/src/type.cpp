@@ -317,7 +317,7 @@ namespace snek::interpreter::type
       result.append(m_parameters[i].ToString());
     }
     result.append(U") => ");
-    result.append(m_return_type ? m_return_type->ToString() : U"null");
+    result.append(m_return_type ? m_return_type->ToString() : U"any");
 
     return result;
   }
