@@ -9,6 +9,8 @@ add_library(
   ./src/execute.cpp
   ./src/parameter.cpp
   ./src/prototype/boolean.cpp
+  ./src/prototype/float.cpp
+  ./src/prototype/int.cpp
   ./src/prototype/list.cpp
   ./src/prototype/object.cpp
   ./src/prototype/number.cpp

@@ -23,35 +23,64 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <cfloat>
 #include <random>
 
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter::prototype
 {
+  static inline double AsFloat(const value::ptr& value)
+  {
+    return static_cast<const value::Float*>(value.get())->value();
+  }
+
   /**
-   * Boolean#random() => Boolean
+   * Float#random(min: Float | null = null, max: Float | null = null) => Float
    *
-   * Generates random boolean value.
+   * Generates random floating point decimal value. Optional minimum and
+   * maximum values can be given.
    */
   static value::ptr
-  Random(const Runtime&, const std::vector<value::ptr>&)
+  Random(const Runtime&, const std::vector<value::ptr>& arguments)
   {
     thread_local static std::random_device device;
     thread_local static std::mt19937 generator(device());
 
-    std::bernoulli_distribution d(0.5);
+    const auto min =
+      value::IsNull(arguments[0])
+        ? DBL_MIN
+        : AsFloat(arguments[0]);
+    const auto max =
+      value::IsNull(arguments[1])
+        ? DBL_MAX
+        : AsFloat(arguments[1]);
+    std::uniform_real_distribution<double> d(min ,max);
 
-    return std::make_shared<value::Boolean>(d(generator));
+    return std::make_shared<value::Float>(d(generator));
   }
 
   void
-  MakeBoolean(const Runtime* runtime, value::Record::container_type& fields)
+  MakeFloat(const Runtime* runtime, value::Record::container_type& fields)
   {
+    const auto nullable_float = std::make_shared<type::Union>(
+      type::Union::container_type{
+        runtime->float_type(),
+        runtime->void_type()
+      }
+    );
+    const auto null_expression = std::make_shared<parser::expression::Null>(
+      Position{ U"", 0, 0 }
+    );
+
     fields[U"random"] = value::Function::MakeNative(
-      {},
-      runtime->boolean_type(),
+      {
+        Parameter(U"min", nullable_float, null_expression),
+        Parameter(U"max", nullable_float, null_expression),
+      },
+      runtime->int_type(),
       Random
     );
   }
 }
+

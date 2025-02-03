@@ -118,6 +118,46 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * List#reduce(this: List, callback: Function, initial: any = null) => any
+   *
+   * Executes given reducer function on each element in the list, passing the
+   * return value of from the calculation on the preceding element. Optional
+   * initial value can be given (it cannot be null) and if it's missing the
+   * first element of the list is instead used as the initial value.
+   */
+  static value::ptr
+  Reduce(
+    Runtime& runtime,
+    const std::vector<value::ptr>& arguments
+  )
+  {
+    const auto list = As<value::List>(arguments[0]);
+    const auto callback = As<value::Function>(arguments[1]);
+    const auto size = list->GetSize();
+    value::ptr result;
+    std::size_t start;
+
+    if (!value::IsNull(arguments[2]))
+    {
+      result = arguments[2];
+      start = 0;
+    }
+    else if (size > 0)
+    {
+      result = list->At(0);
+      start = 1;
+    } else {
+      return nullptr;
+    }
+    for (std::size_t i = start; i < size; ++i)
+    {
+      result = callback->Call(std::nullopt, runtime, { result, list->At(i) });
+    }
+
+    return result;
+  }
+
+  /**
    * List#size(this: List) => Int
    *
    * Returns size of the list.
@@ -228,6 +268,28 @@ namespace snek::interpreter::prototype
       },
       runtime->list_type(),
       Map
+    );
+    fields[U"reduce"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->list_type()),
+        Parameter(
+          U"callback",
+          std::make_shared<type::Function>(
+            std::vector<Parameter>{
+              Parameter(U"accumulator"),
+              Parameter(U"current")
+            },
+            runtime->any_type()
+          )
+        ),
+        Parameter(
+          U"initial",
+          runtime->any_type(),
+          std::make_shared<parser::expression::Null>(Position{ U"", 0, 0 })
+        )
+      },
+      runtime->list_type(),
+      Reduce
     );
     fields[U"size"] = value::Function::MakeNative(
       {

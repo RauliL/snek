@@ -23,35 +23,65 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <climits>
 #include <random>
 
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter::prototype
 {
+  static inline std::int64_t AsInt(const value::ptr& value)
+  {
+    return static_cast<const value::Int*>(value.get())->value();
+  }
+
   /**
-   * Boolean#random() => Boolean
+   * Int#random(min: Int | null = null, max: Int | null = null) => Int
    *
-   * Generates random boolean value.
+   * Generates random integer number. Optional minimum and maximum values can
+   * be given.
    */
   static value::ptr
-  Random(const Runtime&, const std::vector<value::ptr>&)
+  Random(const Runtime&, const std::vector<value::ptr>& arguments)
   {
     thread_local static std::random_device device;
     thread_local static std::mt19937 generator(device());
 
-    std::bernoulli_distribution d(0.5);
+    const auto min =
+      value::IsNull(arguments[0])
+        ? INT64_MIN
+        : AsInt(arguments[0]);
+    const auto max =
+      value::IsNull(arguments[1])
+        ? INT64_MAX
+        : AsInt(arguments[1]);
+    std::uniform_int_distribution<std::int64_t> d(min ,max);
 
-    return std::make_shared<value::Boolean>(d(generator));
+    return std::make_shared<value::Int>(d(generator));
   }
 
   void
-  MakeBoolean(const Runtime* runtime, value::Record::container_type& fields)
+  MakeInt(const Runtime* runtime, value::Record::container_type& fields)
   {
+    const auto nullable_int = std::make_shared<type::Union>(
+      type::Union::container_type{
+        runtime->int_type(),
+        runtime->void_type()
+      }
+    );
+    const auto null_expression = std::make_shared<parser::expression::Null>(
+      Position{ U"", 0, 0 }
+    );
+
     fields[U"random"] = value::Function::MakeNative(
-      {},
-      runtime->boolean_type(),
+      {
+        Parameter(U"min", nullable_int, null_expression),
+        Parameter(U"max", nullable_int, null_expression),
+      },
+      runtime->int_type(),
       Random
     );
   }
 }
+
+
