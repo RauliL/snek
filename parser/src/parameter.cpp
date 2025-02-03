@@ -34,20 +34,11 @@ namespace snek::parser::parameter
   Parse(Lexer& lexer)
   {
     const auto position = lexer.position();
-    std::u32string name;
+    const auto rest = lexer.PeekReadToken(Token::Kind::Spread);
+    const auto name = lexer.ReadId();
     type::ptr type;
     expression::ptr default_value;
 
-    if (!lexer.PeekToken(Token::Kind::Id))
-    {
-      throw Error{
-        position,
-        U"Unexpected "
-        + lexer.ReadToken().ToString()
-        + U"; Missing identifier."
-      };
-    }
-    name = *lexer.ReadToken().text();
     if (lexer.PeekReadToken(Token::Kind::Colon))
     {
       type = type::Parse(lexer);
@@ -57,7 +48,7 @@ namespace snek::parser::parameter
       default_value = expression::Parse(lexer);
     }
 
-    return std::make_shared<Base>(position, name, type, default_value);
+    return std::make_shared<Base>(position, name, type, default_value, rest);
   }
 
   std::vector<ptr>
@@ -76,10 +67,14 @@ namespace snek::parser::parameter
       {
         break;
       }
-      result.push_back(Parse(lexer));
+
+      const auto parameter = Parse(lexer);
+
+      result.push_back(parameter);
+
       if (
-        lexer.PeekToken(Token::Kind::RightParen) &&
-        lexer.PeekToken(Token::Kind::Comma)
+        !lexer.PeekToken(Token::Kind::RightParen) &&
+        !lexer.PeekToken(Token::Kind::Comma)
       )
       {
         throw Error{
@@ -88,6 +83,11 @@ namespace snek::parser::parameter
         };
       }
       lexer.PeekReadToken(Token::Kind::Comma);
+      if (parameter->rest())
+      {
+        lexer.ReadToken(Token::Kind::RightParen);
+        break;
+      }
     }
 
     return result;
@@ -96,8 +96,13 @@ namespace snek::parser::parameter
   std::u32string
   Base::ToString() const
   {
-    std::u32string result(m_name);
+    std::u32string result;
 
+    if (m_rest)
+    {
+      result.append(U"...");
+    }
+    result.append(m_name);
     if (m_type)
     {
       result.append(U": ").append(m_type->ToString());

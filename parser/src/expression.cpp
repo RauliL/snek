@@ -102,6 +102,10 @@ namespace snek::parser::expression
   PeekFunction(Lexer& lexer)
   {
     return (
+      // (...arg)
+      (
+        lexer.PeekToken(Token::Kind::Spread)
+      ) ||
       // ()
       (
         lexer.PeekToken(Token::Kind::RightBrace)

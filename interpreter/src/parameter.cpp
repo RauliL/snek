@@ -43,8 +43,13 @@ namespace snek::interpreter
   std::u32string
   Parameter::ToString() const
   {
-    std::u32string result(m_name);
+    std::u32string result;
 
+    if (m_rest)
+    {
+      result.append(U"...");
+    }
+    result.append(m_name);
     if (m_type)
     {
       result.append(U": ").append(m_type->ToString());

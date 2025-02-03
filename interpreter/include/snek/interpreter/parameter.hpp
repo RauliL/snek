@@ -54,11 +54,13 @@ namespace snek::interpreter
       const std::u32string& name,
       const type::ptr& type = nullptr,
       const parser::expression::ptr& default_value = nullptr,
+      bool rest = false,
       const std::optional<Position>& position = std::nullopt
     )
       : m_position(position)
       , m_name(name)
       , m_type(type)
+      , m_rest(rest)
       , m_default_value(default_value) {}
 
     inline const std::optional<Position>& position() const
@@ -76,6 +78,11 @@ namespace snek::interpreter
       return m_type;
     }
 
+    inline bool rest() const
+    {
+      return m_rest;
+    }
+
     inline const parser::expression::ptr& default_value() const
     {
       return m_default_value;
@@ -91,6 +98,7 @@ namespace snek::interpreter
     std::optional<Position> m_position;
     std::u32string m_name;
     type::ptr m_type;
+    bool m_rest;
     parser::expression::ptr m_default_value;
   };
 }

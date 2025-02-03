@@ -56,12 +56,14 @@ namespace snek::parser::parameter
       const Position& position,
       const std::u32string& name,
       const type::ptr& type = nullptr,
-      const expression::ptr& default_value = nullptr
+      const expression::ptr& default_value = nullptr,
+      bool rest = false
     )
       : Node(position)
       , m_name(name)
       , m_type(type)
-      , m_default_value(default_value) {}
+      , m_default_value(default_value)
+      , m_rest(rest) {}
 
     inline const std::u32string& name() const
     {
@@ -78,12 +80,18 @@ namespace snek::parser::parameter
       return m_default_value;
     }
 
+    inline bool rest() const
+    {
+      return m_rest;
+    }
+
     std::u32string ToString() const override;
 
   private:
     const std::u32string m_name;
     const type::ptr m_type;
     const expression::ptr m_default_value;
+    const bool m_rest;
   };
 
   using ptr = std::shared_ptr<Base>;

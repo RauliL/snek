@@ -31,6 +31,61 @@
 
 namespace snek::interpreter::value
 {
+  using argument_callback_type = std::function<void(const Parameter&, const value::ptr&)>;
+
+  static void
+  ProcessArguments(
+    const std::optional<Position>& position,
+    Runtime& runtime,
+    const Scope::ptr& scope,
+    const std::vector<Parameter>& parameters,
+    const std::vector<value::ptr>& arguments,
+    argument_callback_type callback
+  )
+  {
+    const auto parameters_size = parameters.size();
+    const auto arguments_size = arguments.size();
+
+    for (std::size_t i = 0; i < parameters_size; ++i)
+    {
+      const auto& parameter = parameters[i];
+      ptr argument;
+
+      if (parameter.rest())
+      {
+        std::vector<value::ptr> elements;
+
+        for (std::size_t j = i; j < arguments_size; ++j)
+        {
+          // TODO: Use insert instead.
+          elements.push_back(arguments[j]);
+        }
+        argument = value::List::Make(elements);
+        i = parameters_size;
+      }
+      else if (i < arguments_size)
+      {
+        argument = arguments[i];
+      }
+      else if (const auto default_value = parameter.default_value())
+      {
+        argument = EvaluateExpression(runtime, scope, default_value);
+      } else {
+        throw Error({ position, U"Too few arguments." });
+      }
+      if (!parameter.Accepts(runtime, argument))
+      {
+        throw Error{
+          position,
+          value::ToString(argument) +
+          U" cannot be assigned to " +
+          parameter.ToString()
+        };
+      }
+      callback(parameter, argument);
+    }
+  }
+
   namespace
   {
     class NativeFunction final : public Function
@@ -63,41 +118,20 @@ namespace snek::interpreter::value
         const std::vector<ptr>& arguments
       ) const override
       {
-        const auto parameters_size = m_parameters.size();
-        const auto arguments_size = arguments.size();
         std::vector<ptr> callback_arguments;
 
-        callback_arguments.reserve(parameters_size);
-        for (std::size_t i = 0; i < parameters_size; ++i)
-        {
-          const auto& parameter = m_parameters[i];
-          ptr argument;
-
-          if (i < arguments_size)
+        callback_arguments.reserve(m_parameters.size());
+        ProcessArguments(
+          position,
+          runtime,
+          runtime.root_scope(),
+          m_parameters,
+          arguments,
+          [&callback_arguments](const Parameter&, const value::ptr& argument)
           {
-            argument = arguments[i];
+            callback_arguments.push_back(argument);
           }
-          else if (const auto default_value = parameter.default_value())
-          {
-            argument = EvaluateExpression(
-              runtime,
-              runtime.root_scope(),
-              default_value
-            );
-          } else {
-            throw Error({ position, U"Too few arguments." });
-          }
-          if (!parameter.Accepts(runtime, argument))
-          {
-            throw Error{
-              parameter.position(),
-              value::ToString(argument) +
-              U" cannot be assigned to " +
-              parameter.ToString()
-            };
-          }
-          callback_arguments.push_back(argument);
-        }
+        );
 
         return m_callback(runtime, callback_arguments);
       }
@@ -140,45 +174,28 @@ namespace snek::interpreter::value
         const std::vector<ptr>& arguments
       ) const override
       {
-        const auto parameters_size = m_parameters.size();
-        const auto arguments_size = arguments.size();
         const auto scope = std::make_shared<Scope>(
           m_enclosing_scope
             ? m_enclosing_scope
             : runtime.root_scope()
         );
 
-        for (std::size_t i = 0; i < parameters_size; ++i)
-        {
-          const auto& parameter = m_parameters[i];
-          ptr argument;
-
-          if (i < arguments_size)
+        ProcessArguments(
+          position,
+          runtime,
+          scope,
+          m_parameters,
+          arguments,
+          [&scope](const Parameter& parameter, const value::ptr& argument)
           {
-            argument = arguments[i];
-          }
-          else if (const auto default_value = parameter.default_value())
-          {
-            argument = EvaluateExpression(runtime, scope, default_value);
-          } else {
-            throw Error{ position, U"Too few arguments." };
-          }
-          if (!parameter.Accepts(runtime, argument))
-          {
-            throw Error{
+            scope->DeclareVariable(
               parameter.position(),
-              value::ToString(argument) +
-              U" cannot be assigned to " +
-              parameter.ToString()
-            };
+              parameter.name(),
+              argument,
+              false
+            );
           }
-          scope->DeclareVariable(
-            parameter.position(),
-            parameter.name(),
-            argument,
-            false
-          );
-        }
+        );
         try
         {
           ExecuteStatement(runtime, scope, m_body);

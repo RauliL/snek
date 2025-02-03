@@ -40,6 +40,7 @@ namespace snek::interpreter
       parameter->name(),
       ResolveType(runtime, scope, parameter->type()),
       parameter->default_value(),
+      parameter->rest(),
       parameter->position()
     );
   }
