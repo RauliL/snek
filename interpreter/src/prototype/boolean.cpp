@@ -37,13 +37,11 @@ namespace snek::interpreter::prototype
   static value::ptr
   Random(const Runtime&, const std::vector<value::ptr>&)
   {
-    // https://stackoverflow.com/a/43329456
-    static auto generator = std::bind(
-      std::uniform_int_distribution<>(0, 1),
-      std::default_random_engine()
-    );
+    std::random_device rd;
+    std::mt19937 gen(rd());
+    std::bernoulli_distribution d(0.5);
 
-    return std::make_shared<value::Boolean>(static_cast<bool>(generator()));
+    return std::make_shared<value::Boolean>(d(gen));
   }
 
   void
