@@ -55,6 +55,11 @@ namespace snek::interpreter
     );
     ifs.close();
     module = std::make_shared<Scope>(runtime.root_scope());
+    module->DeclareVariable(
+      position,
+      U"__name__",
+      std::make_shared<value::String>(path)
+    );
     runtime.RunScript(module, source, path);
 
     return module;

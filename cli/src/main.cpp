@@ -217,6 +217,14 @@ main(int argc, char** argv)
 
   ParseArgs(argc, argv);
 
+  // Define the magic variable used to detect whether an module is being
+  // imported or not.
+  scope->DeclareVariable(
+    std::nullopt,
+    U"__name__",
+    std::make_shared<snek::interpreter::value::String>(U"__main__")
+  );
+
   if (!inline_scripts.empty())
   {
     for (const auto& inline_script : inline_scripts)

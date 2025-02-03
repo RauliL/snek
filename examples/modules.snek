@@ -1,0 +1,8 @@
+#!/usr/bin/env snek
+
+# Import everything from file "hello-world.snek" and store them under the
+# variable "module".
+import * as module from "./hello-world.snek"
+
+# Execute hello function imported from the module.
+module.hello()
