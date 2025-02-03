@@ -1,7 +1,7 @@
 " Vim syntax file
 " Language:    Snek
 " Maintainer:  Rauli Laine <rauli.laine@iki.fi>
-" Last Change: 2020 Sep 15
+" Last Change: 2025 Feb 3
 
 if exists("b:current_syntax")
   finish
@@ -14,10 +14,11 @@ syn match snekComment "#.*$" contains=snekTodo
 " Syntax: Reserved keywords
 syn keyword snekBoolean false true
 syn keyword snekSpecial null
-syn keyword snekStatement break continue null pass return type
+syn keyword snekStatement break continue pass return type
 syn keyword snekConditional else if
 syn keyword snekRepeat while
 syn keyword snekInclude as export from import
+syn keyword snekVariable let const
 
 " Syntax: String literals
 syn match snekStringEscape "\\["'\\/btnfr]" contained
@@ -32,6 +33,7 @@ hi def link snekStatement Statement
 hi def link snekConditional Conditional
 hi def link snekRepeat Repeat
 hi def link snekInclude Include
+hi def link snekVariable Identifier
 hi def link snekStringEscape Special
 hi def link snekComment Comment
 hi def link snekTodo Todo
