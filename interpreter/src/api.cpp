@@ -32,9 +32,10 @@
 namespace snek::interpreter::api
 {
   /**
-   * print(object: any) => null
+   * print(...objects: any[]) => null
    *
-   * Outputs string representation of given object into standard output stream.
+   * Outputs string representation of given objects into standard output
+   * stream, separated from each other with a whitespace character.
    */
   static value::ptr
   Print(
@@ -44,7 +45,20 @@ namespace snek::interpreter::api
   {
     using peelo::unicode::encoding::utf8::encode;
 
-    std::cout << encode(value::ToString(arguments[0])) << std::endl;
+    const auto list = static_cast<const value::List*>(arguments[0].get());
+    const auto size = list->GetSize();
+    std::u32string string;
+
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      if (i > 0)
+      {
+        string.append(1, U' ');
+      }
+      string.append(value::ToString(list->At(i)));
+    }
+
+    std::cout << encode(string) << std::endl;
 
     return nullptr;
   }
@@ -58,7 +72,7 @@ namespace snek::interpreter::api
     variables[U"print"] =
     {
       value::Function::MakeNative(
-        { Parameter(U"object", runtime->any_type()) },
+        { Parameter(U"objects", runtime->list_type(), nullptr, true) },
         runtime->void_type(),
         Print
       ),
