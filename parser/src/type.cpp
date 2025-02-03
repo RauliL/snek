@@ -59,7 +59,7 @@ namespace snek::parser::type
 
     lexer.UnreadToken(Token(position, Token::Kind::LeftParen));
     parameters = parameter::ParseList(lexer);
-    lexer.ReadToken(Token::Kind::Arrow);
+    lexer.ReadToken(Token::Kind::FatArrow);
     return_type = Parse(lexer);
 
     return std::make_shared<Function>(position, parameters, return_type);
