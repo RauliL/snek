@@ -236,8 +236,12 @@ namespace snek::interpreter::value
         , m_this_value(this_value)
         , m_function(function)
         , m_parameters(
-            std::begin(function->parameters()) + 1,
-            std::end(function->parameters())
+            function->parameters().empty()
+              ? std::vector<Parameter>()
+              : std::vector<Parameter>(
+                  std::begin(function->parameters()) + 1,
+                  std::end(function->parameters())
+                )
           ) {}
 
       inline const std::vector<Parameter>& parameters() const override
