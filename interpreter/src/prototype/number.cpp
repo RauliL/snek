@@ -135,6 +135,43 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * Number#%(this: Number, other: Number) => Int
+   *
+   * Calculates modulo of the first number with respect to the second number
+   * i.e. the remainder after floor division.
+   */
+  static value::ptr
+  Mod(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    const auto a = AsNumber(arguments[0]);
+    const auto b = AsNumber(arguments[1]);
+
+    if (a->kind() == value::Kind::Float || b->kind() == value::Kind::Float)
+    {
+      const auto dividend = a->ToFloat();
+      const auto divider = b->ToFloat();
+      auto result = std::fmod(dividend, divider);
+
+      if (std::signbit(dividend) != std::signbit(divider))
+      {
+        result += divider;
+      }
+
+      return std::make_shared<value::Float>(result);
+    } else {
+      const auto dividend = a->ToInt();
+      const auto divider = b->ToInt();
+
+      if (divider == 0)
+      {
+        return std::make_shared<value::Float>(NAN);
+      }
+
+      return std::make_shared<value::Int>(dividend % divider);
+    }
+  }
+
+  /**
    * Number#&(this: Number, other: Number) => Int
    *
    * Performs bitwise and on the two given numbers.
@@ -282,6 +319,14 @@ namespace snek::interpreter::prototype
       },
       runtime->number_type(),
       Div
+    );
+    fields[U"%"] = value::Function::MakeNative(
+      {
+        Parameter(U"this", runtime->number_type()),
+        Parameter(U"other", runtime->number_type())
+      },
+      runtime->number_type(),
+      Mod
     );
     fields[U"&"] = value::Function::MakeNative(
       {
