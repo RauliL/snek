@@ -523,7 +523,7 @@ namespace snek::interpreter::type
       } else {
         result.append(parser::utils::ToJsonString(field.first));
       }
-      result.append(U"; ");
+      result.append(U": ");
       result.append(field.second->ToString());
     }
     result.append(1, U'}');
