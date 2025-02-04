@@ -36,6 +36,18 @@ namespace snek::interpreter::prototype
     return static_cast<value::Number*>(value.get());
   }
 
+  static inline double
+  AsFloat(const value::ptr& value)
+  {
+    return AsNumber(value)->ToFloat();
+  }
+
+  static inline std::int64_t
+  AsInt(const value::ptr& value)
+  {
+    return AsNumber(value)->ToInt();
+  }
+
   static int
   DoCompare(const std::vector<value::ptr>& arguments)
   {
@@ -85,6 +97,39 @@ namespace snek::interpreter::prototype
     const auto b = AsNumber(arguments[1]);
 
     return std::make_shared<value::Int>(Op()(a->ToInt(), b->ToInt()));
+  }
+
+  /**
+   * Number#round(this: Number) => Int
+   *
+   * Rounds the number to nearest integer value.
+   */
+  static value::ptr
+  Round(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return std::make_shared<value::Int>(std::round(AsFloat(arguments[0])));
+  }
+
+  /**
+   * Number#ceil(this: Number) => Int
+   *
+   * Computes the smallest integer value not less than given number.
+   */
+  static value::ptr
+  Ceil(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return std::make_shared<value::Int>(std::ceil(AsFloat(arguments[0])));
+  }
+
+  /**
+   * Number#floor(this: Number) => Int
+   *
+   * Computes the largest integer value not greater than given number.
+   */
+  static value::ptr
+  Floor(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return std::make_shared<value::Int>(std::floor(AsFloat(arguments[0])));
   }
 
   /**
@@ -212,7 +257,7 @@ namespace snek::interpreter::prototype
   static value::ptr
   BitwiseNot(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(~AsNumber(arguments[0])->ToInt());
+    return std::make_shared<value::Int>(~AsInt(arguments[0]));
   }
 
   /**
@@ -224,7 +269,7 @@ namespace snek::interpreter::prototype
   LeftShift(Runtime&, const std::vector<value::ptr>& arguments)
   {
     return std::make_shared<value::Int>(
-      AsNumber(arguments[0])->ToInt() << AsNumber(arguments[1])->ToInt()
+      AsInt(arguments[0]) << AsInt(arguments[1])
     );
   }
 
@@ -237,7 +282,7 @@ namespace snek::interpreter::prototype
   RightShift(Runtime&, const std::vector<value::ptr>& arguments)
   {
     return std::make_shared<value::Int>(
-      AsNumber(arguments[0])->ToInt() >> AsNumber(arguments[1])->ToInt()
+      AsInt(arguments[0]) >> AsInt(arguments[1])
     );
   }
 
@@ -319,6 +364,22 @@ namespace snek::interpreter::prototype
   void
   MakeNumber(const Runtime* runtime, value::Record::container_type& fields)
   {
+    fields[U"round"] = value::Function::MakeNative(
+      { { U"this", runtime->number_type() } },
+      runtime->int_type(),
+      Round
+    );
+    fields[U"ceil"] = value::Function::MakeNative(
+      { { U"this", runtime->number_type() } },
+      runtime->int_type(),
+      Ceil
+    );
+    fields[U"floor"] = value::Function::MakeNative(
+      { { U"this", runtime->number_type() } },
+      runtime->int_type(),
+      Floor
+    );
+
     fields[U"+"] = value::Function::MakeNative(
       {
         { U"this", runtime->number_type() },
