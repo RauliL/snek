@@ -34,7 +34,7 @@
 
 namespace snek::interpreter
 {
-  class Parameter;
+  struct Parameter;
   class Runtime;
 }
 
