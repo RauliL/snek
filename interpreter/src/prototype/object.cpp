@@ -86,24 +86,18 @@ namespace snek::interpreter::prototype
   MakeObject(const Runtime* runtime, value::Record::container_type& fields)
   {
     fields[U"toString"] = value::Function::MakeNative(
-      { Parameter(U"this") },
+      { { U"this" } },
       runtime->string_type(),
       ToString
     );
 
     fields[U"=="] = value::Function::MakeNative(
-      {
-        Parameter(U"this"),
-        Parameter(U"other")
-      },
+      { { U"this" }, { U"other" } },
       runtime->boolean_type(),
       Equals
     );
     fields[U"!="] = value::Function::MakeNative(
-      {
-        Parameter(U"this"),
-        Parameter(U"other")
-      },
+      { { U"this" }, { U"other" } },
       runtime->boolean_type(),
       NotEquals
     );

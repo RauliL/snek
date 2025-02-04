@@ -321,130 +321,130 @@ namespace snek::interpreter::prototype
   {
     fields[U"+"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->number_type(),
       Add
     );
     fields[U"-"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->number_type(),
       Sub
     );
     fields[U"*"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->number_type(),
       Mul
     );
     fields[U"/"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->number_type(),
       Div
     );
     fields[U"%"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->number_type(),
       Mod
     );
     fields[U"&"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->int_type(),
       BitwiseAnd
     );
     fields[U"|"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->int_type(),
       BitwiseOr
     );
     fields[U"^"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->int_type(),
       BitwiseXor
     );
     fields[U"~"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
+        { U"this", runtime->number_type() },
       },
       runtime->int_type(),
       BitwiseNot
     );
     fields[U"<<"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->int_type(),
       LeftShift
     );
     fields[U">>"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->int_type(),
       RightShift
     );
     fields[U"<"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->boolean_type(),
       LessThan
     );
     fields[U">"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->boolean_type(),
       GreaterThan
     );
     fields[U"<="] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->boolean_type(),
       LessThanOrEqual
     );
     fields[U">="] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->number_type()),
-        Parameter(U"other", runtime->number_type())
+        { U"this", runtime->number_type() },
+        { U"other", runtime->number_type() },
       },
       runtime->boolean_type(),
       GreaterThanOrEqual
     );
     fields[U"+@"] = value::Function::MakeNative(
-      { Parameter(U"this", runtime->number_type()) },
+      { { U"this", runtime->number_type() } },
       runtime->number_type(),
       UnaryPlus
     );
     fields[U"-@"] = value::Function::MakeNative(
-      { Parameter(U"this", runtime->number_type()) },
+      { { U"this", runtime->number_type() } },
       runtime->number_type(),
       UnaryMinus
     );

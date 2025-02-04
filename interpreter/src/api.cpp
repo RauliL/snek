@@ -72,7 +72,7 @@ namespace snek::interpreter::api
     variables[U"print"] =
     {
       value::Function::MakeNative(
-        { Parameter(U"objects", runtime->list_type(), nullptr, true) },
+        { { U"objects", runtime->list_type(), nullptr, true } },
         runtime->void_type(),
         Print
       ),

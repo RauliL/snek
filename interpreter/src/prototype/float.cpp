@@ -75,8 +75,8 @@ namespace snek::interpreter::prototype
 
     fields[U"random"] = value::Function::MakeNative(
       {
-        Parameter(U"min", nullable_float, null_expression),
-        Parameter(U"max", nullable_float, null_expression),
+        { U"min", nullable_float, null_expression },
+        { U"max", nullable_float, null_expression },
       },
       runtime->float_type(),
       Random

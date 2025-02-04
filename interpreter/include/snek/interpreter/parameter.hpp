@@ -45,11 +45,15 @@ namespace snek::interpreter
     using ptr = std::shared_ptr<Base>;
   }
 
-  class Parameter final
+  struct Parameter final
   {
-  public:
-    DEFAULT_COPY_AND_ASSIGN(Parameter);
+    std::u32string name;
+    type::ptr type = nullptr;
+    parser::expression::ptr default_value = nullptr;
+    bool rest = false;
+    std::optional<Position> position = std::nullopt;
 
+#if 0
     Parameter(
       const std::u32string& name,
       const type::ptr& type = nullptr,
@@ -87,18 +91,20 @@ namespace snek::interpreter
     {
       return m_default_value;
     }
+#endif
 
     bool Accepts(const Runtime& runtime, const value::ptr& value) const;
 
     bool Accepts(const Parameter& that) const;
 
     std::u32string ToString() const;
-
+#if 0
   private:
     std::optional<Position> m_position;
     std::u32string m_name;
     type::ptr m_type;
     bool m_rest;
     parser::expression::ptr m_default_value;
+#endif
   };
 }

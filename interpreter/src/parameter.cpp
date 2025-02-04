@@ -31,13 +31,13 @@ namespace snek::interpreter
   bool
   Parameter::Accepts(const Runtime& runtime, const value::ptr& value) const
   {
-    return m_type ? m_type->Accepts(runtime, value) : true;
+    return type ? type->Accepts(runtime, value) : true;
   }
 
   bool
   Parameter::Accepts(const Parameter& that) const
   {
-    return m_type ? m_type->Accepts(that.m_type) : true;
+    return type ? type->Accepts(that.type) : true;
   }
 
   std::u32string
@@ -45,18 +45,18 @@ namespace snek::interpreter
   {
     std::u32string result;
 
-    if (m_rest)
+    if (rest)
     {
       result.append(U"...");
     }
-    result.append(m_name);
-    if (m_type)
+    result.append(name);
+    if (type)
     {
-      result.append(U": ").append(m_type->ToString());
+      result.append(U": ").append(type->ToString());
     }
-    if (m_default_value)
+    if (default_value)
     {
-      result.append(U" = ").append(m_default_value->ToString());
+      result.append(U" = ").append(default_value->ToString());
     }
 
     return result;

@@ -158,32 +158,32 @@ namespace snek::interpreter::prototype
   {
     fields[U"codePointAt"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->string_type()),
-        Parameter(U"index", runtime->int_type()),
+        { U"this", runtime->string_type() },
+        { U"index", runtime->int_type() },
       },
       runtime->int_type(),
       CodePointAt
     );
     fields[U"length"] = value::Function::MakeNative(
-      { Parameter(U"this", runtime->string_type()) },
+      { { U"this", runtime->string_type() } },
       runtime->int_type(),
       Length
     );
     fields[U"toLower"] = value::Function::MakeNative(
-      { Parameter(U"this", runtime->string_type() )},
+      { { U"this", runtime->string_type() } },
       runtime->string_type(),
       ToLower
     );
     fields[U"toUpper"] = value::Function::MakeNative(
-      { Parameter(U"this", runtime->string_type() )},
+      { { U"this", runtime->string_type() } },
       runtime->string_type(),
       ToUpper
     );
 
     fields[U"+"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->string_type()),
-        Parameter(U"other", runtime->string_type())
+        { U"this", runtime->string_type() },
+        { U"other", runtime->string_type() }
       },
       runtime->string_type(),
       Concatenate
@@ -191,8 +191,8 @@ namespace snek::interpreter::prototype
 
     fields[U"[]"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->string_type()),
-        Parameter(U"index", runtime->int_type()),
+        { U"this", runtime->string_type() },
+        { U"index", runtime->int_type() },
       },
       runtime->string_type(),
       At

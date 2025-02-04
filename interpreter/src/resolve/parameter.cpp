@@ -36,13 +36,13 @@ namespace snek::interpreter
     const ptr& parameter
   )
   {
-    return Parameter(
+    return {
       parameter->name(),
       ResolveType(runtime, scope, parameter->type()),
       parameter->default_value(),
       parameter->rest(),
       parameter->position()
-    );
+    };
   }
 
   std::vector<Parameter>

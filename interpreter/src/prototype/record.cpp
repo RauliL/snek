@@ -69,8 +69,8 @@ namespace snek::interpreter::prototype
   {
     fields[U"[]"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->record_type()),
-        Parameter(U"name", runtime->string_type())
+        { U"this", runtime->record_type() },
+        { U"name", runtime->string_type() },
       },
       runtime->any_type(),
       At

@@ -223,7 +223,7 @@ namespace snek::interpreter::type
   public:
     explicit Function(
       const std::vector<Parameter>& parameters,
-      const ptr& return_type
+      const ptr& return_type = nullptr
     )
       : m_parameters(parameters)
       , m_return_type(return_type) {}

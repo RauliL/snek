@@ -51,7 +51,7 @@ namespace snek::interpreter::value
       const auto& parameter = parameters[i];
       ptr argument;
 
-      if (parameter.rest())
+      if (parameter.rest)
       {
         std::vector<value::ptr> elements;
 
@@ -67,9 +67,9 @@ namespace snek::interpreter::value
       {
         argument = arguments[i];
       }
-      else if (const auto default_value = parameter.default_value())
+      else if (parameter.default_value)
       {
-        argument = EvaluateExpression(runtime, scope, default_value);
+        argument = EvaluateExpression(runtime, scope, parameter.default_value);
       } else {
         throw Error({ position, U"Too few arguments." });
       }
@@ -189,8 +189,8 @@ namespace snek::interpreter::value
           [&scope](const Parameter& parameter, const value::ptr& argument)
           {
             scope->DeclareVariable(
-              parameter.position(),
-              parameter.name(),
+              parameter.position,
+              parameter.name,
               argument,
               false
             );

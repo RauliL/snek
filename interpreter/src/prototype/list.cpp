@@ -235,79 +235,79 @@ namespace snek::interpreter::prototype
   {
     fields[U"filter"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->list_type()),
-        Parameter(
+        { U"this", runtime->list_type() },
+        {
           U"callback",
           std::make_shared<type::Function>(
-            std::vector<Parameter>{ Parameter(U"element") },
+            std::vector<Parameter>{ { U"element" } },
             runtime->boolean_type()
           )
-        ),
+        },
       },
       runtime->list_type(),
       Filter
     );
     fields[U"forEach"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->list_type()),
-        Parameter(
+        { U"this", runtime->list_type() },
+        {
           U"callback",
           std::make_shared<type::Function>(
-            std::vector<Parameter>{ Parameter(U"element") },
+            std::vector<Parameter>{ { U"element" } },
             runtime->any_type()
           )
-        ),
+        },
       },
       runtime->void_type(),
       ForEach
     );
     fields[U"join"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->list_type() ),
-        Parameter(U"separator", runtime->string_type())
+        { U"this", runtime->list_type() },
+        { U"separator", runtime->string_type() },
       },
       runtime->string_type(),
       Join
     );
     fields[U"map"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->list_type()),
-        Parameter(
+        { U"this", runtime->list_type() },
+        {
           U"callback",
           std::make_shared<type::Function>(
-            std::vector<Parameter>{ Parameter(U"element") },
+            std::vector<Parameter>{ { U"element" } },
             runtime->any_type()
           )
-        )
+        },
       },
       runtime->list_type(),
       Map
     );
     fields[U"reduce"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->list_type()),
-        Parameter(
+        { U"this", runtime->list_type() },
+        {
           U"callback",
           std::make_shared<type::Function>(
             std::vector<Parameter>{
-              Parameter(U"accumulator"),
-              Parameter(U"current")
+              { U"accumulator" },
+              { U"current" },
             },
             runtime->any_type()
           )
-        ),
-        Parameter(
+        },
+        {
           U"initial",
           runtime->any_type(),
           std::make_shared<parser::expression::Null>(Position{ U"", 0, 0 })
-        )
+        },
       },
       runtime->list_type(),
       Reduce
     );
     fields[U"size"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->list_type())
+        { U"this", runtime->list_type() },
       },
       runtime->int_type(),
       Size
@@ -315,16 +315,16 @@ namespace snek::interpreter::prototype
 
     fields[U"[]"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->list_type()),
-        Parameter(U"index", runtime->number_type())
+        { U"this", runtime->list_type() },
+        { U"index", runtime->number_type() },
       },
       runtime->any_type(),
       At
     );
     fields[U"+"] = value::Function::MakeNative(
       {
-        Parameter(U"this", runtime->list_type()),
-        Parameter(U"index", runtime->list_type())
+        { U"this", runtime->list_type() },
+        { U"other", runtime->list_type() },
       },
       runtime->list_type(),
       Concat

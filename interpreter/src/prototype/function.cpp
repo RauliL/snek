@@ -47,8 +47,8 @@ namespace snek::interpreter::prototype
   {
     fields[U"call"] = value::Function::MakeNative(
       {
-        Parameter(U"function", runtime->function_type()),
-        Parameter(U"arguments", runtime->list_type(), nullptr, true)
+        { U"function", runtime->function_type() },
+        { U"arguments", runtime->list_type(), nullptr, true },
       },
       runtime->any_type(),
       Call
