@@ -65,6 +65,9 @@ namespace snek::interpreter::value
       case Kind::List:
         return runtime.list_prototype();
 
+      case Kind::Record:
+        return runtime.record_prototype();
+
       case Kind::String:
         return runtime.string_prototype();
 
