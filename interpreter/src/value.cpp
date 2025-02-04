@@ -167,28 +167,28 @@ namespace snek::interpreter::value
     switch (kind)
     {
       case Kind::Boolean:
-        return U"boolean";
+        return U"Boolean";
 
       case Kind::Float:
-        return U"float";
+        return U"Float";
 
       case Kind::Function:
-        return U"function";
+        return U"Function";
 
       case Kind::Int:
-        return U"int";
+        return U"Int";
 
       case Kind::List:
-        return U"list";
+        return U"List";
 
       case Kind::Null:
         return U"null";
 
       case Kind::Record:
-        return U"record";
+        return U"Record";
 
       case Kind::String:
-        return U"string";
+        return U"String";
     }
 
     return U"unknown";
