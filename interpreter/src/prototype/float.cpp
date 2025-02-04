@@ -78,7 +78,7 @@ namespace snek::interpreter::prototype
         Parameter(U"min", nullable_float, null_expression),
         Parameter(U"max", nullable_float, null_expression),
       },
-      runtime->int_type(),
+      runtime->float_type(),
       Random
     );
   }
