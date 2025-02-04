@@ -42,7 +42,7 @@ namespace snek::interpreter::prototype
    * be given.
    */
   static value::ptr
-  Random(const Runtime&, const std::vector<value::ptr>& arguments)
+  Random(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     thread_local static std::random_device device;
     thread_local static std::mt19937 generator(device());
@@ -57,7 +57,7 @@ namespace snek::interpreter::prototype
         : AsInt(arguments[1]);
     std::uniform_int_distribution<std::int64_t> d(min ,max);
 
-    return std::make_shared<value::Int>(d(generator));
+    return runtime.MakeInt(d(generator));
   }
 
   void

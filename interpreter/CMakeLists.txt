@@ -1,5 +1,21 @@
 project(SnekInterpreter)
 
+option(
+  SNEK_ENABLE_BOOLEAN_CACHE
+  "Whether to enable boolean caching or not."
+  ON
+)
+option(
+  SNEK_ENABLE_INT_CACHE
+  "Whether to enable integer caching or not."
+  ON
+)
+
+configure_file(
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/snek/interpreter/config.hpp.in
+  ${CMAKE_CURRENT_SOURCE_DIR}/include/snek/interpreter/config.hpp
+)
+
 include(../cmake/utils.cmake)
 
 add_library(

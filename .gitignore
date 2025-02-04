@@ -1,3 +1,4 @@
 /.vscode
 /build
 /doxygen
+/interpreter/include/snek/interpreter/config.hpp
