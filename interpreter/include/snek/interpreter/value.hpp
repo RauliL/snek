@@ -361,6 +361,9 @@ namespace snek::interpreter::value
       const std::shared_ptr<List>& right
     );
 
+    static std::shared_ptr<List>
+    Reverse(const std::shared_ptr<List>& list);
+
     explicit List() {}
 
     inline Kind kind() const override

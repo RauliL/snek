@@ -173,6 +173,19 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * List#reverse(this: List) => List
+   *
+   * Returns reversed copy of the list.
+   */
+  static value::ptr
+  Reverse(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return value::List::Reverse(
+      std::static_pointer_cast<value::List>(arguments[0])
+    );
+  }
+
+  /**
    * List#size(this: List) => Int
    *
    * Returns size of the list.
@@ -304,6 +317,13 @@ namespace snek::interpreter::prototype
       },
       runtime->list_type(),
       Reduce
+    );
+    fields[U"reverse"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->list_type() },
+      },
+      runtime->list_type(),
+      Reverse
     );
     fields[U"size"] = value::Function::MakeNative(
       {
