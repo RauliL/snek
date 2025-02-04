@@ -30,17 +30,19 @@
 namespace snek::interpreter::prototype
 {
   /**
-   * Boolean#random() => Boolean
+   * Boolean#random(distribution: Float = 0.5) => Boolean
    *
    * Generates random boolean value.
    */
   static value::ptr
-  Random(const Runtime&, const std::vector<value::ptr>&)
+  Random(const Runtime&, const std::vector<value::ptr>& arguments)
   {
     thread_local static std::random_device device;
     thread_local static std::mt19937 generator(device());
 
-    std::bernoulli_distribution d(0.5);
+    std::bernoulli_distribution d(
+      static_cast<const value::Float*>(arguments[0].get())->value()
+    );
 
     return std::make_shared<value::Boolean>(d(generator));
   }
@@ -49,7 +51,13 @@ namespace snek::interpreter::prototype
   MakeBoolean(const Runtime* runtime, value::Record::container_type& fields)
   {
     fields[U"random"] = value::Function::MakeNative(
-      {},
+      {
+        Parameter(
+          U"distribution",
+          runtime->float_type(),
+          std::make_shared<parser::expression::Float>(Position{U"", 0, 0}, 0.5)
+        )
+      },
       runtime->boolean_type(),
       Random
     );
