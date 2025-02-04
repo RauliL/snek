@@ -285,6 +285,37 @@ namespace snek::interpreter::prototype
     return std::make_shared<value::Boolean>(DoCompare(arguments) >= 0);
   }
 
+  /**
+   * Number#+@(this: Number) => Number
+   *
+   * Returns number value itself.
+   */
+  static value::ptr
+  UnaryPlus(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return arguments[0];
+  }
+
+  /**
+   * Number#-@(this: Number) => Number
+   *
+   * Negates number value.
+   */
+  static value::ptr
+  UnaryMinus(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    if (value::IsFloat(arguments[0]))
+    {
+      return std::make_shared<value::Float>(
+        -static_cast<const value::Float*>(arguments[0].get())->value()
+      );
+    }
+
+    return std::make_shared<value::Int>(
+      -static_cast<const value::Int*>(arguments[0].get())->value()
+    );
+  }
+
   void
   MakeNumber(const Runtime* runtime, value::Record::container_type& fields)
   {
@@ -406,6 +437,16 @@ namespace snek::interpreter::prototype
       },
       runtime->boolean_type(),
       GreaterThanOrEqual
+    );
+    fields[U"+@"] = value::Function::MakeNative(
+      { Parameter(U"this", runtime->number_type()) },
+      runtime->number_type(),
+      UnaryPlus
+    );
+    fields[U"-@"] = value::Function::MakeNative(
+      { Parameter(U"this", runtime->number_type()) },
+      runtime->number_type(),
+      UnaryMinus
     );
   }
 }
