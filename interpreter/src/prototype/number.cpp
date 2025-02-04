@@ -107,7 +107,9 @@ namespace snek::interpreter::prototype
   static value::ptr
   Round(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(std::round(AsFloat(arguments[0])));
+    return std::make_shared<value::Int>(
+      static_cast<std::int64_t>(std::round(AsFloat(arguments[0])))
+    );
   }
 
   /**
@@ -118,7 +120,9 @@ namespace snek::interpreter::prototype
   static value::ptr
   Ceil(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(std::ceil(AsFloat(arguments[0])));
+    return std::make_shared<value::Int>(
+      static_cast<std::int64_t>(std::ceil(AsFloat(arguments[0])))
+    );
   }
 
   /**
@@ -129,7 +133,9 @@ namespace snek::interpreter::prototype
   static value::ptr
   Floor(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(std::floor(AsFloat(arguments[0])));
+    return std::make_shared<value::Int>(
+      static_cast<std::int64_t>(std::floor(AsFloat(arguments[0])))
+    );
   }
 
   /**
