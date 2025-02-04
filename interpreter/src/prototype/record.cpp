@@ -47,7 +47,7 @@ namespace snek::interpreter::prototype
     const std::vector<value::ptr>& arguments
   )
   {
-    const auto& key = As<value::String>(arguments[1])->value();
+    const auto key = As<value::String>(arguments[1])->ToString();
     const auto result = As<value::Record>(arguments[0])->GetOwnProperty(key);
 
     if (result)

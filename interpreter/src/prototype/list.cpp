@@ -95,7 +95,7 @@ namespace snek::interpreter::prototype
   Join(Runtime&, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
-    const auto& separator = As<value::String>(arguments[1])->value();
+    const auto separator = As<value::String>(arguments[1])->ToString();
     const auto size = list->GetSize();
     std::u32string result;
 
@@ -109,7 +109,7 @@ namespace snek::interpreter::prototype
       result.append(value::ToString(list->At(i)));
     }
 
-    return std::make_shared<value::String>(result);
+    return value::String::Make(result);
   }
 
   /**

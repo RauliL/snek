@@ -537,7 +537,7 @@ namespace snek::interpreter::type
     if (value::IsString(value))
     {
       return !m_value.compare(
-        static_cast<const value::String*>(value.get())->value()
+        static_cast<const value::String*>(value.get())->ToString()
       );
     }
 

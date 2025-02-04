@@ -428,42 +428,35 @@ namespace snek::interpreter::value
     const container_type m_fields;
   };
 
-  class String final : public Base
+  class String : public Base
   {
   public:
-    using value_type = std::u32string;
-    using size_type = value_type::size_type;
-    using reference = value_type&;
-    using const_reference = const value_type&;
+    using value_type = char32_t;
+    using size_type = std::size_t;
 
-    explicit String(const_reference value)
-      : m_value(value) {}
+    static ptr
+    Make(const std::u32string& text);
+
+    static ptr
+    Concat(
+      const std::shared_ptr<String>& left,
+      const std::shared_ptr<String>& right
+    );
+
+    static ptr
+    Reverse(const std::shared_ptr<String>& string);
 
     inline Kind kind() const override
     {
       return Kind::String;
     }
 
-    inline size_type length() const
-    {
-      return m_value.length();
-    }
+    virtual size_type GetLength() const = 0;
 
-    inline const_reference value() const
-    {
-      return m_value;
-    }
+    virtual value_type At(size_type index) const = 0;
 
     bool Equals(const Base& that) const override;
 
-    inline std::u32string ToString() const override
-    {
-      return m_value;
-    }
-
     std::u32string ToSource() const override;
-
-  private:
-    const value_type m_value;
   };
 }

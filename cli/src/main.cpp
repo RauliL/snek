@@ -222,7 +222,7 @@ main(int argc, char** argv)
   scope->DeclareVariable(
     std::nullopt,
     U"__name__",
-    std::make_shared<snek::interpreter::value::String>(U"__main__")
+    snek::interpreter::value::String::Make(U"__main__")
   );
 
   if (!inline_scripts.empty())

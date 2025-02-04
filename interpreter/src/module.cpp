@@ -58,7 +58,7 @@ namespace snek::interpreter
     module->DeclareVariable(
       position,
       U"__name__",
-      std::make_shared<value::String>(path)
+      value::String::Make(path)
     );
     runtime.RunScript(module, source, path);
 

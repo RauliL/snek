@@ -31,16 +31,16 @@
 
 namespace snek::interpreter::prototype
 {
-  static inline const std::u32string&
+  static inline const value::String*
   AsString(const value::ptr& value)
   {
-    return static_cast<const value::String*>(value.get())->value();
+    return static_cast<const value::String*>(value.get());
   }
 
-  static std::size_t
-  AsIndex(const std::u32string& string, const value::ptr& index_value)
+  static value::String::size_type
+  AsIndex(const value::String* string, const value::ptr& index_value)
   {
-    const auto length = string.length();
+    const auto length = string->GetLength();
     auto index = static_cast<const value::Int*>(index_value.get())->value();
 
     if (index < 0)
@@ -52,7 +52,7 @@ namespace snek::interpreter::prototype
       throw Error{ std::nullopt, U"String index out of bounds." };
     }
 
-    return static_cast<std::size_t>(index);
+    return static_cast<value::String::size_type>(index);
   }
 
   /**
@@ -63,10 +63,12 @@ namespace snek::interpreter::prototype
   static value::ptr
   CodePointAt(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    const auto& string = AsString(arguments[0]);
+    const auto string = AsString(arguments[0]);
     const auto index = AsIndex(string, arguments[1]);
 
-    return std::make_shared<value::Int>(string[index]);
+    return std::make_shared<value::Int>(
+      static_cast<std::int64_t>(string->At(index))
+    );
   }
 
   /**
@@ -77,7 +79,20 @@ namespace snek::interpreter::prototype
   static value::ptr
   Length(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(AsString(arguments[0]).length());
+    return std::make_shared<value::Int>(AsString(arguments[0])->GetLength());
+  }
+
+  /**
+   * String#reverse(this: String) => String
+   *
+   * Returns reversed copy of the string.
+   */
+  static value::ptr
+  Reverse(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    return value::String::Reverse(
+      std::static_pointer_cast<value::String>(arguments[0])
+    );
   }
 
   /**
@@ -90,17 +105,17 @@ namespace snek::interpreter::prototype
   {
     using peelo::unicode::ctype::tolower;
 
-    const auto& s = AsString(arguments[0]);
-    const auto length = s.length();
+    const auto s = AsString(arguments[0]);
+    const auto length = s->GetLength();
     std::u32string result;
 
     result.reserve(length);
     for (std::size_t i = 0; i < length; ++i)
     {
-      result.append(1, tolower(s[i]));
+      result.append(1, tolower(s->At(i)));
     }
 
-    return std::make_shared<value::String>(result);
+    return value::String::Make(result);
   }
 
   /**
@@ -113,17 +128,17 @@ namespace snek::interpreter::prototype
   {
     using peelo::unicode::ctype::toupper;
 
-    const auto& s = AsString(arguments[0]);
-    const auto length = s.length();
+    const auto s = AsString(arguments[0]);
+    const auto length = s->GetLength();
     std::u32string result;
 
     result.reserve(length);
     for (std::size_t i = 0; i < length; ++i)
     {
-      result.append(1, toupper(s[i]));
+      result.append(1, toupper(s->At(i)));
     }
 
-    return std::make_shared<value::String>(result);
+    return value::String::Make(result);
   }
 
   /**
@@ -134,8 +149,9 @@ namespace snek::interpreter::prototype
   static value::ptr
   Concatenate(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::String>(
-      AsString(arguments[0]) + AsString(arguments[1])
+    return value::String::Concat(
+      std::static_pointer_cast<value::String>(arguments[0]),
+      std::static_pointer_cast<value::String>(arguments[1])
     );
   }
 
@@ -147,10 +163,10 @@ namespace snek::interpreter::prototype
   static value::ptr
   At(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    const auto& string = AsString(arguments[0]);
+    const auto string = AsString(arguments[0]);
     const auto index = AsIndex(string, arguments[1]);
 
-    return std::make_shared<value::String>(std::u32string(1, string[index]));
+    return value::String::Make(std::u32string(1, string->At(index)));
   }
 
   void
@@ -168,6 +184,11 @@ namespace snek::interpreter::prototype
       { { U"this", runtime->string_type() } },
       runtime->int_type(),
       Length
+    );
+    fields[U"reverse"] = value::Function::MakeNative(
+      { { U"this", runtime->string_type() } },
+      runtime->string_type(),
+      Reverse
     );
     fields[U"toLower"] = value::Function::MakeNative(
       { { U"this", runtime->string_type() } },

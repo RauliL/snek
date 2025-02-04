@@ -40,7 +40,7 @@ namespace snek::interpreter::prototype
       return arguments[0];
     }
 
-    return std::make_shared<value::String>(value::ToString(arguments[0]));
+    return value::String::Make(value::ToString(arguments[0]));
   }
 
   /**
@@ -49,10 +49,7 @@ namespace snek::interpreter::prototype
    * Tests whether two objects are equal with each other.
    */
   static value::ptr
-  Equals(
-    Runtime&,
-    const std::vector<value::ptr>& arguments
-  )
+  Equals(Runtime&, const std::vector<value::ptr>& arguments)
   {
     return std::make_shared<value::Boolean>(value::Equals(
       arguments[0],
@@ -67,10 +64,7 @@ namespace snek::interpreter::prototype
    * not equal with each other.
    */
   static value::ptr
-  NotEquals(
-    Runtime& runtime,
-    const std::vector<value::ptr>& arguments
-  )
+  NotEquals(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     return std::make_shared<value::Boolean>(!value::ToBoolean(
       value::CallMethod(

@@ -670,9 +670,7 @@ namespace snek::interpreter
         };
 
       case Kind::String:
-        return std::make_shared<value::String>(
-          As<String>(expression)->value()
-        );
+        return value::String::Make(As<String>(expression)->value());
 
       case Kind::Subscript:
         return EvaluateSubscript(runtime, scope, As<Subscript>(expression));
