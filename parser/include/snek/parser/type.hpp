@@ -29,7 +29,6 @@
 #include <unordered_map>
 
 #include "snek/parser/lexer.hpp"
-#include "snek/parser/node.hpp"
 
 namespace snek::parser::parameter
 {

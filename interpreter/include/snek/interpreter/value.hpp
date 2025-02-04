@@ -25,13 +25,7 @@
  */
 #pragma once
 
-#include <cstdint>
 #include <functional>
-#include <memory>
-#include <string>
-#include <unordered_map>
-#include <variant>
-#include <vector>
 
 #include "snek/interpreter/parameter.hpp"
 #include "snek/parser/parameter.hpp"

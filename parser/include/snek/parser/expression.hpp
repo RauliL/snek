@@ -30,7 +30,6 @@
 #include <vector>
 
 #include "snek/parser/lexer.hpp"
-#include "snek/parser/node.hpp"
 
 namespace snek::parser::element
 {

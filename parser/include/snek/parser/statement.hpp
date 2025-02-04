@@ -25,9 +25,6 @@
  */
 #pragma once
 
-#include <memory>
-#include <vector>
-
 #include "snek/parser/expression.hpp"
 
 namespace snek::parser::import
