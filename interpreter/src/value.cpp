@@ -42,9 +42,7 @@ namespace snek::interpreter::value
 
     if (kind == Kind::Record)
     {
-      if (const auto prototype = static_cast<const Record*>(
-          value.get()
-        )->GetOwnProperty(U"[[Prototype]]"))
+      if (const auto prototype = As<Record>(value)->GetOwnProperty(U"[[Prototype]]"))
       {
         return *prototype;
       }
@@ -87,10 +85,7 @@ namespace snek::interpreter::value
 
     if (kind == Kind::Record)
     {
-      if (const auto property = static_cast<const Record*>(
-          value.get()
-        )->GetOwnProperty(name)
-      )
+      if (const auto property = As<Record>(value)->GetOwnProperty(name))
       {
         return *property;
       }
@@ -142,11 +137,7 @@ namespace snek::interpreter::value
     }
     else if (IsFunction(*property))
     {
-      return static_cast<const Function*>((*property).get())->Call(
-        position,
-        runtime,
-        arguments
-      );
+      return As<Function>(*property)->Call(position, runtime, arguments);
     }
 
     throw Error{
@@ -164,7 +155,7 @@ namespace snek::interpreter::value
     }
     else if (value->kind() == Kind::Boolean)
     {
-      return static_cast<const Boolean*>(value.get())->value();
+      return As<Boolean>(value)->value();
     }
 
     return true;
