@@ -145,7 +145,7 @@ namespace snek::interpreter::prototype
    * Returns character from given index.
    */
   static value::ptr
-  At(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  At(Runtime&, const std::vector<value::ptr>& arguments)
   {
     const auto& string = AsString(arguments[0]);
     const auto index = AsIndex(string, arguments[1]);
