@@ -28,28 +28,26 @@
 
 namespace snek::parser::import
 {
-  static std::optional<std::u32string>
+  static inline std::optional<std::u32string>
   ParseAlias(Lexer& lexer)
   {
-    if (lexer.PeekReadToken(Token::Kind::KeywordAs))
-    {
-      return lexer.ReadId();
-    }
-
-    return std::nullopt;
+    return lexer.PeekReadToken(Token::Kind::KeywordAs)
+      ? std::make_optional(lexer.ReadId())
+      : std::nullopt;
   }
 
   ptr
   ParseSpecifier(Lexer& lexer)
   {
     const auto position = lexer.position();
-    std::optional<std::u32string> alias;
 
-    if (lexer.PeekReadToken(Token::Kind::Mul))
+    if (!lexer.PeekReadToken(Token::Kind::Mul))
     {
-      return std::make_shared<Star>(position, ParseAlias(lexer));
+      const auto name = lexer.ReadId();
+
+      return std::make_shared<Named>(position, name, ParseAlias(lexer));
     }
 
-    return std::make_shared<Named>(position, lexer.ReadId(), ParseAlias(lexer));
+    return std::make_shared<Star>(position, ParseAlias(lexer));
   }
 }
