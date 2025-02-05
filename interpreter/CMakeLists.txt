@@ -10,6 +10,11 @@ option(
   "Whether to enable integer caching or not."
   ON
 )
+option(
+  SNEK_ENABLE_PROPERTY_CACHE
+  "Whether value properties should be cached or not."
+  ON
+)
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/include/snek/interpreter/config.hpp.in

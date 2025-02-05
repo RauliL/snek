@@ -86,6 +86,17 @@ namespace snek::interpreter::value
   {
     const auto kind = KindOf(value);
 
+#if defined(SNEK_ENABLE_PROPERTY_CACHE)
+    if (value)
+    {
+      const auto cached_property = value->m_property_cache.find(name);
+
+      if (cached_property != std::end(value->m_property_cache))
+      {
+        return cached_property->second;
+      }
+    }
+#endif
     if (kind == Kind::Record)
     {
       if (const auto property = As<Record>(value)->GetOwnProperty(name))
@@ -105,11 +116,26 @@ namespace snek::interpreter::value
       {
         if (IsFunction(*property))
         {
-          return Function::Bind(
+          const auto function = Function::Bind(
             value,
             std::static_pointer_cast<Function>(*property)
           );
+
+#if defined(SNEK_ENABLE_PROPERTY_CACHE)
+          if (value)
+          {
+            value->m_property_cache[name] = function;
+          }
+#endif
+
+          return function;
         }
+#if defined(SNEK_ENABLE_PROPERTY_CACHE)
+        if (value)
+        {
+          value->m_property_cache[name] = *property;
+        }
+#endif
 
         return *property;
       }
