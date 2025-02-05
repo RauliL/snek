@@ -32,16 +32,27 @@
 namespace snek::interpreter::api
 {
   /**
+   * eval(source: String) => any
+   *
+   * Evaluates given string as Snek script and returns result.
+   */
+  static value::ptr
+  Eval(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  {
+    return runtime.RunScript(
+      std::make_shared<Scope>(runtime.root_scope()),
+      static_cast<const value::String*>(arguments[0].get())->ToString()
+    );
+  }
+
+  /**
    * print(...objects: any[]) => null
    *
    * Outputs string representation of given objects into standard output
    * stream, separated from each other with a whitespace character.
    */
   static value::ptr
-  Print(
-    Runtime&,
-    const std::vector<value::ptr>& arguments
-  )
+  Print(Runtime&, const std::vector<value::ptr>& arguments)
   {
     using peelo::unicode::encoding::utf8::encode;
 
@@ -69,6 +80,15 @@ namespace snek::interpreter::api
     Scope::variable_container_type& variables
   )
   {
+    variables[U"eval"] =
+    {
+      value::Function::MakeNative(
+        { { U"source", runtime->string_type() } },
+        runtime->any_type(),
+        Eval
+      ),
+      true
+    };
     variables[U"print"] =
     {
       value::Function::MakeNative(

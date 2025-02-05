@@ -151,16 +151,13 @@ namespace snek::interpreter
     return std::make_shared<value::Int>(value);
   }
 
-  value::ptr
-  Runtime::RunScript(
+  static value::ptr
+  ParseAndRunScript(
+    Runtime& runtime,
     const Scope::ptr& scope,
-    const std::string& source,
-    const std::u32string& filename,
-    int line,
-    int column
+    parser::Lexer& lexer
   )
   {
-    parser::Lexer lexer(source, filename, line, column);
     value::ptr value;
 
     try
@@ -168,7 +165,7 @@ namespace snek::interpreter
       while (!lexer.PeekToken(parser::Token::Kind::Eof))
       {
         value = ExecuteStatement(
-          *this,
+          runtime,
           scope,
           parser::statement::Parse(lexer, true)
         );
@@ -185,6 +182,34 @@ namespace snek::interpreter
     }
 
     return value;
+  }
+
+  value::ptr
+  Runtime::RunScript(
+    const Scope::ptr& scope,
+    const std::string& source,
+    const std::u32string& filename,
+    int line,
+    int column
+  )
+  {
+    parser::Lexer lexer(source, filename, line, column);
+
+    return ParseAndRunScript(*this, scope, lexer);
+  }
+
+  value::ptr
+  Runtime::RunScript(
+    const Scope::ptr& scope,
+    const std::u32string& source,
+    const std::u32string& filename,
+    int line,
+    int column
+  )
+  {
+    parser::Lexer lexer(source, filename, line, column);
+
+    return ParseAndRunScript(*this, scope, lexer);
   }
 
   Scope::ptr

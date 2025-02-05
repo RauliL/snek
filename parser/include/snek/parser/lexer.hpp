@@ -26,6 +26,7 @@
 #pragma once
 
 #include <deque>
+#include <memory>
 #include <stack>
 
 #include "snek/parser/token.hpp"
@@ -37,17 +38,77 @@ namespace snek::parser
   public:
     DEFAULT_COPY_AND_ASSIGN(Lexer);
 
+    class Input
+    {
+    public:
+      DISALLOW_COPY_AND_ASSIGN(Input);
+
+      explicit Input(const Position& position)
+        : m_position(position) {}
+
+      inline const Position& position() const
+      {
+        return m_position;
+      }
+
+      inline bool Eof() const
+      {
+        return m_char_queue.empty() && !HasMoreInput();
+      }
+
+      char32_t Read();
+
+      char32_t Peek();
+
+      char32_t PeekNextButOne();
+
+      inline bool Peek(char32_t expected)
+      {
+        return Peek() == expected;
+      }
+
+      inline bool PeekRead(char32_t expected)
+      {
+        if (Peek(expected))
+        {
+          Read();
+
+          return true;
+        }
+
+        return false;
+      }
+
+    protected:
+      virtual bool HasMoreInput() const = 0;
+
+      virtual char32_t Advance() = 0;
+
+    private:
+      Position m_position;
+      std::deque<char32_t> m_char_queue;
+    };
+
     Lexer(
       const std::string& input,
       const std::u32string& filename = U"<eval>",
       int line = 1,
       int column = 1
-    )
-      : m_input(input)
-      , m_offset(0)
-      , m_position{ filename, line, column } {}
+    );
 
-    std::optional<Position> position() const;
+    Lexer(
+      const std::u32string& input,
+      const std::u32string& filename = U"<eval>",
+      int line = 1,
+      int column = 1
+    );
+
+    inline std::optional<Position> position() const
+    {
+      return m_token_queue.empty()
+        ? m_input->position()
+        : m_token_queue.front().position();
+    }
 
     Token ReadToken();
 
@@ -80,26 +141,8 @@ namespace snek::parser
 
     char32_t LexEscapeSequence();
 
-    inline bool HasMoreChars() const
-    {
-      return m_offset < m_input.length();
-    }
-
-    char32_t ReadChar();
-
-    char32_t PeekChar() const;
-
-    inline bool PeekChar(char expected) const
-    {
-      return m_offset < m_input.length() && m_input[m_offset] == expected;
-    }
-
-    bool PeekReadChar(char expected);
-
   private:
-    std::string m_input;
-    std::string::size_type m_offset;
-    Position m_position;
+    std::shared_ptr<Input> m_input;
     std::deque<Token> m_token_queue;
     std::stack<int> m_indent_stack;
   };

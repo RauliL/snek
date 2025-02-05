@@ -58,13 +58,214 @@ namespace snek::parser
     { U"while", Token::Kind::KeywordWhile },
   };
 
-  std::optional<Position>
-  Lexer::position() const
+  char32_t
+  Lexer::Input::Read()
   {
-    return m_token_queue.empty()
-      ? m_position
-      : m_token_queue.front().position();
+    char32_t c;
+
+    if (m_char_queue.empty())
+    {
+      c = Advance();
+      if (utils::IsNewLine(c))
+      {
+        if (c == '\r')
+        {
+          const auto c2 = Advance();
+
+          if (c2 != '\n')
+          {
+            m_char_queue.push_back(c2);
+          }
+        }
+        ++m_position.line;
+        m_position.column = 1;
+        c = '\n';
+      } else {
+        ++m_position.column;
+      }
+    } else {
+      c = m_char_queue.front();
+      m_char_queue.pop_front();
+    }
+
+    return c;
   }
+
+  char32_t
+  Lexer::Input::Peek()
+  {
+    if (m_char_queue.empty())
+    {
+      const auto c = Advance();
+
+      m_char_queue.push_back(c);
+    }
+
+    return m_char_queue.front();
+  }
+
+  char32_t
+  Lexer::Input::PeekNextButOne()
+  {
+    const auto size = m_char_queue.size();
+
+    if (size > 1)
+    {
+      return m_char_queue[1];
+    }
+    else if (size == 1)
+    {
+      if (HasMoreInput())
+      {
+        const auto c = Advance();
+
+        m_char_queue.push_back(c);
+
+        return c;
+      }
+    }
+    else if (HasMoreInput())
+    {
+      m_char_queue.push_back(Advance());
+      if (HasMoreInput())
+      {
+        const auto c = Advance();
+
+        m_char_queue.push_back(c);
+
+        return c;
+      }
+    }
+
+    return 0;
+  }
+
+  namespace
+  {
+    class Utf8Input final : public Lexer::Input
+    {
+    public:
+      explicit Utf8Input(const std::string& input, const Position& position)
+        : Input(position)
+        , m_input(input)
+        , m_offset(0) {}
+
+    protected:
+      inline bool HasMoreInput() const override
+      {
+        return m_offset < m_input.length();
+      }
+
+      char32_t Advance() override
+      {
+        using peelo::unicode::encoding::utf8::sequence_length;
+
+        const auto c = m_input[m_offset++];
+        const auto length = sequence_length(c);
+
+        if (length > 1)
+        {
+          char32_t result;
+
+          if (m_offset + (length - 1) >= m_input.length())
+          {
+            throw Error{
+              position(),
+              U"Unable to decode given input as UTF-8."
+            };
+          }
+          switch (length)
+          {
+            case 2:
+              result = static_cast<char32_t>(c & 0x1f);
+              break;
+
+            case 3:
+              result = static_cast<char32_t>(c & 0x0f);
+              break;
+
+            case 4:
+              result = static_cast<char32_t>(c & 0x07);
+              break;
+
+            default:
+              throw Error{
+                position(),
+                U"Unable to decode given input as UTF-8."
+              };
+          }
+          for (std::size_t i = 1; i < length; ++i)
+          {
+            const auto c2 = m_input[m_offset++];
+
+            if ((c2 & 0xc0) != 0x80)
+            {
+              throw Error{
+                position(),
+                U"Unable to decode given input as UTF-8."
+              };
+            }
+            result = (result << 6) | (c2 & 0x3f);
+          }
+        }
+
+        return static_cast<char32_t>(c);
+      }
+
+    private:
+      const std::string m_input;
+      std::string::size_type m_offset;
+    };
+
+    class UnicodeInput final : public Lexer::Input
+    {
+    public:
+      explicit UnicodeInput(
+        const std::u32string& input,
+        const Position& position
+      )
+        : Input(position)
+        , m_input(input)
+        , m_offset(0) {}
+
+    protected:
+      inline bool HasMoreInput() const override
+      {
+        return m_offset < m_input.length();
+      }
+
+      inline char32_t Advance() override
+      {
+        return m_input[m_offset++];
+      }
+
+    private:
+      const std::u32string m_input;
+      std::string::size_type m_offset;
+    };
+  }
+
+  Lexer::Lexer(
+    const std::string& source,
+    const std::u32string& filename,
+    int line,
+    int column
+  )
+    : m_input(std::make_shared<Utf8Input>(
+        source,
+        Position{ filename, line, column }
+      )) {}
+
+  Lexer::Lexer(
+    const std::u32string& source,
+    const std::u32string& filename,
+    int line,
+    int column
+  )
+    : m_input(std::make_shared<UnicodeInput>(
+        source,
+        Position{ filename, line, column }
+      )) {}
 
   Token
   Lexer::ReadToken()
@@ -79,19 +280,25 @@ namespace snek::parser
 
         return token;
       }
-      if (HasMoreChars())
+      if (!m_input->Eof())
       {
         LexLogicalLine();
       } else {
         if (m_indent_stack.empty())
         {
-          return Token(m_position, Token::Kind::Eof);
+          return Token(m_input->position(), Token::Kind::Eof);
         }
-        m_token_queue.push_back(Token(m_position, Token::Kind::NewLine));
+        m_token_queue.push_back(Token(
+          m_input->position(),
+          Token::Kind::NewLine
+        ));
         do
         {
           m_indent_stack.pop();
-          m_token_queue.push_back(Token(m_position, Token::Kind::Dedent));
+          m_token_queue.push_back(Token(
+            m_input->position(),
+            Token::Kind::Dedent
+          ));
         }
         while (!m_indent_stack.empty());
       }
@@ -132,9 +339,9 @@ namespace snek::parser
     {
       if (m_token_queue.empty())
       {
-        if (!HasMoreChars())
+        if (m_input->Eof())
         {
-          return Token(m_position, Token::Kind::Eof);
+          return Token(m_input->position(), Token::Kind::Eof);
         }
         LexLogicalLine();
       } else {
@@ -219,23 +426,23 @@ namespace snek::parser
   void
   Lexer::LexLogicalLine()
   {
-    const auto position = m_position;
+    const auto position = m_input->position();
     int indent = 0;
     int separator_count = 0;
 
     // Parse indentation at beginning of the line.
-    while (PeekChar(' ') || PeekChar('\t'))
+    while (m_input->Peek(' ') || m_input->Peek('\t'))
     {
-      indent += ReadChar() == '\t' ? 8 : 1;
+      indent += m_input->Read() == '\t' ? 8 : 1;
     }
 
     // If there is an comment after the initial indentation, skip that and call
     // it a day.
-    if (PeekReadChar('#'))
+    if (m_input->PeekRead('#'))
     {
-      while (HasMoreChars())
+      while (!m_input->Eof())
       {
-        const auto c = ReadChar();
+        const auto c = m_input->Read();
 
         if (c == '\n')
         {
@@ -246,7 +453,7 @@ namespace snek::parser
     }
 
     // If it's an empty line, then do nothing else.
-    if (!HasMoreChars() || PeekReadChar('\n'))
+    if (m_input->Eof() || m_input->PeekRead('\n'))
     {
       return;
     }
@@ -282,38 +489,34 @@ namespace snek::parser
     for (;;)
     {
       // End of input.
-      if (!HasMoreChars())
+      if (m_input->Eof())
       {
         break;
       }
 
       // End of line.
-      if (PeekReadChar('\n') && !separator_count)
+      if (m_input->PeekRead('\n') && !separator_count)
       {
         m_token_queue.push_back(Token(
-          std::make_optional<Position>({
-            m_position.filename,
-            m_position.line,
-            m_position.column - 1
-          }),
+          std::make_optional(m_input->position()),
           Token::Kind::NewLine
         ));
         break;
       }
 
       // Skip whitespace before the next token.
-      if (std::isspace(m_input[m_offset]))
+      if (std::isspace(m_input->Peek()))
       {
-        ReadChar();
+        m_input->Read();
         continue;
       }
 
       // Skip comments.
-      if (PeekReadChar('#'))
+      if (m_input->PeekRead('#'))
       {
-        while (!HasMoreChars())
+        while (!m_input->Eof())
         {
-          const auto c = ReadChar();
+          const auto c = m_input->Read();
 
           if (c == '\n')
           {
@@ -324,10 +527,10 @@ namespace snek::parser
       }
 
       // Separators.
-      if (PeekChar('(') || PeekChar('[') || PeekChar('{'))
+      if (m_input->Peek('(') || m_input->Peek('[') || m_input->Peek('{'))
       {
-        const auto token_position = m_position;
-        const auto c = ReadChar();
+        const auto token_position = m_input->position();
+        const auto c = m_input->Read();
 
         ++separator_count;
         m_token_queue.push_back(Token(
@@ -341,10 +544,10 @@ namespace snek::parser
         continue;
       }
 
-      if (PeekChar(')') || PeekChar(']') || PeekChar('}'))
+      if (m_input->Peek(')') || m_input->Peek(']') || m_input->Peek('}'))
       {
-        const auto token_position = m_position;
-        const auto c = ReadChar();
+        const auto token_position = m_input->position();
+        const auto c = m_input->Read();
 
         if (separator_count > 0)
         {
@@ -362,21 +565,21 @@ namespace snek::parser
       }
 
       // Is it identifier?
-      if (utils::IsIdStart(PeekChar()))
+      if (utils::IsIdStart(m_input->Peek()))
       {
         m_token_queue.push_back(LexId());
         continue;
       }
 
       // Is it string literal?
-      if (PeekChar('"') || PeekChar('\''))
+      if (m_input->Peek('"') || m_input->Peek('\''))
       {
         m_token_queue.push_back(LexString());
         continue;
       }
 
       // Is it number literal?
-      if (std::isdigit(m_input[m_offset]))
+      if (std::isdigit(m_input->Peek()))
       {
         m_token_queue.push_back(LexNumber());
         continue;
@@ -390,16 +593,16 @@ namespace snek::parser
   Token
   Lexer::LexOperator()
   {
-    const auto position = m_position;
-    const auto c = ReadChar();
+    const auto position = m_input->position();
+    const auto c = m_input->Read();
     Token::Kind kind;
 
     switch (c)
     {
       case '.':
-        if (PeekReadChar(U'.'))
+        if (m_input->PeekRead(U'.'))
         {
-          if (!PeekReadChar(U'.'))
+          if (!m_input->PeekRead(U'.'))
           {
             throw Error{ position, U"Unexpected `..'." };
           }
@@ -422,7 +625,10 @@ namespace snek::parser
         break;
 
       case '!':
-        kind = PeekReadChar(U'=') ? Token::Kind::NotEqual : Token::Kind::Not;
+        kind =
+          m_input->PeekRead(U'=')
+            ? Token::Kind::NotEqual
+            : Token::Kind::Not;
         break;
 
       case '~':
@@ -431,100 +637,100 @@ namespace snek::parser
 
       case '^':
         kind =
-          PeekReadChar(U'=')
+          m_input->PeekRead(U'=')
             ? Token::Kind::AssignBitwiseXor
             : Token::Kind::BitwiseXor;
         break;
 
       case '=':
         kind =
-          PeekReadChar(U'=')
+          m_input->PeekRead(U'=')
             ? Token::Kind::Equal
-            : PeekReadChar(U'>')
+            : m_input->PeekRead(U'>')
             ? Token::Kind::FatArrow
             : Token::Kind::Assign;
         break;
 
       case '+':
         kind =
-          PeekReadChar(U'=')
+          m_input->PeekRead(U'=')
             ? Token::Kind::AssignAdd
             : Token::Kind::Add;
         break;
 
       case '-':
         kind =
-          PeekReadChar(U'=')
+          m_input->PeekRead(U'=')
             ? Token::Kind::AssignSub
-            : PeekReadChar(U'>')
+            : m_input->PeekRead(U'>')
             ? Token::Kind::Arrow
             : Token::Kind::Sub;
         break;
 
       case '*':
         kind =
-          PeekReadChar(U'=')
+          m_input->PeekRead(U'=')
             ? Token::Kind::AssignMul
             : Token::Kind::Mul;
         break;
 
       case '/':
         kind =
-          PeekReadChar(U'=')
+          m_input->PeekRead(U'=')
             ? Token::Kind::AssignDiv
             : Token::Kind::Div;
         break;
 
       case '%':
         kind =
-          PeekReadChar(U'=')
+          m_input->PeekRead(U'=')
             ? Token::Kind::AssignDiv
             : Token::Kind::Mod;
         break;
 
       case '&':
         kind =
-          PeekReadChar(U'&')
+          m_input->PeekRead(U'&')
             ? Token::Kind::LogicalAnd
-            : PeekReadChar(U'=')
+            : m_input->PeekRead(U'=')
             ? Token::Kind::AssignBitwiseAnd
             : Token::Kind::BitwiseAnd;
         break;
 
       case '|':
         kind =
-          PeekReadChar(U'|')
+          m_input->PeekRead(U'|')
             ? Token::Kind::LogicalOr
-            : PeekReadChar(U'=')
+            : m_input->PeekRead(U'=')
             ? Token::Kind::AssignBitwiseOr
             : Token::Kind::BitwiseOr;
         break;
 
       case '<':
-        if (PeekReadChar(U'<'))
+        if (m_input->PeekRead(U'<'))
         {
           kind =
-            PeekReadChar(U'=')
+            m_input->PeekRead(U'=')
               ? Token::Kind::AssignLeftShift
               : Token::Kind::LeftShift;
         } else {
           kind =
-            PeekReadChar(U'=')
+            m_input->PeekRead(U'=')
               ? Token::Kind::LessThanEqual
               : Token::Kind::LessThan;
         }
         break;
 
       case '>':
-        if (PeekReadChar(U'>'))
+        if (m_input->PeekRead(U'>'))
         {
           kind =
-            PeekReadChar(U'=')
+            m_input->PeekRead(U'=')
               ? Token::Kind::AssignRightShift
               : Token::Kind::RightShift;
         } else {
           kind =
-            PeekReadChar(U'=')
+            m_input->PeekRead(U'=')
               ? Token::Kind::GreaterThanEqual
               : Token::Kind::GreaterThan;
         }
@@ -532,7 +738,7 @@ namespace snek::parser
 
       case '?':
         kind =
-          PeekReadChar(U'.')
+          m_input->PeekRead(U'.')
             ? Token::Kind::ConditionalDot
             : Token::Kind::Ternary;
         break;
@@ -547,15 +753,15 @@ namespace snek::parser
   Token
   Lexer::LexId()
   {
-    const auto position = m_position;
+    const auto position = m_input->position();
     std::u32string result;
     keyword_map::const_iterator keyword_index;
 
     do
     {
-      result.append(1, ReadChar());
+      result.append(1, m_input->Read());
     }
-    while (HasMoreChars() && utils::IsIdPart(PeekChar()));
+    while (!m_input->Eof() && utils::IsIdPart(m_input->Peek()));
 
     if ((keyword_index = keywords.find(result)) != std::end(keywords))
     {
@@ -568,14 +774,14 @@ namespace snek::parser
   Token
   Lexer::LexString()
   {
-    const auto position = m_position;
-    const auto separator = ReadChar();
+    const auto position = m_input->position();
+    const auto separator = m_input->Read();
     std::u32string result;
     char32_t c;
 
     for (;;)
     {
-      if (!HasMoreChars())
+      if (m_input->Eof())
       {
         throw Error{
           position,
@@ -584,7 +790,7 @@ namespace snek::parser
           U"'."
         };
       }
-      c = ReadChar();
+      c = m_input->Read();
       if (c == separator)
       {
         break;
@@ -600,69 +806,56 @@ namespace snek::parser
     return Token(position, Token::Kind::String, result);
   }
 
-  Token
-  Lexer::LexNumber()
+  static inline void
+  EatDigits(
+    const std::shared_ptr<Lexer::Input>& input,
+    std::u32string& result
+  )
   {
-    const auto position = m_position;
-    std::u32string result;
-    Token::Kind kind = Token::Kind::Int;
-
-    // TODO: Add support for different bases, such as 0x00 and so on.
     do
     {
-      const auto c = ReadChar();
+      const auto c = input->Read();
 
       if (c != '_')
       {
         result.append(1, c);
       }
     }
-    while (HasMoreChars() && utils::IsNumberPart(m_input[m_offset]));
+    while (!input->Eof() && utils::IsNumberPart(input->Peek()));
+  }
+
+  Token
+  Lexer::LexNumber()
+  {
+    const auto position = m_input->position();
+    std::u32string result;
+    Token::Kind kind = Token::Kind::Int;
+
+    // TODO: Add support for different bases, such as 0x00 and so on.
+    EatDigits(m_input, result);
 
     // Is it a decimal number?
-    if (
-      PeekChar(U'.') &&
-      m_offset + 1 < m_input.length() &&
-      std::isdigit(m_input[m_offset + 1])
-    )
+    if (m_input->Peek('.') && std::isdigit(m_input->PeekNextButOne()))
     {
       kind = Token::Kind::Float;
-      result.append(1, ReadChar());
-      do
-      {
-        const auto c = ReadChar();
-
-        if (c != '_')
-        {
-          result.append(1, c);
-        }
-      }
-      while (HasMoreChars() && utils::IsNumberPart(m_input[m_offset]));
+      result.append(1, m_input->Read());
+      EatDigits(m_input, result);
     }
 
     // Do we have an exponent?
-    if (PeekReadChar(U'e') || PeekReadChar(U'E'))
+    if (m_input->PeekRead(U'e') || m_input->PeekRead(U'E'))
     {
       kind = Token::Kind::Float;
       result.append(1, 'e');
-      if (PeekChar('+') || PeekChar('-'))
+      if (m_input->Peek('+') || m_input->Peek('-'))
       {
-        result.append(1, ReadChar());
+        result.append(1, m_input->Read());
       }
-      if (!HasMoreChars() || !std::isdigit(m_input[m_offset]))
+      if (m_input->Eof() || !std::isdigit(m_input->Peek()))
       {
         throw Error{ position, U"Missing digits after `e'." };
       }
-      do
-      {
-        const auto c = ReadChar();
-
-        if (c != '_')
-        {
-          result.append(1, c);
-        }
-      }
-      while (HasMoreChars() && utils::IsNumberPart(m_input[m_offset]));
+      EatDigits(m_input, result);
     }
 
     return Token(position, kind, result);
@@ -673,15 +866,17 @@ namespace snek::parser
   {
     using peelo::unicode::ctype::isvalid;
 
-    if (!HasMoreChars())
+    char32_t c;
+
+    if (m_input->Eof())
     {
       throw Error{
-        m_position,
+        m_input->position(),
         U"Unexpected end of input; Missing escape sequence."
       };
     }
 
-    switch (ReadChar())
+    switch (c = m_input->Read())
     {
       case 'b':
         return 010;
@@ -702,186 +897,59 @@ namespace snek::parser
       case '\'':
       case '\\':
       case '/':
-        return m_input[m_offset - 1];
+        return c;
 
       case 'u':
+        c = 0;
+
+        for (int i = 0; i < 4; ++i)
         {
-          char32_t c = 0;
+          char32_t operand;
 
-          for (int i = 0; i < 4; ++i)
-          {
-            if (!HasMoreChars())
-            {
-              throw Error{
-                m_position,
-                U"Unterminated escape sequence."
-              };
-            }
-            else if (!std::isxdigit(m_input[m_offset]))
-            {
-              throw Error{
-                m_position,
-                U"Illegal Unicode hex escape sequence."
-              };
-            }
-
-            if (m_input[m_offset] >= 'A' && m_input[m_offset] <= 'F')
-            {
-              c = c * 16 + (ReadChar() - 'A' + 10);
-            }
-            else if (m_input[m_offset] >= 'a' && m_input[m_offset] <= 'f')
-            {
-              c = c * 16 + (ReadChar() - 'a' + 10);
-            } else {
-              c = c * 16 + (ReadChar() - '0');
-            }
-          }
-
-          if (!isvalid(c))
+          if (m_input->Eof())
           {
             throw Error{
-              m_position,
+              m_input->position(),
+              U"Unterminated escape sequence."
+            };
+          }
+
+          operand = m_input->Read();
+
+          if (!std::isxdigit(operand))
+          {
+            throw Error{
+              m_input->position(),
               U"Illegal Unicode hex escape sequence."
             };
           }
 
-          return c;
+          if (operand >= 'A' && operand <= 'F')
+          {
+            c = c * 16 + (operand - 'A' + 10);
+          }
+          else if (operand >= 'a' && operand <= 'f')
+          {
+            c = c * 16 + (operand - 'a' + 10);
+          } else {
+            c = c * 16 + (operand - '0');
+          }
         }
-        break;
+
+        if (!isvalid(c))
+        {
+          throw Error{
+            m_input->position(),
+            U"Illegal Unicode hex escape sequence."
+          };
+        }
+
+        return c;
     }
 
     throw Error{
-      m_position,
+      m_input->position(),
       U"Illegal escape sequence in string literal."
     };
-  }
-
-  char32_t
-  Lexer::ReadChar()
-  {
-    using peelo::unicode::encoding::utf8::sequence_length;
-
-    const auto c = m_input[m_offset++];
-    std::size_t length;
-
-    if (utils::IsNewLine(c))
-    {
-      if (
-        c == '\r' &&
-        m_offset < m_input.length() &&
-        m_input[m_offset] == '\n'
-      )
-      {
-        ++m_offset;
-      }
-      ++m_position.line;
-      m_position.column = 1;
-
-      return '\n';
-    }
-    ++m_position.column;
-    length = sequence_length(c);
-    if (length > 1)
-    {
-      char32_t result;
-
-      if (m_offset + (length - 1) >= m_input.length())
-      {
-        throw Error{ m_position, U"Unable to UTF-8 decode given input." };
-      }
-      switch (length)
-      {
-        case 2:
-          result = static_cast<char32_t>(c & 0x1f);
-          break;
-
-        case 3:
-          result = static_cast<char32_t>(c & 0x0f);
-          break;
-
-        case 4:
-          result = static_cast<char32_t>(c & 0x07);
-          break;
-
-        default:
-          throw Error{ m_position, U"Unable to UTF-8 decode given input." };
-      }
-      for (std::size_t i = 1; i < length; ++i)
-      {
-        const auto c2 = m_input[m_offset++];
-
-        if ((c2 & 0xc0) != 0x80)
-        {
-          throw Error{ m_position, U"Unable to UTF-8 decode given input." };
-        }
-        result = (result << 6) | (c2 & 0x3f);
-      }
-
-      return result;
-    }
-
-    return c;
-  }
-
-  char32_t
-  Lexer::PeekChar() const
-  {
-    using peelo::unicode::encoding::utf8::sequence_length;
-
-    if (m_offset < m_input.length())
-    {
-      const auto c = m_input[m_offset];
-      const auto length = sequence_length(c);
-      char32_t result;
-
-      if (length < 2 || (m_offset + (length - 1)) >= m_input.length())
-      {
-        return c;
-      }
-      switch (length)
-      {
-        case 2:
-          result = static_cast<char32_t>(c & 0x1f);
-          break;
-
-        case 3:
-          result = static_cast<char32_t>(c & 0x0f);
-          break;
-
-        case 4:
-          result = static_cast<char32_t>(c & 0x07);
-          break;
-
-        default:
-          return 0;
-      }
-      for (std::size_t i = 1; i < length; ++i)
-      {
-        const auto c2 = m_input[m_offset + i];
-
-        if ((c2 & 0xc0) != 0x80)
-        {
-          return 0;
-        }
-        result = (result << 6) | (c2 & 0x3f);
-      }
-
-      return result;
-    }
-
-    return 0;
-  }
-
-  bool
-  Lexer::PeekReadChar(char expected)
-  {
-    if (PeekChar(expected))
-    {
-      ReadChar();
-
-      return true;
-    }
-
-    return false;
   }
 }

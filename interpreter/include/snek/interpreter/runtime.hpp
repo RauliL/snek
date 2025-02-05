@@ -179,6 +179,14 @@ namespace snek::interpreter
       int column = 1
     );
 
+    value::ptr RunScript(
+      const Scope::ptr& scope,
+      const std::u32string& source,
+      const std::u32string& filename = U"<eval>",
+      int line = 1,
+      int column = 1
+    );
+
     Scope::ptr ImportModule(
       const std::optional<Position>& position,
       const std::u32string& path
