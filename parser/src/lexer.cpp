@@ -99,6 +99,8 @@ namespace snek::parser
       const auto c = Advance();
 
       m_char_queue.push_back(c);
+
+      return c;
     }
 
     return m_char_queue.front();
@@ -145,7 +147,7 @@ namespace snek::parser
     class Utf8Input final : public Lexer::Input
     {
     public:
-      explicit Utf8Input(const std::string& input, const Position& position)
+      explicit Utf8Input(const Position& position, const std::string& input)
         : Input(position)
         , m_input(input)
         , m_offset(0) {}
@@ -207,6 +209,8 @@ namespace snek::parser
             }
             result = (result << 6) | (c2 & 0x3f);
           }
+
+          return result;
         }
 
         return static_cast<char32_t>(c);
@@ -221,8 +225,8 @@ namespace snek::parser
     {
     public:
       explicit UnicodeInput(
-        const std::u32string& input,
-        const Position& position
+        const Position& position,
+        const std::u32string& input
       )
         : Input(position)
         , m_input(input)
@@ -252,8 +256,8 @@ namespace snek::parser
     int column
   )
     : m_input(std::make_shared<Utf8Input>(
-        source,
-        Position{ filename, line, column }
+        Position{ filename, line, column },
+        source
       )) {}
 
   Lexer::Lexer(
@@ -263,8 +267,8 @@ namespace snek::parser
     int column
   )
     : m_input(std::make_shared<UnicodeInput>(
-        source,
-        Position{ filename, line, column }
+        Position{ filename, line, column },
+        source
       )) {}
 
   Token
