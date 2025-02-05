@@ -129,7 +129,7 @@ namespace snek::interpreter::type
         return value::IsBoolean(value);
 
       case BuiltinKind::Float:
-        return value::IsFloat(value);
+        return value::IsNumber(value);
 
       case BuiltinKind::Function:
         return value::IsFunction(value);
@@ -167,13 +167,18 @@ namespace snek::interpreter::type
     {
       const auto that_kind = As<Builtin>(that)->m_kind;
 
-      return (
-        m_kind == that_kind ||
-        (
-          m_kind == BuiltinKind::Number &&
-          (that_kind == BuiltinKind::Float || that_kind == BuiltinKind::Int)
-        )
-      );
+      switch (m_kind)
+      {
+        case BuiltinKind::Float:
+        case BuiltinKind::Number:
+          return (
+            that_kind == BuiltinKind::Float ||
+            that_kind == BuiltinKind::Int
+          );
+
+        default:
+          return m_kind == that_kind;
+      }
     }
     switch (m_kind)
     {

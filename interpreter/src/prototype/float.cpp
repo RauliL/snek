@@ -30,9 +30,10 @@
 
 namespace snek::interpreter::prototype
 {
-  static inline double AsFloat(const value::ptr& value)
+  static inline double
+  AsFloat(const value::ptr& value)
   {
-    return static_cast<const value::Float*>(value.get())->value();
+    return static_cast<const value::Number*>(value.get())->ToFloat();
   }
 
   /**
