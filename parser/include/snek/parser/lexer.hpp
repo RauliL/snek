@@ -37,17 +37,14 @@ namespace snek::parser
   public:
     DEFAULT_COPY_AND_ASSIGN(Lexer);
 
-    using iterator = std::string::const_iterator;
-
     Lexer(
-      const iterator& begin,
-      const iterator& end,
+      const std::string& input,
       const std::u32string& filename = U"<eval>",
       int line = 1,
       int column = 1
     )
-      : m_current(begin)
-      , m_end(end)
+      : m_input(input)
+      , m_offset(0)
       , m_position{ filename, line, column } {}
 
     std::optional<Position> position() const;
@@ -85,20 +82,23 @@ namespace snek::parser
 
     inline bool HasMoreChars() const
     {
-      return m_current < m_end;
+      return m_offset < m_input.length();
     }
 
     char32_t ReadChar();
 
     char32_t PeekChar() const;
 
-    bool PeekChar(char expected) const;
+    inline bool PeekChar(char expected) const
+    {
+      return m_offset < m_input.length() && m_input[m_offset] == expected;
+    }
 
     bool PeekReadChar(char expected);
 
   private:
-    iterator m_current;
-    iterator m_end;
+    std::string m_input;
+    std::string::size_type m_offset;
     Position m_position;
     std::deque<Token> m_token_queue;
     std::stack<int> m_indent_stack;

@@ -160,13 +160,7 @@ namespace snek::interpreter
     int column
   )
   {
-    parser::Lexer lexer(
-      std::begin(source),
-      std::end(source),
-      filename,
-      line,
-      column
-    );
+    parser::Lexer lexer(source, filename, line, column);
     value::ptr value;
 
     try

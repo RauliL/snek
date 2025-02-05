@@ -23,6 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <functional>
+
 #include "snek/error.hpp"
 #include "snek/parser/parameter.hpp"
 #include "snek/parser/type.hpp"
@@ -51,6 +53,55 @@ namespace snek::parser::type
     );
   }
 
+  static void
+  ParseContainer(
+    const std::optional<Position>& position,
+    Lexer& lexer,
+    const std::function<void()>& callback,
+    Token::Kind closing_token,
+    const char32_t* description
+  )
+  {
+    for (;;)
+    {
+      if (lexer.PeekToken(Token::Kind::Eof))
+      {
+        throw Error{
+          position,
+          std::u32string(U"Unterminated ") +
+          description +
+          U" type; Missing " +
+          Token::ToString(closing_token) +
+          U"."
+        };
+      }
+      else if (lexer.PeekReadToken(closing_token))
+      {
+        break;
+      }
+      callback();
+      if (
+        !lexer.PeekToken(Token::Kind::Comma) &&
+        !lexer.PeekToken(closing_token)
+      )
+      {
+        throw Error{
+          position,
+          U"Unterminated " +
+          std::u32string(description) +
+          U" type; Missing " +
+          Token::ToString(closing_token) +
+          U"."
+        };
+      }
+      if (!lexer.PeekReadToken(Token::Kind::Comma))
+      {
+        lexer.ReadToken(closing_token);
+        break;
+      }
+    }
+  }
+
   static ptr
   ParseFunction(Lexer& lexer, const std::optional<Position>& position)
   {
@@ -70,47 +121,21 @@ namespace snek::parser::type
   {
     Record::container_type fields;
 
-    for (;;)
-    {
-      std::u32string name;
-      ptr value;
+    ParseContainer(
+      position,
+      lexer,
+      [&]() -> void
+      {
+        const auto name = lexer.PeekToken(Token::Kind::String)
+          ? *lexer.ReadToken().text()
+          : lexer.ReadId();
 
-      if (lexer.PeekToken(Token::Kind::Eof))
-      {
-        throw Error{
-          position,
-          U"Unterminated record type; Missing `}'."
-        };
-      }
-      else if (lexer.PeekReadToken(Token::Kind::RightBrace))
-      {
-        break;
-      }
-      if (lexer.PeekToken(Token::Kind::String))
-      {
-        name = *lexer.ReadToken().text();
-      } else {
-        name = lexer.ReadId();
-      }
-      lexer.ReadToken(Token::Kind::Colon);
-      value = Parse(lexer);
-      fields[name] = value;
-      if (
-        !lexer.PeekToken(Token::Kind::Comma) &&
-        !lexer.PeekToken(Token::Kind::RightBrace)
-      )
-      {
-        throw Error{
-          position,
-          U"Unterminated record type; Missing `}'."
-        };
-      }
-      if (!lexer.PeekReadToken(Token::Kind::Comma))
-      {
-        lexer.ReadToken(Token::Kind::RightBrace);
-        break;
-      }
-    }
+        lexer.ReadToken(Token::Kind::Colon);
+        fields[name] = Parse(lexer);
+      },
+      Token::Kind::RightBrace,
+      U"record"
+    );
 
     return std::make_shared<Record>(position, fields);
   }
@@ -120,36 +145,16 @@ namespace snek::parser::type
   {
     std::vector<ptr> elements;
 
-    for (;;)
-    {
-      if (lexer.PeekToken(Token::Kind::Eof))
+    ParseContainer(
+      position,
+      lexer,
+      [&]() -> void
       {
-        throw Error{
-          position,
-          U"Unterminated tuple type; Missing `]'."
-        };
-      }
-      else if (lexer.PeekReadToken(Token::Kind::RightBracket))
-      {
-        break;
-      }
-      elements.push_back(Parse(lexer));
-      if (
-        !lexer.PeekToken(Token::Kind::Comma) &&
-        !lexer.PeekToken(Token::Kind::RightBracket)
-      )
-      {
-        throw Error{
-          position,
-          U"Unterminated tuple type; Missing `]'."
-        };
-      }
-      if (!lexer.PeekReadToken(Token::Kind::Comma))
-      {
-        lexer.ReadToken(Token::Kind::RightBracket);
-        break;
-      }
-    }
+        elements.push_back(Parse(lexer));
+      },
+      Token::Kind::RightBracket,
+      U"tuple"
+    );
 
     return std::make_shared<Multiple>(
       position,

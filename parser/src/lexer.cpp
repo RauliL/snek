@@ -302,7 +302,7 @@ namespace snek::parser
       }
 
       // Skip whitespace before the next token.
-      if (std::isspace(*m_current))
+      if (std::isspace(m_input[m_offset]))
       {
         ReadChar();
         continue;
@@ -376,7 +376,7 @@ namespace snek::parser
       }
 
       // Is it number literal?
-      if (std::isdigit(*m_current))
+      if (std::isdigit(m_input[m_offset]))
       {
         m_token_queue.push_back(LexNumber());
         continue;
@@ -617,13 +617,13 @@ namespace snek::parser
         result.append(1, c);
       }
     }
-    while (HasMoreChars() && utils::IsNumberPart(*m_current));
+    while (HasMoreChars() && utils::IsNumberPart(m_input[m_offset]));
 
     // Is it a decimal number?
     if (
       PeekChar(U'.') &&
-      m_current + 1 < m_end &&
-      std::isdigit(*(m_current + 1))
+      m_offset + 1 < m_input.length() &&
+      std::isdigit(m_input[m_offset + 1])
     )
     {
       kind = Token::Kind::Float;
@@ -637,7 +637,7 @@ namespace snek::parser
           result.append(1, c);
         }
       }
-      while (HasMoreChars() && utils::IsNumberPart(*m_current));
+      while (HasMoreChars() && utils::IsNumberPart(m_input[m_offset]));
     }
 
     // Do we have an exponent?
@@ -649,7 +649,7 @@ namespace snek::parser
       {
         result.append(1, ReadChar());
       }
-      if (!HasMoreChars() || !std::isdigit(*m_current))
+      if (!HasMoreChars() || !std::isdigit(m_input[m_offset]))
       {
         throw Error{ position, U"Missing digits after `e'." };
       }
@@ -662,7 +662,7 @@ namespace snek::parser
           result.append(1, c);
         }
       }
-      while (HasMoreChars() && utils::IsNumberPart(*m_current));
+      while (HasMoreChars() && utils::IsNumberPart(m_input[m_offset]));
     }
 
     return Token(position, kind, result);
@@ -702,7 +702,7 @@ namespace snek::parser
       case '\'':
       case '\\':
       case '/':
-        return *(m_current - 1);
+        return m_input[m_offset - 1];
 
       case 'u':
         {
@@ -717,7 +717,7 @@ namespace snek::parser
                 U"Unterminated escape sequence."
               };
             }
-            else if (!std::isxdigit(*m_current))
+            else if (!std::isxdigit(m_input[m_offset]))
             {
               throw Error{
                 m_position,
@@ -725,11 +725,11 @@ namespace snek::parser
               };
             }
 
-            if (*m_current >= 'A' && *m_current <= 'F')
+            if (m_input[m_offset] >= 'A' && m_input[m_offset] <= 'F')
             {
               c = c * 16 + (ReadChar() - 'A' + 10);
             }
-            else if (*m_current >= 'a' && *m_current <= 'f')
+            else if (m_input[m_offset] >= 'a' && m_input[m_offset] <= 'f')
             {
               c = c * 16 + (ReadChar() - 'a' + 10);
             } else {
@@ -761,14 +761,18 @@ namespace snek::parser
   {
     using peelo::unicode::encoding::utf8::sequence_length;
 
-    const auto c = *m_current++;
+    const auto c = m_input[m_offset++];
     std::size_t length;
 
     if (utils::IsNewLine(c))
     {
-      if (c == '\r' && m_current < m_end && *m_current == '\n')
+      if (
+        c == '\r' &&
+        m_offset < m_input.length() &&
+        m_input[m_offset] == '\n'
+      )
       {
-        ++m_current;
+        ++m_offset;
       }
       ++m_position.line;
       m_position.column = 1;
@@ -781,7 +785,7 @@ namespace snek::parser
     {
       char32_t result;
 
-      if (m_current + (length - 1) >= m_end)
+      if (m_offset + (length - 1) >= m_input.length())
       {
         throw Error{ m_position, U"Unable to UTF-8 decode given input." };
       }
@@ -804,7 +808,7 @@ namespace snek::parser
       }
       for (std::size_t i = 1; i < length; ++i)
       {
-        const auto c2 = *m_current++;
+        const auto c2 = m_input[m_offset++];
 
         if ((c2 & 0xc0) != 0x80)
         {
@@ -824,13 +828,13 @@ namespace snek::parser
   {
     using peelo::unicode::encoding::utf8::sequence_length;
 
-    if (m_current < m_end)
+    if (m_offset < m_input.length())
     {
-      const auto c = *m_current;
+      const auto c = m_input[m_offset];
       const auto length = sequence_length(c);
       char32_t result;
 
-      if (length < 2 || (m_current + length) >= m_end)
+      if (length < 2 || (m_offset + (length - 1)) >= m_input.length())
       {
         return c;
       }
@@ -853,7 +857,7 @@ namespace snek::parser
       }
       for (std::size_t i = 1; i < length; ++i)
       {
-        const auto c2 = *(m_current + i);
+        const auto c2 = m_input[m_offset + i];
 
         if ((c2 & 0xc0) != 0x80)
         {
@@ -866,12 +870,6 @@ namespace snek::parser
     }
 
     return 0;
-  }
-
-  bool
-  Lexer::PeekChar(char expected) const
-  {
-    return m_current < m_end && *m_current == expected;
   }
 
   bool
