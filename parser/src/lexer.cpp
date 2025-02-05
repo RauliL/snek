@@ -26,6 +26,7 @@
 #include <unordered_map>
 
 #include <peelo/unicode/ctype/isvalid.hpp>
+#include <peelo/unicode/encoding/utf8.hpp>
 
 #include "snek/error.hpp"
 #include "snek/parser/lexer.hpp"
@@ -361,7 +362,7 @@ namespace snek::parser
       }
 
       // Is it identifier?
-      if (utils::IsIdStart(*m_current))
+      if (utils::IsIdStart(PeekChar()))
       {
         m_token_queue.push_back(LexId());
         continue;
@@ -554,7 +555,7 @@ namespace snek::parser
     {
       result.append(1, ReadChar());
     }
-    while (HasMoreChars() && utils::IsIdPart(*m_current)); // TODO: Fix Unicode
+    while (HasMoreChars() && utils::IsIdPart(PeekChar()));
 
     if ((keyword_index = keywords.find(result)) != std::end(keywords))
     {
@@ -758,7 +759,10 @@ namespace snek::parser
   char32_t
   Lexer::ReadChar()
   {
+    using peelo::unicode::encoding::utf8::sequence_length;
+
     const auto c = *m_current++;
+    std::size_t length;
 
     if (utils::IsNewLine(c))
     {
@@ -772,9 +776,96 @@ namespace snek::parser
       return '\n';
     }
     ++m_position.column;
-    // TODO: Decode UTF-8.
+    length = sequence_length(c);
+    if (length > 1)
+    {
+      char32_t result;
+
+      if (m_current + (length - 1) >= m_end)
+      {
+        throw Error{ m_position, U"Unable to UTF-8 decode given input." };
+      }
+      switch (length)
+      {
+        case 2:
+          result = static_cast<char32_t>(c & 0x1f);
+          break;
+
+        case 3:
+          result = static_cast<char32_t>(c & 0x0f);
+          break;
+
+        case 4:
+          result = static_cast<char32_t>(c & 0x07);
+          break;
+
+        default:
+          throw Error{ m_position, U"Unable to UTF-8 decode given input." };
+      }
+      for (std::size_t i = 1; i < length; ++i)
+      {
+        const auto c2 = *m_current++;
+
+        if ((c2 & 0xc0) != 0x80)
+        {
+          throw Error{ m_position, U"Unable to UTF-8 decode given input." };
+        }
+        result = (result << 6) | (c2 & 0x3f);
+      }
+
+      return result;
+    }
 
     return c;
+  }
+
+  char32_t
+  Lexer::PeekChar() const
+  {
+    using peelo::unicode::encoding::utf8::sequence_length;
+
+    if (m_current < m_end)
+    {
+      const auto c = *m_current;
+      const auto length = sequence_length(c);
+      char32_t result;
+
+      if (length < 2 || (m_current + length) >= m_end)
+      {
+        return c;
+      }
+      switch (length)
+      {
+        case 2:
+          result = static_cast<char32_t>(c & 0x1f);
+          break;
+
+        case 3:
+          result = static_cast<char32_t>(c & 0x0f);
+          break;
+
+        case 4:
+          result = static_cast<char32_t>(c & 0x07);
+          break;
+
+        default:
+          return 0;
+      }
+      for (std::size_t i = 1; i < length; ++i)
+      {
+        const auto c2 = *(m_current + i);
+
+        if ((c2 & 0xc0) != 0x80)
+        {
+          return 0;
+        }
+        result = (result << 6) | (c2 & 0x3f);
+      }
+
+      return result;
+    }
+
+    return 0;
   }
 
   bool

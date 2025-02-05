@@ -90,6 +90,8 @@ namespace snek::parser
 
     char32_t ReadChar();
 
+    char32_t PeekChar() const;
+
     bool PeekChar(char expected) const;
 
     bool PeekReadChar(char expected);
