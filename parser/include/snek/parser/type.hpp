@@ -56,7 +56,7 @@ namespace snek::parser::type
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
 
-    explicit Base(const Position& position)
+    explicit Base(const std::optional<Position>& position)
       : Node(position) {}
 
     virtual Kind kind() const = 0;
@@ -71,7 +71,7 @@ namespace snek::parser::type
   public:
     using value_type = bool;
 
-    explicit Boolean(const Position& position, value_type value)
+    explicit Boolean(const std::optional<Position>& position, value_type value)
       : Base(position)
       , m_value(value) {}
 
@@ -98,7 +98,7 @@ namespace snek::parser::type
   {
   public:
     explicit Function(
-      const Position& position,
+      const std::optional<Position>& position,
       const std::vector<parameter::ptr>& parameters,
       const ptr& return_type
     )
@@ -131,7 +131,10 @@ namespace snek::parser::type
   class List final : public Base
   {
   public:
-    explicit List(const Position& position, const ptr& element_type)
+    explicit List(
+      const std::optional<Position>& position,
+      const ptr& element_type
+    )
       : Base(position)
       , m_element_type(element_type) {}
 
@@ -168,7 +171,7 @@ namespace snek::parser::type
     };
 
     explicit Multiple(
-      const Position& position,
+      const std::optional<Position>& position,
       MultipleKind multiple_kind,
       const container_type& types
     )
@@ -201,7 +204,10 @@ namespace snek::parser::type
   class Named final : public Base
   {
   public:
-    explicit Named(const Position& position, const std::u32string& name)
+    explicit Named(
+      const std::optional<Position>& position,
+      const std::u32string& name
+    )
       : Base(position)
       , m_name(name) {}
 
@@ -227,7 +233,7 @@ namespace snek::parser::type
   class Null final : public Base
   {
   public:
-    explicit Null(const Position& position)
+    explicit Null(const std::optional<Position>& position)
       : Base(position) {}
 
     inline Kind kind() const override
@@ -248,7 +254,10 @@ namespace snek::parser::type
     using mapped_type = ptr;
     using container_type = std::unordered_map<key_type, mapped_type>;
 
-    explicit Record(const Position& position, const container_type& fields)
+    explicit Record(
+      const std::optional<Position>& position,
+      const container_type& fields
+    )
       : Base(position)
       , m_fields(fields) {}
 
@@ -274,7 +283,10 @@ namespace snek::parser::type
     using value_type = std::u32string;
     using const_reference = const value_type&;
 
-    explicit String(const Position& position, const_reference value)
+    explicit String(
+      const std::optional<Position>& position,
+      const_reference value
+    )
       : Base(position)
       , m_value(value) {}
 

@@ -55,7 +55,7 @@ namespace snek::interpreter::prototype
         {
           U"distribution",
           runtime->float_type(),
-          std::make_shared<parser::expression::Float>(Position{U"", 0, 0}, 0.5)
+          std::make_shared<parser::expression::Float>(std::nullopt, 0.5)
         }
       },
       runtime->boolean_type(),

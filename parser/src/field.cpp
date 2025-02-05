@@ -34,7 +34,7 @@
 namespace snek::parser::field
 {
   static ptr
-  ParseComputed(const Position& position, Lexer& lexer)
+  ParseComputed(const std::optional<Position>& position, Lexer& lexer)
   {
     const auto expression = expression::Parse(lexer);
 
@@ -48,8 +48,8 @@ namespace snek::parser::field
     );
   }
 
-  static ptr
-  ParseSpread(const Position& position, Lexer& lexer)
+  static inline ptr
+  ParseSpread(const std::optional<Position>& position, Lexer& lexer)
   {
     return std::make_shared<Spread>(position, expression::Parse(lexer));
   }

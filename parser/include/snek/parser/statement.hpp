@@ -62,7 +62,7 @@ namespace snek::parser::statement
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
 
-    explicit Base(const Position& position)
+    explicit Base(const std::optional<Position>& position)
       : Node(position) {}
 
     virtual Kind kind() const = 0;
@@ -82,7 +82,7 @@ namespace snek::parser::statement
     using container_type = std::vector<ptr>;
 
     explicit Block(
-      const Position& position,
+      const std::optional<Position>& position,
       const container_type& statements
     )
       : Base(position)
@@ -111,7 +111,7 @@ namespace snek::parser::statement
   {
   public:
     explicit DeclareType(
-      const Position& position,
+      const std::optional<Position>& position,
       bool is_export,
       const std::u32string& name,
       const type::ptr& type
@@ -153,7 +153,7 @@ namespace snek::parser::statement
   {
   public:
     explicit DeclareVar(
-      const Position& position,
+      const std::optional<Position>& position,
       bool exported,
       bool read_only,
       const std::u32string& name,
@@ -229,7 +229,7 @@ namespace snek::parser::statement
   {
   public:
     explicit If(
-      const Position& position,
+      const std::optional<Position>& position,
       const expression::ptr& condition,
       const ptr& then_statement,
       const ptr& else_statement = nullptr
@@ -273,7 +273,7 @@ namespace snek::parser::statement
     using container_type = std::vector<import::ptr>;
 
     explicit Import(
-      const Position& position,
+      const std::optional<Position>& position,
       const container_type& specifiers,
       const std::u32string& path
     )
@@ -307,7 +307,7 @@ namespace snek::parser::statement
   {
   public:
     explicit Jump(
-      const Position& position,
+      const std::optional<Position>& position,
       JumpKind jump_kind,
       const expression::ptr& value = nullptr
     )
@@ -343,7 +343,7 @@ namespace snek::parser::statement
   {
   public:
     explicit While(
-      const Position& position,
+      const std::optional<Position>& position,
       const expression::ptr& condition,
       const ptr& body
     )

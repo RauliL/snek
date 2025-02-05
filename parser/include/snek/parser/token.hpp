@@ -25,8 +25,6 @@
  */
 #pragma once
 
-#include <optional>
-
 #include "snek/macros.hpp"
 #include "snek/parser/node.hpp"
 
@@ -125,7 +123,7 @@ namespace snek::parser
     };
 
     Token(
-      const Position& position = { U"", 1, 1 },
+      const std::optional<Position>& position = std::nullopt,
       Kind kind = Kind::Eof,
       const std::optional<std::u32string>& text = std::nullopt
     )

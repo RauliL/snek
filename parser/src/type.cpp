@@ -52,7 +52,7 @@ namespace snek::parser::type
   }
 
   static ptr
-  ParseFunction(Lexer& lexer, const Position& position)
+  ParseFunction(Lexer& lexer, const std::optional<Position>& position)
   {
     std::vector<parameter::ptr> parameters;
     ptr return_type;
@@ -66,7 +66,7 @@ namespace snek::parser::type
   }
 
   static ptr
-  ParseRecord(Lexer& lexer, const Position& position)
+  ParseRecord(Lexer& lexer, const std::optional<Position>& position)
   {
     Record::container_type fields;
 
@@ -116,7 +116,7 @@ namespace snek::parser::type
   }
 
   static ptr
-  ParseTuple(Lexer& lexer, const Position& position)
+  ParseTuple(Lexer& lexer, const std::optional<Position>& position)
   {
     std::vector<ptr> elements;
 

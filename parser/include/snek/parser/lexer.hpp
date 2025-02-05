@@ -50,7 +50,7 @@ namespace snek::parser
       , m_end(end)
       , m_position{ filename, line, column } {}
 
-    const Position& position() const;
+    std::optional<Position> position() const;
 
     Token ReadToken();
 

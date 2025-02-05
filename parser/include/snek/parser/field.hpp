@@ -74,7 +74,7 @@ namespace snek::parser::field
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
 
-    explicit Base(const Position& position)
+    explicit Base(const std::optional<Position>& position)
       : Node(position) {}
 
     virtual Kind kind() const = 0;
@@ -88,7 +88,7 @@ namespace snek::parser::field
   {
   public:
     explicit Computed(
-      const Position& position,
+      const std::optional<Position>& position,
       const expression::ptr& key,
       const expression::ptr& value
     )
@@ -122,7 +122,7 @@ namespace snek::parser::field
   {
   public:
     explicit Function(
-      const Position& position,
+      const std::optional<Position>& position,
       const std::u32string& name,
       const std::vector<parameter::ptr>& parameters,
       const type::ptr& return_type,
@@ -172,7 +172,7 @@ namespace snek::parser::field
   {
   public:
     explicit Named(
-      const Position& position,
+      const std::optional<Position>& position,
       const std::u32string& name,
       const expression::ptr& value
     )
@@ -206,7 +206,7 @@ namespace snek::parser::field
   {
   public:
     explicit Shorthand(
-      const Position& position,
+      const std::optional<Position>& position,
       const std::u32string& name
     )
       : Base(position)
@@ -232,7 +232,7 @@ namespace snek::parser::field
   {
   public:
     explicit Spread(
-      const Position& position,
+      const std::optional<Position>& position,
       const expression::ptr& expression
     )
       : Base(position)

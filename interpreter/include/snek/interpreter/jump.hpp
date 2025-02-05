@@ -30,13 +30,13 @@
 
 namespace snek::interpreter
 {
-  class Jump
+  class Jump final
   {
   public:
     DEFAULT_COPY_AND_ASSIGN(Jump);
 
     Jump(
-      const Position& position,
+      const std::optional<Position>& position,
       parser::statement::JumpKind kind,
       const value::ptr& value = nullptr
     )
@@ -44,7 +44,7 @@ namespace snek::interpreter
       , m_kind(kind)
       , m_value(value) {}
 
-    inline const Position& position() const
+    inline const std::optional<Position>& position() const
     {
       return m_position;
     }
@@ -60,7 +60,7 @@ namespace snek::interpreter
     }
 
   private:
-    Position m_position;
+    std::optional<Position> m_position;
     parser::statement::JumpKind m_kind;
     value::ptr m_value;
   };

@@ -25,6 +25,8 @@
  */
 #pragma once
 
+#include <optional>
+
 #include "snek/position.hpp"
 
 namespace snek::parser
@@ -32,10 +34,10 @@ namespace snek::parser
   class Node
   {
   public:
-    Node(const Position& position)
+    Node(const std::optional<Position>& position)
       : m_position(position) {}
 
-    inline const Position& position() const
+    inline const std::optional<Position>& position() const
     {
       return m_position;
     }
@@ -43,6 +45,6 @@ namespace snek::parser
     virtual std::u32string ToString() const = 0;
 
   private:
-    Position m_position;
+    std::optional<Position> m_position;
   };
 }

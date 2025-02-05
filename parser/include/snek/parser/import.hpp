@@ -43,7 +43,7 @@ namespace snek::parser::import
     DISALLOW_COPY_AND_ASSIGN(Base);
 
     explicit Base(
-      const Position& position,
+      const std::optional<Position>& position,
       const std::optional<std::u32string>& alias = std::nullopt
     )
       : Node(position)
@@ -68,7 +68,7 @@ namespace snek::parser::import
   {
   public:
     explicit Named(
-      const Position& position,
+      const std::optional<Position>& position,
       const std::u32string name,
       const std::optional<std::u32string>& alias = std::nullopt
     )
@@ -105,7 +105,7 @@ namespace snek::parser::import
   {
   public:
     explicit Star(
-      const Position& position,
+      const std::optional<Position>& position,
       const std::optional<std::u32string>& alias = std::nullopt
     )
       : Base(position, alias) {}

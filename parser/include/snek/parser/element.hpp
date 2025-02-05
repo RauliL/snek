@@ -50,7 +50,7 @@ namespace snek::parser::element
     DISALLOW_COPY_AND_ASSIGN(Base);
 
     explicit Base(
-      const Position& position,
+      const std::optional<Position>& position,
       Kind kind,
       const expression::ptr& expression
     )

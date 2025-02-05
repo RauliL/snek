@@ -45,7 +45,7 @@ namespace snek::parser::expression
   template<class T>
   static std::vector<T>
   ParseMultiple(
-    const Position& position,
+    const std::optional<Position>& position,
     Lexer& lexer,
     T (*callback)(Lexer&),
     Token::Kind closing_token,
@@ -179,7 +179,7 @@ namespace snek::parser::expression
   }
 
   static inline std::vector<ptr>
-  ParseArgumentList(const Position& position, Lexer& lexer)
+  ParseArgumentList(const std::optional<Position>& position, Lexer& lexer)
   {
     return ParseMultiple(
       position,
@@ -219,7 +219,7 @@ namespace snek::parser::expression
 
   static ptr
   ParseFunctionRest(
-    const Position& position,
+    const std::optional<Position>& position,
     const std::vector<parameter::ptr>& parameters,
     Lexer& lexer
   )
@@ -239,8 +239,8 @@ namespace snek::parser::expression
     );
   }
 
-  static ptr
-  ParseFunction(const Position& position, Lexer& lexer)
+  static inline ptr
+  ParseFunction(const std::optional<Position>& position, Lexer& lexer)
   {
     return ParseFunctionRest(
       position,
@@ -250,7 +250,7 @@ namespace snek::parser::expression
   }
 
   static ptr
-  ParseParenthesized(const Position& position, Lexer& lexer)
+  ParseParenthesized(const std::optional<Position>& position, Lexer& lexer)
   {
     if (!PeekFunction(lexer))
     {

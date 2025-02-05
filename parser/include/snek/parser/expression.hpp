@@ -94,7 +94,7 @@ namespace snek::parser::expression
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
 
-    explicit Base(const Position& position)
+    explicit Base(const std::optional<Position>& position)
       : Node(position) {}
 
     virtual Kind kind() const = 0;
@@ -127,7 +127,7 @@ namespace snek::parser::expression
     };
 
     explicit Assign(
-      const Position& position,
+      const std::optional<Position>& position,
       const ptr& variable,
       const ptr& value,
       const std::optional<Operator>& op = std::nullopt
@@ -231,7 +231,7 @@ namespace snek::parser::expression
   class Boolean final : public Base
   {
   public:
-    explicit Boolean(const Position& position, bool value)
+    explicit Boolean(const std::optional<Position>& position, bool value)
       : Base(position)
       , m_value(value) {}
 
@@ -258,7 +258,7 @@ namespace snek::parser::expression
   {
   public:
     explicit Call(
-      const Position& position,
+      const std::optional<Position>& position,
       const ptr& expression,
       const std::vector<ptr>& arguments,
       bool conditional
@@ -299,7 +299,7 @@ namespace snek::parser::expression
   class Float final : public Base
   {
   public:
-    explicit Float(const Position& position, double value)
+    explicit Float(const std::optional<Position>& position, double value)
       : Base(position)
       , m_value(value) {}
 
@@ -323,7 +323,7 @@ namespace snek::parser::expression
   {
   public:
     explicit Function(
-      const Position& position,
+      const std::optional<Position>& position,
       const std::vector<parameter::ptr>& parameters,
       const type::ptr& return_type,
       const statement::ptr& body
@@ -364,7 +364,10 @@ namespace snek::parser::expression
   class Id final : public Base
   {
   public:
-    explicit Id(const Position& position, const std::u32string& identifier)
+    explicit Id(
+      const std::optional<Position>& position,
+      const std::u32string& identifier
+    )
       : Base(position)
       , m_identifier(identifier) {}
 
@@ -395,7 +398,7 @@ namespace snek::parser::expression
   class Int final : public Base
   {
   public:
-    explicit Int(const Position& position, std::int64_t value)
+    explicit Int(const std::optional<Position>& position, std::int64_t value)
       : Base(position)
       , m_value(value) {}
 
@@ -420,7 +423,10 @@ namespace snek::parser::expression
   public:
     using container_type = std::vector<element::ptr>;
 
-    explicit List(const Position& position, const container_type& elements)
+    explicit List(
+      const std::optional<Position>& position,
+      const container_type& elements
+    )
       : Base(position)
       , m_elements(elements) {}
 
@@ -443,7 +449,7 @@ namespace snek::parser::expression
   class Null final : public Base
   {
   public:
-    explicit Null(const Position& position)
+    explicit Null(const std::optional<Position>& position)
       : Base(position) {}
 
     inline Kind kind() const override
@@ -461,7 +467,7 @@ namespace snek::parser::expression
   {
   public:
     explicit Property(
-      const Position& position,
+      const std::optional<Position>& position,
       const ptr& expression,
       const std::u32string& name,
       bool conditional
@@ -504,7 +510,10 @@ namespace snek::parser::expression
   public:
     using container_type = std::vector<field::ptr>;
 
-    explicit Record(const Position& position, const container_type& fields)
+    explicit Record(
+      const std::optional<Position>& position,
+      const container_type& fields
+    )
       : Base(position)
       , m_fields(fields) {}
 
@@ -527,7 +536,10 @@ namespace snek::parser::expression
   class Spread final : public Base
   {
   public:
-    explicit Spread(const Position& position, const ptr& expression)
+    explicit Spread(
+      const std::optional<Position>& position,
+      const ptr& expression
+    )
       : Base(position)
       , m_expression(expression) {}
 
@@ -553,7 +565,10 @@ namespace snek::parser::expression
   class String final : public Base
   {
   public:
-    explicit String(const Position& position, const std::u32string& value)
+    explicit String(
+      const std::optional<Position>& position,
+      const std::u32string& value
+    )
       : Base(position)
       , m_value(value) {}
 
@@ -577,7 +592,7 @@ namespace snek::parser::expression
   {
   public:
     explicit Ternary(
-      const Position& position,
+      const std::optional<Position>& position,
       const ptr& condition,
       const ptr& then_expression,
       const ptr& else_expression
@@ -619,7 +634,7 @@ namespace snek::parser::expression
   {
   public:
     explicit Subscript(
-      const Position& position,
+      const std::optional<Position>& position,
       const ptr& expression,
       const ptr& index,
       bool conditional
@@ -670,7 +685,11 @@ namespace snek::parser::expression
 
     static std::u32string GetMethodName(Operator op);
 
-    explicit Unary(const Position& position, Operator op, const ptr& operand)
+    explicit Unary(
+      const std::optional<Position>& position,
+      Operator op,
+      const ptr& operand
+    )
       : Base(position)
       , m_op(op)
       , m_operand(operand) {}

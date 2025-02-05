@@ -52,7 +52,7 @@ namespace snek::parser::parameter
     DISALLOW_COPY_AND_ASSIGN(Base);
 
     explicit Base(
-      const Position& position,
+      const std::optional<Position>& position,
       const std::u32string& name,
       const type::ptr& type = nullptr,
       const expression::ptr& default_value = nullptr,

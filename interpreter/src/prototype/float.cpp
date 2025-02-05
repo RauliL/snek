@@ -70,7 +70,7 @@ namespace snek::interpreter::prototype
       }
     );
     const auto null_expression = std::make_shared<parser::expression::Null>(
-      Position{ U"", 0, 0 }
+      std::nullopt
     );
 
     fields[U"random"] = value::Function::MakeNative(

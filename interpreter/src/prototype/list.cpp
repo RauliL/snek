@@ -310,7 +310,7 @@ namespace snek::interpreter::prototype
         {
           U"initial",
           runtime->any_type(),
-          std::make_shared<parser::expression::Null>(Position{ U"", 0, 0 })
+          std::make_shared<parser::expression::Null>(std::nullopt)
         },
       },
       runtime->list_type(),

@@ -57,7 +57,7 @@ namespace snek::parser
     { U"while", Token::Kind::KeywordWhile },
   };
 
-  const Position&
+  std::optional<Position>
   Lexer::position() const
   {
     return m_token_queue.empty()
@@ -290,11 +290,11 @@ namespace snek::parser
       if (PeekReadChar('\n') && !separator_count)
       {
         m_token_queue.push_back(Token(
-          {
+          std::make_optional<Position>({
             m_position.filename,
             m_position.line,
             m_position.column - 1
-          },
+          }),
           Token::Kind::NewLine
         ));
         break;
