@@ -462,7 +462,7 @@ namespace snek::interpreter
     const auto new_value = value::CallMethod(
       runtime,
       value,
-      U"-",
+      U"+",
       { runtime.MakeInt(1) },
       expression->position()
     );
