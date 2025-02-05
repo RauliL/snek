@@ -333,6 +333,20 @@ namespace snek::parser::expression
       case Token::Kind::LeftParen:
         return ParseParenthesized(token.position(), lexer);
 
+      case Token::Kind::Increment:
+        return std::make_shared<Increment>(
+          token.position(),
+          Parse(lexer),
+          true
+        );
+
+      case Token::Kind::Decrement:
+        return std::make_shared<Decrement>(
+          token.position(),
+          Parse(lexer),
+          true
+        );
+
       default:
         throw Error{
           token.position(),
@@ -678,6 +692,22 @@ namespace snek::parser::expression
           : std::make_optional(static_cast<Assign::Operator>(kind))
       );
     }
+    else if (lexer.PeekReadToken(Token::Kind::Increment))
+    {
+      return std::make_shared<Increment>(
+        expression->position(),
+        expression,
+        false
+      );
+    }
+    else if (lexer.PeekToken(Token::Kind::Decrement))
+    {
+      return std::make_shared<Decrement>(
+        expression->position(),
+        expression,
+        false
+      );
+    }
 
     return expression;
   }
@@ -831,6 +861,14 @@ namespace snek::parser::expression
   }
 
   std::u32string
+  Decrement::ToString() const
+  {
+    return m_pre
+      ? U"--" + m_variable->ToString()
+      : m_variable->ToString() + U"--";
+  }
+
+  std::u32string
   Function::ToString() const
   {
     std::u32string result(1, U'(');
@@ -866,6 +904,14 @@ namespace snek::parser::expression
   Float::ToString() const
   {
     return utils::DoubleToString(m_value);
+  }
+
+  std::u32string
+  Increment::ToString() const
+  {
+    return m_pre
+      ? U"++" + m_variable->ToString()
+      : m_variable->ToString() + U"++";
   }
 
   std::u32string

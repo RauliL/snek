@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "snek/error.hpp"
+#include "snek/interpreter/assign.hpp"
 #include "snek/interpreter/evaluate.hpp"
 #include "snek/interpreter/resolve.hpp"
 #include "snek/parser/element.hpp"
@@ -269,18 +270,7 @@ namespace snek::interpreter
         position
       );
     }
-    if (variable->kind() == Kind::Id)
-    {
-      if (scope)
-      {
-        scope->SetVariable(position, As<Id>(variable)->identifier(), value);
-      }
-    } else {
-      throw Error({
-        expression->position(),
-        U"Cannot assign into `" + variable->ToString() + U"'."
-      });
-    }
+    AssignTo(scope, variable, value);
 
     return value;
   }
@@ -396,6 +386,28 @@ namespace snek::interpreter
   }
 
   static value::ptr
+  EvaluateDecrement(
+    Runtime& runtime,
+    const Scope::ptr& scope,
+    const Decrement* expression
+  )
+  {
+    const auto& variable = expression->variable();
+    auto value = EvaluateExpression(runtime, scope, variable);
+    const auto new_value = value::CallMethod(
+      runtime,
+      value,
+      U"+",
+      { runtime.MakeInt(1) },
+      expression->position()
+    );
+
+    AssignTo(scope, variable, new_value);
+
+    return expression->pre() ? new_value : value;
+  }
+
+  static value::ptr
   EvaluateFunction(
     Runtime& runtime,
     const Scope::ptr& scope,
@@ -436,6 +448,28 @@ namespace snek::interpreter
     }
 
     throw Error{ expression->position(), U"Unknown variable: `" + id + U"'." };
+  }
+
+  static value::ptr
+  EvaluateIncrement(
+    Runtime& runtime,
+    const Scope::ptr& scope,
+    const Increment* expression
+  )
+  {
+    const auto& variable = expression->variable();
+    auto value = EvaluateExpression(runtime, scope, variable);
+    const auto new_value = value::CallMethod(
+      runtime,
+      value,
+      U"-",
+      { runtime.MakeInt(1) },
+      expression->position()
+    );
+
+    AssignTo(scope, variable, new_value);
+
+    return expression->pre() ? new_value : value;
   }
 
   static value::ptr
@@ -633,6 +667,9 @@ namespace snek::interpreter
       case Kind::Call:
         return EvaluateCall(runtime, scope, As<Call>(expression));
 
+      case Kind::Decrement:
+        return EvaluateDecrement(runtime, scope, As<Decrement>(expression));
+
       case Kind::Float:
         return std::make_shared<value::Float>(
           As<Float>(expression)->value()
@@ -643,6 +680,9 @@ namespace snek::interpreter
 
       case Kind::Id:
         return EvaluateId(scope, As<Id>(expression));
+
+      case Kind::Increment:
+        return EvaluateIncrement(runtime, scope, As<Increment>(expression));
 
       case Kind::Int:
         return runtime.MakeInt(As<Int>(expression)->value());

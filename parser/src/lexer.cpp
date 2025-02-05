@@ -659,6 +659,8 @@ namespace snek::parser
         kind =
           m_input->PeekRead(U'=')
             ? Token::Kind::AssignAdd
+            : m_input->PeekRead(U'+')
+            ? Token::Kind::Increment
             : Token::Kind::Add;
         break;
 
@@ -668,6 +670,8 @@ namespace snek::parser
             ? Token::Kind::AssignSub
             : m_input->PeekRead(U'>')
             ? Token::Kind::Arrow
+            : m_input->PeekRead(U'-')
+            ? Token::Kind::Decrement
             : Token::Kind::Sub;
         break;
 

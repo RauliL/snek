@@ -74,9 +74,11 @@ namespace snek::parser::expression
     Binary,
     Boolean,
     Call,
+    Decrement,
     Float,
     Function,
     Id,
+    Increment,
     Int,
     List,
     Null,
@@ -296,6 +298,40 @@ namespace snek::parser::expression
     const bool m_conditional;
   };
 
+  class Decrement final : public Base
+  {
+  public:
+    explicit Decrement(
+      const std::optional<Position>& position,
+      const ptr& variable,
+      bool pre
+    )
+      : Base(position)
+      , m_variable(variable)
+      , m_pre(pre) {}
+
+    inline Kind kind() const override
+    {
+      return Kind::Decrement;
+    }
+
+    inline const ptr& variable() const
+    {
+      return m_variable;
+    }
+
+    inline bool pre() const
+    {
+      return m_pre;
+    }
+
+    std::u32string ToString() const override;
+
+  private:
+    const ptr m_variable;
+    const bool m_pre;
+  };
+
   class Float final : public Base
   {
   public:
@@ -393,6 +429,40 @@ namespace snek::parser::expression
 
   private:
     const std::u32string m_identifier;
+  };
+
+  class Increment final : public Base
+  {
+  public:
+    explicit Increment(
+      const std::optional<Position>& position,
+      const ptr& variable,
+      bool pre
+    )
+      : Base(position)
+      , m_variable(variable)
+      , m_pre(pre) {}
+
+    inline Kind kind() const override
+    {
+      return Kind::Decrement;
+    }
+
+    inline const ptr& variable() const
+    {
+      return m_variable;
+    }
+
+    inline bool pre() const
+    {
+      return m_pre;
+    }
+
+    std::u32string ToString() const override;
+
+  private:
+    const ptr m_variable;
+    const bool m_pre;
   };
 
   class Int final : public Base

@@ -26,6 +26,7 @@ include(../cmake/utils.cmake)
 add_library(
   SnekInterpreter
   ./src/api.cpp
+  ./src/assign.cpp
   ./src/evaluate.cpp
   ./src/execute.cpp
   ./src/module.cpp

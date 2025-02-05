@@ -87,6 +87,8 @@ namespace snek::parser
       RightShift,
       LogicalAnd,
       LogicalOr,
+      Increment,
+      Decrement,
 
       // Assignment operators.
       Assign,

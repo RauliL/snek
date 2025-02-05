@@ -161,6 +161,12 @@ namespace snek::parser
       case Token::Kind::LogicalOr:
         return U"`||'";
 
+      case Token::Kind::Increment:
+        return U"`++'";
+
+      case Token::Kind::Decrement:
+        return U"`--'";
+
       case Token::Kind::Assign:
         return U"`='";
 

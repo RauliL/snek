@@ -305,6 +305,10 @@ namespace snek::interpreter
       case Kind::Call:
         return ResolveCall(runtime, scope, As<Call>(expression));
 
+      // TODO: Maybe return number instead.
+      case Kind::Decrement:
+        return nullptr;
+
       case Kind::Float:
         return runtime.float_type();
 
@@ -312,6 +316,10 @@ namespace snek::interpreter
         return ResolveFunction(runtime, scope, As<Function>(expression));
 
       case Kind::Id:
+        return nullptr;
+
+      // TODO: Maybe return number instead.
+      case Kind::Increment:
         return nullptr;
 
       case Kind::Int:
