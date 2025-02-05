@@ -124,7 +124,32 @@ namespace snek::interpreter
       ))
 
     , m_root_scope(Scope::MakeRootScope(this))
-    , m_module_importer(module_importer) {}
+    , m_module_importer(module_importer)
+#if defined(SNEK_ENABLE_BOOLEAN_CACHE)
+    , m_true_value(std::make_shared<value::Boolean>(true))
+    , m_false_value(std::make_shared<value::Boolean>(false))
+#endif
+  {
+#if defined(SNEK_ENABLE_INT_CACHE)
+    for (std::size_t i = 0; i < kIntCacheSize; ++i)
+    {
+      m_int_cache[i] = std::make_shared<value::Int>(kIntCacheMin + i);
+    }
+#endif
+  }
+
+  value::ptr
+  Runtime::MakeInt(std::int64_t value)
+  {
+#if defined(SNEK_ENABLE_INT_CACHE)
+    if (value >= kIntCacheMin && value < kIntCacheMax)
+    {
+      return m_int_cache[value + -kIntCacheMin];
+    }
+#endif
+
+    return std::make_shared<value::Int>(value);
+  }
 
   value::ptr
   Runtime::RunScript(

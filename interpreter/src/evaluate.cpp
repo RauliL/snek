@@ -595,7 +595,7 @@ namespace snek::interpreter
 
     if (op == Unary::Operator::Not)
     {
-      return std::make_shared<value::Boolean>(!value::ToBoolean(operand));
+      return runtime.MakeBoolean(!value::ToBoolean(operand));
     }
 
     return value::CallMethod(
@@ -628,9 +628,7 @@ namespace snek::interpreter
         return EvaluateBinary(runtime, scope, As<Binary>(expression));
 
       case Kind::Boolean:
-        return std::make_shared<value::Boolean>(
-          As<Boolean>(expression)->value()
-        );
+        return runtime.MakeBoolean(As<Boolean>(expression)->value());
 
       case Kind::Call:
         return EvaluateCall(runtime, scope, As<Call>(expression));
@@ -647,9 +645,7 @@ namespace snek::interpreter
         return EvaluateId(scope, As<Id>(expression));
 
       case Kind::Int:
-        return std::make_shared<value::Int>(
-          As<Int>(expression)->value()
-        );
+        return runtime.MakeInt(As<Int>(expression)->value());
 
       case Kind::List:
         return EvaluateList(runtime, scope, As<List>(expression));

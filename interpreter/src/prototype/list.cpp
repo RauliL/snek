@@ -191,11 +191,9 @@ namespace snek::interpreter::prototype
    * Returns size of the list.
    */
   static value::ptr
-  Size(Runtime&, const std::vector<value::ptr>& arguments)
+  Size(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(As<value::List>(
-      arguments[0]
-    )->GetSize());
+    return runtime.MakeInt(As<value::List>(arguments[0])->GetSize());
   }
 
   /**

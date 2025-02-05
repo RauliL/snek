@@ -49,12 +49,9 @@ namespace snek::interpreter::prototype
    * Tests whether two objects are equal with each other.
    */
   static value::ptr
-  Equals(Runtime&, const std::vector<value::ptr>& arguments)
+  Equals(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Boolean>(value::Equals(
-      arguments[0],
-      arguments[1]
-    ));
+    return runtime.MakeBoolean(value::Equals(arguments[0], arguments[1]));
   }
 
   /**
@@ -66,7 +63,7 @@ namespace snek::interpreter::prototype
   static value::ptr
   NotEquals(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Boolean>(!value::ToBoolean(
+    return runtime.MakeBoolean(!value::ToBoolean(
       value::CallMethod(
         runtime,
         arguments[0],

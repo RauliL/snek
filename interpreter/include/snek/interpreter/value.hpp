@@ -27,6 +27,7 @@
 
 #include <functional>
 
+#include "snek/interpreter/config.hpp"
 #include "snek/interpreter/parameter.hpp"
 #include "snek/parser/parameter.hpp"
 #include "snek/parser/statement.hpp"
@@ -56,6 +57,13 @@ namespace snek::interpreter::value
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
 
+  #if defined(SNEK_ENABLE_PROPERTY_CACHE)
+    using property_cache_type = std::unordered_map<
+      std::u32string,
+      std::shared_ptr<Base>
+    >;
+  #endif
+
     explicit Base() {}
 
     virtual Kind kind() const = 0;
@@ -65,6 +73,16 @@ namespace snek::interpreter::value
     virtual std::u32string ToString() const = 0;
 
     virtual std::u32string ToSource() const = 0;
+
+#if defined(SNEK_ENABLE_PROPERTY_CACHE)
+  private:
+    mutable property_cache_type m_property_cache;
+    friend std::optional<std::shared_ptr<Base>> GetProperty(
+      const Runtime&,
+      const std::shared_ptr<Base>&,
+      const std::u32string&
+    );
+#endif
   };
 
   using ptr = std::shared_ptr<Base>;
@@ -121,18 +139,21 @@ namespace snek::interpreter::value
     return KindOf(value) == Kind::String;
   }
 
-  ptr GetPrototypeOf(
+  ptr
+  GetPrototypeOf(
     const Runtime& runtime,
     const ptr& value
   );
 
-  std::optional<ptr> GetProperty(
+  std::optional<ptr>
+  GetProperty(
     const Runtime& runtime,
     const ptr& value,
     const std::u32string& name
   );
 
-  ptr CallMethod(
+  ptr
+  CallMethod(
     Runtime& runtime,
     const ptr& value,
     const std::u32string& name,

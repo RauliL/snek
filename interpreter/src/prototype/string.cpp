@@ -61,14 +61,12 @@ namespace snek::interpreter::prototype
    * Returns Unicode code point from given index.
    */
   static value::ptr
-  CodePointAt(Runtime&, const std::vector<value::ptr>& arguments)
+  CodePointAt(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto string = AsString(arguments[0]);
     const auto index = AsIndex(string, arguments[1]);
 
-    return std::make_shared<value::Int>(
-      static_cast<std::int64_t>(string->At(index))
-    );
+    return runtime.MakeInt(static_cast<std::int64_t>(string->At(index)));
   }
 
   /**
@@ -77,9 +75,9 @@ namespace snek::interpreter::prototype
    * Returns length of the string.
    */
   static value::ptr
-  Length(Runtime&, const std::vector<value::ptr>& arguments)
+  Length(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(AsString(arguments[0])->GetLength());
+    return runtime.MakeInt(AsString(arguments[0])->GetLength());
   }
 
   /**

@@ -25,6 +25,7 @@
  */
 #pragma once
 
+#include "snek/interpreter/config.hpp"
 #include "snek/interpreter/scope.hpp"
 
 namespace snek::interpreter
@@ -39,6 +40,12 @@ namespace snek::interpreter
   class Runtime
   {
   public:
+#if defined(SNEK_ENABLE_INT_CACHE)
+    static constexpr std::int64_t kIntCacheMin = -5;
+    static constexpr std::int64_t kIntCacheMax = 256;
+    static constexpr std::size_t kIntCacheSize = -kIntCacheMin + kIntCacheMax;
+#endif
+
     using module_importer_type = std::function<
       Scope::ptr(
         const std::optional<Position>&,
@@ -153,6 +160,17 @@ namespace snek::interpreter
       return m_root_scope;
     }
 
+    inline value::ptr MakeBoolean(bool value)
+    {
+#if defined(SNEK_ENABLE_BOOLEAN_CACHE)
+      return value ? m_true_value : m_false_value;
+#else
+      return std::make_shared<value::Boolean>(value);
+#endif
+    }
+
+    value::ptr MakeInt(std::int64_t value);
+
     value::ptr RunScript(
       const Scope::ptr& scope,
       const std::string& source,
@@ -192,5 +210,13 @@ namespace snek::interpreter
 
     module_importer_type m_module_importer;
     std::unordered_map<std::u32string, Scope::ptr> m_imported_modules;
+
+#if defined(SNEK_ENABLE_BOOLEAN_CACHE)
+    value::ptr m_true_value;
+    value::ptr m_false_value;
+#endif
+#if defined(SNEK_ENABLE_INT_CACHE)
+    value::ptr m_int_cache[kIntCacheSize];
+#endif
   };
 }

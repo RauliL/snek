@@ -70,7 +70,7 @@ namespace snek::interpreter::prototype
 
   template<class FloatOp, class IntOp>
   static value::ptr
-  DoOp(const std::vector<value::ptr>& arguments)
+  DoOp(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto a = AsNumber(arguments[0]);
     const auto b = AsNumber(arguments[1]);
@@ -83,7 +83,7 @@ namespace snek::interpreter::prototype
     )
     {
       // Repeat the operation with full integer precision.
-      return std::make_shared<value::Int>(IntOp()(a->ToInt(), b->ToInt()));
+      return runtime.MakeInt(IntOp()(a->ToInt(), b->ToInt()));
     }
 
     return std::make_shared<value::Float>(result);
@@ -91,12 +91,12 @@ namespace snek::interpreter::prototype
 
   template<class Op>
   static value::ptr
-  DoBitOp(const std::vector<value::ptr>& arguments)
+  DoBitOp(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto a = AsNumber(arguments[0]);
     const auto b = AsNumber(arguments[1]);
 
-    return std::make_shared<value::Int>(Op()(a->ToInt(), b->ToInt()));
+    return runtime.MakeInt(Op()(a->ToInt(), b->ToInt()));
   }
 
   /**
@@ -105,9 +105,9 @@ namespace snek::interpreter::prototype
    * Rounds the number to nearest integer value.
    */
   static value::ptr
-  Round(Runtime&, const std::vector<value::ptr>& arguments)
+  Round(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(
+    return runtime.MakeInt(
       static_cast<std::int64_t>(std::round(AsFloat(arguments[0])))
     );
   }
@@ -118,9 +118,9 @@ namespace snek::interpreter::prototype
    * Computes the smallest integer value not less than given number.
    */
   static value::ptr
-  Ceil(Runtime&, const std::vector<value::ptr>& arguments)
+  Ceil(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(
+    return runtime.MakeInt(
       static_cast<std::int64_t>(std::ceil(AsFloat(arguments[0])))
     );
   }
@@ -131,9 +131,9 @@ namespace snek::interpreter::prototype
    * Computes the largest integer value not greater than given number.
    */
   static value::ptr
-  Floor(Runtime&, const std::vector<value::ptr>& arguments)
+  Floor(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(
+    return runtime.MakeInt(
       static_cast<std::int64_t>(std::floor(AsFloat(arguments[0])))
     );
   }
@@ -144,9 +144,12 @@ namespace snek::interpreter::prototype
    * Performs addition on the two given numbers.
    */
   static value::ptr
-  Add(Runtime&, const std::vector<value::ptr>& arguments)
+  Add(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return DoOp<std::plus<double>, std::plus<std::int64_t>>(arguments);
+    return DoOp<std::plus<double>, std::plus<std::int64_t>>(
+      runtime,
+      arguments
+    );
   }
 
   /**
@@ -155,9 +158,12 @@ namespace snek::interpreter::prototype
    * Performs substraction on the two given numbers.
    */
   static value::ptr
-  Sub(Runtime&, const std::vector<value::ptr>& arguments)
+  Sub(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return DoOp<std::minus<double>, std::minus<std::int64_t>>(arguments);
+    return DoOp<std::minus<double>, std::minus<std::int64_t>>(
+      runtime,
+      arguments
+    );
   }
 
   /**
@@ -166,12 +172,12 @@ namespace snek::interpreter::prototype
    * Performs multiplication on the two given numbers.
    */
   static value::ptr
-  Mul(Runtime&, const std::vector<value::ptr>& arguments)
+  Mul(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     return DoOp<
       std::multiplies<double>,
       std::multiplies<std::int64_t>
-    >(arguments);
+    >(runtime, arguments);
   }
 
   /**
@@ -180,9 +186,12 @@ namespace snek::interpreter::prototype
    * Performs division on the two given numbers.
    */
   static value::ptr
-  Div(Runtime&, const std::vector<value::ptr>& arguments)
+  Div(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return DoOp<std::divides<double>, std::divides<std::int64_t>>(arguments);
+    return DoOp<std::divides<double>, std::divides<std::int64_t>>(
+      runtime,
+      arguments
+    );
   }
 
   /**
@@ -192,7 +201,7 @@ namespace snek::interpreter::prototype
    * i.e. the remainder after floor division.
    */
   static value::ptr
-  Mod(Runtime&, const std::vector<value::ptr>& arguments)
+  Mod(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto a = AsNumber(arguments[0]);
     const auto b = AsNumber(arguments[1]);
@@ -218,7 +227,7 @@ namespace snek::interpreter::prototype
         return std::make_shared<value::Float>(NAN);
       }
 
-      return std::make_shared<value::Int>(dividend % divider);
+      return runtime.MakeInt(dividend % divider);
     }
   }
 
@@ -228,9 +237,9 @@ namespace snek::interpreter::prototype
    * Performs bitwise and on the two given numbers.
    */
   static value::ptr
-  BitwiseAnd(Runtime&, const std::vector<value::ptr>& arguments)
+  BitwiseAnd(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return DoBitOp<std::bit_and<std::int64_t>>(arguments);
+    return DoBitOp<std::bit_and<std::int64_t>>(runtime, arguments);
   }
 
   /**
@@ -239,9 +248,9 @@ namespace snek::interpreter::prototype
    * Performs bitwise and on the two given numbers.
    */
   static value::ptr
-  BitwiseOr(Runtime&, const std::vector<value::ptr>& arguments)
+  BitwiseOr(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return DoBitOp<std::bit_or<std::int64_t>>(arguments);
+    return DoBitOp<std::bit_or<std::int64_t>>(runtime, arguments);
   }
 
   /**
@@ -250,9 +259,9 @@ namespace snek::interpreter::prototype
    * Performs bitwise and on the two given numbers.
    */
   static value::ptr
-  BitwiseXor(Runtime&, const std::vector<value::ptr>& arguments)
+  BitwiseXor(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return DoBitOp<std::bit_xor<std::int64_t>>(arguments);
+    return DoBitOp<std::bit_xor<std::int64_t>>(runtime, arguments);
   }
 
   /**
@@ -261,9 +270,9 @@ namespace snek::interpreter::prototype
    * Flips the bits of the value.
    */
   static value::ptr
-  BitwiseNot(Runtime&, const std::vector<value::ptr>& arguments)
+  BitwiseNot(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(~AsInt(arguments[0]));
+    return runtime.MakeInt(~AsInt(arguments[0]));
   }
 
   /**
@@ -272,11 +281,9 @@ namespace snek::interpreter::prototype
    * Returns the first value with bits shifted left by the second value.
    */
   static value::ptr
-  LeftShift(Runtime&, const std::vector<value::ptr>& arguments)
+  LeftShift(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(
-      AsInt(arguments[0]) << AsInt(arguments[1])
-    );
+    return runtime.MakeInt(AsInt(arguments[0]) << AsInt(arguments[1]));
   }
 
   /**
@@ -285,11 +292,9 @@ namespace snek::interpreter::prototype
    * Returns the first value with bits shifted right by the second value.
    */
   static value::ptr
-  RightShift(Runtime&, const std::vector<value::ptr>& arguments)
+  RightShift(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Int>(
-      AsInt(arguments[0]) >> AsInt(arguments[1])
-    );
+    return runtime.MakeInt(AsInt(arguments[0]) >> AsInt(arguments[1]));
   }
 
   /**
@@ -298,9 +303,9 @@ namespace snek::interpreter::prototype
    * Returns true if number value is less than the other one.
    */
   static value::ptr
-  LessThan(Runtime&, const std::vector<value::ptr>& arguments)
+  LessThan(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Boolean>(DoCompare(arguments) < 0);
+    return runtime.MakeBoolean(DoCompare(arguments) < 0);
   }
 
   /**
@@ -309,9 +314,9 @@ namespace snek::interpreter::prototype
    * Returns true if number value is greater than the other one.
    */
   static value::ptr
-  GreaterThan(Runtime&, const std::vector<value::ptr>& arguments)
+  GreaterThan(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Boolean>(DoCompare(arguments) > 0);
+    return runtime.MakeBoolean(DoCompare(arguments) > 0);
   }
 
   /**
@@ -320,9 +325,9 @@ namespace snek::interpreter::prototype
    * Returns true if number value is less than the other one or equal.
    */
   static value::ptr
-  LessThanOrEqual(Runtime&, const std::vector<value::ptr>& arguments)
+  LessThanOrEqual(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Boolean>(DoCompare(arguments) <= 0);
+    return runtime.MakeBoolean(DoCompare(arguments) <= 0);
   }
 
   /**
@@ -331,9 +336,9 @@ namespace snek::interpreter::prototype
    * Returns true if number value is greater than the other one or equal.
    */
   static value::ptr
-  GreaterThanOrEqual(Runtime&, const std::vector<value::ptr>& arguments)
+  GreaterThanOrEqual(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<value::Boolean>(DoCompare(arguments) >= 0);
+    return runtime.MakeBoolean(DoCompare(arguments) >= 0);
   }
 
   /**
@@ -353,7 +358,7 @@ namespace snek::interpreter::prototype
    * Negates number value.
    */
   static value::ptr
-  UnaryMinus(Runtime&, const std::vector<value::ptr>& arguments)
+  UnaryMinus(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     if (value::IsFloat(arguments[0]))
     {
@@ -362,7 +367,7 @@ namespace snek::interpreter::prototype
       );
     }
 
-    return std::make_shared<value::Int>(
+    return runtime.MakeInt(
       -static_cast<const value::Int*>(arguments[0].get())->value()
     );
   }

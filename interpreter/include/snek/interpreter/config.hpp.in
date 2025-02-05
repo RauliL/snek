@@ -23,43 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <random>
+#pragma once
 
-#include "snek/interpreter/runtime.hpp"
-
-namespace snek::interpreter::prototype
-{
-  /**
-   * Boolean#random(distribution: Float = 0.5) => Boolean
-   *
-   * Generates random boolean value.
-   */
-  static value::ptr
-  Random(Runtime& runtime, const std::vector<value::ptr>& arguments)
-  {
-    thread_local static std::random_device device;
-    thread_local static std::mt19937 generator(device());
-
-    std::bernoulli_distribution d(
-      static_cast<const value::Float*>(arguments[0].get())->value()
-    );
-
-    return runtime.MakeBoolean(d(generator));
-  }
-
-  void
-  MakeBoolean(const Runtime* runtime, value::Record::container_type& fields)
-  {
-    fields[U"random"] = value::Function::MakeNative(
-      {
-        {
-          U"distribution",
-          runtime->float_type(),
-          std::make_shared<parser::expression::Float>(Position{U"", 0, 0}, 0.5)
-        }
-      },
-      runtime->boolean_type(),
-      Random
-    );
-  }
-}
+#cmakedefine SNEK_ENABLE_BOOLEAN_CACHE 1
+#cmakedefine SNEK_ENABLE_INT_CACHE 1
+#cmakedefine SNEK_ENABLE_PROPERTY_CACHE 1
