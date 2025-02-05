@@ -55,79 +55,12 @@ namespace snek::interpreter::value
     private:
       const container_type m_elements;
     };
-
-    class ConcatList final : public List
-    {
-    public:
-      explicit ConcatList(
-        const std::shared_ptr<List>& left,
-        const std::shared_ptr<List>& right
-      )
-        : m_left(left)
-        , m_right(right) {}
-
-      inline size_type GetSize() const override
-      {
-        return m_left->GetSize() + m_right->GetSize();
-      }
-
-      value_type At(size_type index) const override
-      {
-        const auto left_size = m_left->GetSize();
-
-        if (index < left_size)
-        {
-          return m_left->At(index);
-        } else {
-          return m_right->At(index - left_size);
-        }
-      }
-
-    private:
-      const std::shared_ptr<List> m_left;
-      const std::shared_ptr<List> m_right;
-    };
-
-    class ReverseList final : public List
-    {
-    public:
-      explicit ReverseList(const std::shared_ptr<List>& list)
-        : m_list(list) {}
-
-      inline size_type GetSize() const override
-      {
-        return m_list->GetSize();
-      }
-
-      inline value_type At(size_type index) const override
-      {
-        return m_list->At(GetSize() - index - 1);
-      }
-
-    private:
-      const std::shared_ptr<List> m_list;
-    };
   }
 
   std::shared_ptr<List>
   List::Make(const std::vector<value_type>& elements)
   {
     return std::make_shared<VectorList>(elements);
-  }
-
-  std::shared_ptr<List>
-  List::Concat(
-    const std::shared_ptr<List>& left,
-    const std::shared_ptr<List>& right
-  )
-  {
-    return std::make_shared<ConcatList>(left, right);
-  }
-
-  std::shared_ptr<List>
-  List::Reverse(const std::shared_ptr<List>& list)
-  {
-    return std::make_shared<ReverseList>(list);
   }
 
   bool

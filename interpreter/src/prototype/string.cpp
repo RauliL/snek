@@ -80,6 +80,43 @@ namespace snek::interpreter::prototype
     return runtime.MakeInt(AsString(arguments[0])->GetLength());
   }
 
+  namespace
+  {
+    class ReverseString final : public value::String
+    {
+    public:
+      explicit ReverseString(const std::shared_ptr<String>& string)
+        : m_string(string) {}
+
+      inline size_type GetLength() const override
+      {
+        return m_string->GetLength();
+      }
+
+      inline value_type At(size_type index) const override
+      {
+        return m_string->At(GetLength() - index - 1);
+      }
+
+      std::u32string ToString() const override
+      {
+        const auto length = GetLength();
+        std::u32string result;
+
+        result.reserve(length);
+        for (size_type i = length; i > 0; --i)
+        {
+          result.append(1, m_string->At(i - 1));
+        }
+
+        return result;
+      }
+
+    private:
+      const std::shared_ptr<String> m_string;
+    };
+  }
+
   /**
    * String#reverse(this: String) => String
    *
@@ -88,7 +125,7 @@ namespace snek::interpreter::prototype
   static value::ptr
   Reverse(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return value::String::Reverse(
+    return std::make_shared<ReverseString>(
       std::static_pointer_cast<value::String>(arguments[0])
     );
   }
@@ -139,6 +176,46 @@ namespace snek::interpreter::prototype
     return value::String::Make(result);
   }
 
+  namespace
+  {
+    class ConcatString final : public value::String
+    {
+    public:
+      explicit ConcatString(
+        const std::shared_ptr<String>& left,
+        const std::shared_ptr<String>& right
+      )
+        : m_left(left)
+        , m_right(right) {}
+
+      inline size_type GetLength() const override
+      {
+        return m_left->GetLength() + m_right->GetLength();
+      }
+
+      inline value_type At(size_type index) const override
+      {
+        const auto left_size = m_left->GetLength();
+
+        if (index < left_size)
+        {
+          return m_left->At(index);
+        } else {
+          return m_right->At(index - left_size);
+        }
+      }
+
+      inline std::u32string ToString() const override
+      {
+        return m_left->ToString().append(m_right->ToString());
+      }
+
+    private:
+      const std::shared_ptr<String> m_left;
+      const std::shared_ptr<String> m_right;
+    };
+  }
+
   /**
    * String#+(this: String, other: String) => String
    *
@@ -147,7 +224,7 @@ namespace snek::interpreter::prototype
   static value::ptr
   Concatenate(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return value::String::Concat(
+    return std::make_shared<ConcatString>(
       std::static_pointer_cast<value::String>(arguments[0]),
       std::static_pointer_cast<value::String>(arguments[1])
     );

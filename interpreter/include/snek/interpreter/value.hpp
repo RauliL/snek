@@ -376,15 +376,6 @@ namespace snek::interpreter::value
     static std::shared_ptr<List>
     Make(const std::vector<ptr>& elements);
 
-    static std::shared_ptr<List>
-    Concat(
-      const std::shared_ptr<List>& left,
-      const std::shared_ptr<List>& right
-    );
-
-    static std::shared_ptr<List>
-    Reverse(const std::shared_ptr<List>& list);
-
     explicit List() {}
 
     inline Kind kind() const override
@@ -457,15 +448,6 @@ namespace snek::interpreter::value
 
     static ptr
     Make(const std::u32string& text);
-
-    static ptr
-    Concat(
-      const std::shared_ptr<String>& left,
-      const std::shared_ptr<String>& right
-    );
-
-    static ptr
-    Reverse(const std::shared_ptr<String>& string);
 
     inline Kind kind() const override
     {
