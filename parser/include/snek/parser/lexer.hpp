@@ -58,13 +58,16 @@ namespace snek::parser
 
       char32_t Read();
 
-      char32_t Peek();
+      inline void Unread(char32_t c)
+      {
+        m_char_queue.push_back(c);
+      }
 
-      char32_t PeekNextButOne();
+      char32_t Peek();
 
       inline bool Peek(char32_t expected)
       {
-        return Peek() == expected;
+        return !Eof() && Peek() == expected;
       }
 
       inline bool PeekRead(char32_t expected)

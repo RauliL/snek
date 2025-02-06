@@ -106,42 +106,6 @@ namespace snek::parser
     return m_char_queue.front();
   }
 
-  char32_t
-  Lexer::Input::PeekNextButOne()
-  {
-    const auto size = m_char_queue.size();
-
-    if (size > 1)
-    {
-      return m_char_queue[1];
-    }
-    else if (size == 1)
-    {
-      if (HasMoreInput())
-      {
-        const auto c = Advance();
-
-        m_char_queue.push_back(c);
-
-        return c;
-      }
-    }
-    else if (HasMoreInput())
-    {
-      m_char_queue.push_back(Advance());
-      if (HasMoreInput())
-      {
-        const auto c = Advance();
-
-        m_char_queue.push_back(c);
-
-        return c;
-      }
-    }
-
-    return 0;
-  }
-
   namespace
   {
     class Utf8Input final : public Lexer::Input
@@ -843,11 +807,16 @@ namespace snek::parser
     EatDigits(m_input, result);
 
     // Is it a decimal number?
-    if (m_input->Peek('.') && std::isdigit(m_input->PeekNextButOne()))
+    if (m_input->PeekRead(U'.'))
     {
-      kind = Token::Kind::Float;
-      result.append(1, m_input->Read());
-      EatDigits(m_input, result);
+      if (!m_input->Eof() && std::isdigit(m_input->Peek()))
+      {
+        kind = Token::Kind::Float;
+        result.append(1, U'.');
+        EatDigits(m_input, result);
+      } else {
+        m_input->Unread(U'.');
+      }
     }
 
     // Do we have an exponent?
