@@ -52,7 +52,7 @@ namespace snek::interpreter::prototype
     using peelo::unicode::encoding::utf8::encode;
 
     const auto input = encode(ToString(arguments[0]));
-    const auto base = AsInt(arguments[1]);
+    const auto base = static_cast<int>(AsInt(arguments[1]));
     // TODO: Implement Unicode version of std::strtoll.
     const auto result = std::strtoll(input.c_str(), nullptr, base);
 
