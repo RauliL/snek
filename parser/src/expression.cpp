@@ -333,20 +333,6 @@ namespace snek::parser::expression
       case Token::Kind::LeftParen:
         return ParseParenthesized(token.position(), lexer);
 
-      case Token::Kind::Increment:
-        return std::make_shared<Increment>(
-          token.position(),
-          Parse(lexer),
-          true
-        );
-
-      case Token::Kind::Decrement:
-        return std::make_shared<Decrement>(
-          token.position(),
-          Parse(lexer),
-          true
-        );
-
       default:
         throw Error{
           token.position(),
@@ -371,6 +357,26 @@ namespace snek::parser::expression
         token.position(),
         static_cast<Unary::Operator>(token.kind()),
         ParseUnary(lexer)
+      );
+    }
+    else if (lexer.PeekToken(Token::Kind::Increment))
+    {
+      const auto token = lexer.ReadToken();
+
+      return std::make_shared<Increment>(
+        token.position(),
+        ParseUnary(lexer),
+        true
+      );
+    }
+    else if (lexer.PeekToken(Token::Kind::Decrement))
+    {
+      const auto token = lexer.ReadToken();
+
+      return std::make_shared<Decrement>(
+        token.position(),
+        ParseUnary(lexer),
+        true
       );
     }
 

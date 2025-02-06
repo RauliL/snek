@@ -445,7 +445,7 @@ namespace snek::parser::expression
 
     inline Kind kind() const override
     {
-      return Kind::Decrement;
+      return Kind::Increment;
     }
 
     inline const ptr& variable() const
