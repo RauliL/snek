@@ -70,7 +70,7 @@ namespace snek::parser
       {
         if (c == '\r')
         {
-          const auto c2 = Advance();
+          const auto c2 = HasMoreInput() ? Advance() : '\n';
 
           if (c2 != '\n')
           {
