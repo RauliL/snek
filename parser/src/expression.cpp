@@ -386,7 +386,9 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::Dot) ||
       lexer.PeekToken(Token::Kind::LeftParen) ||
       lexer.PeekToken(Token::Kind::LeftBracket) ||
-      lexer.PeekToken(Token::Kind::ConditionalDot)
+      lexer.PeekToken(Token::Kind::ConditionalDot) ||
+      lexer.PeekToken(Token::Kind::Increment) ||
+      lexer.PeekToken(Token::Kind::Decrement)
     )
     {
       const auto token = lexer.ReadToken();
@@ -448,6 +450,22 @@ namespace snek::parser::expression
               true
             );
           }
+          break;
+
+        case Token::Kind::Increment:
+          expression = std::make_shared<Increment>(
+            token.position(),
+            expression,
+            false
+          );
+          break;
+
+        case Token::Kind::Decrement:
+          expression = std::make_shared<Decrement>(
+            token.position(),
+            expression,
+            false
+          );
           break;
 
         default:
@@ -696,22 +714,6 @@ namespace snek::parser::expression
         kind == Token::Kind::Assign
           ? std::nullopt
           : std::make_optional(static_cast<Assign::Operator>(kind))
-      );
-    }
-    else if (lexer.PeekReadToken(Token::Kind::Increment))
-    {
-      return std::make_shared<Increment>(
-        expression->position(),
-        expression,
-        false
-      );
-    }
-    else if (lexer.PeekToken(Token::Kind::Decrement))
-    {
-      return std::make_shared<Decrement>(
-        expression->position(),
-        expression,
-        false
       );
     }
 
