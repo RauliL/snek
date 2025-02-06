@@ -32,9 +32,9 @@
 namespace snek::parser::utils
 {
   inline bool
-  IsNewLine(char c)
+  IsNewLine(char32_t c)
   {
-    return c == '\r' || c == '\n';
+    return c == U'\r' || c == U'\n';
   }
 
   bool IsIdStart(char32_t c);
@@ -44,9 +44,9 @@ namespace snek::parser::utils
   bool IsId(const std::u32string& text);
 
   inline bool
-  IsNumberPart(char c)
+  IsNumberPart(char32_t c)
   {
-    return c == '_' || std::isdigit(c);
+    return c == U'_' || std::isdigit(c);
   }
 
   std::u32string IntToString(std::int64_t value);
