@@ -23,16 +23,45 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <cerrno>
 #include <climits>
+#include <cstdlib>
 #include <random>
 
+#include <peelo/unicode/encoding/utf8.hpp>
+
+#include "snek/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter::prototype
 {
-  static inline std::int64_t AsInt(const value::ptr& value)
+  static inline std::int64_t
+  AsInt(const value::ptr& value)
   {
     return static_cast<const value::Int*>(value.get())->value();
+  }
+
+  /**
+   * Int#parse(input: String, base: Int = 10) => Int
+   *
+   * Parses given string as integer and returns result.
+   */
+  static value::ptr
+  Parse(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  {
+    using peelo::unicode::encoding::utf8::encode;
+
+    const auto input = encode(ToString(arguments[0]));
+    const auto base = AsInt(arguments[1]);
+    // TODO: Implement Unicode version of std::strtoll.
+    const auto result = std::strtoll(input.c_str(), nullptr, base);
+
+    if (errno == ERANGE)
+    {
+      throw Error{ std::nullopt, U"Integer out of range." };
+    }
+
+    return runtime.MakeInt(result);
   }
 
   /**
@@ -73,6 +102,18 @@ namespace snek::interpreter::prototype
       std::nullopt
     );
 
+    fields[U"parse"] = value::Function::MakeNative(
+      {
+        { U"input", runtime->string_type() },
+        {
+          U"base",
+          runtime->int_type(),
+          std::make_shared<parser::expression::Int>(std::nullopt, 10)
+        },
+      },
+      runtime->int_type(),
+      Parse
+    );
     fields[U"random"] = value::Function::MakeNative(
       {
         { U"min", nullable_int, null_expression },

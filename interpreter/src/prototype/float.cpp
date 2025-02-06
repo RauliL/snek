@@ -23,9 +23,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <cerrno>
 #include <cfloat>
+#include <cstdlib>
 #include <random>
 
+#include <peelo/unicode/encoding/utf8.hpp>
+
+#include "snek/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter::prototype
@@ -37,13 +42,35 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * Float#parse(input: String) => Float
+   *
+   * Parses given string as floating point decimal and returns result.
+   */
+  static value::ptr
+  Parse(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    using peelo::unicode::encoding::utf8::encode;
+
+    const auto input = encode(value::ToString(arguments[0]));
+    // TODO: Implement Unicode version of std::strtod.
+    const auto result = std::strtod(input.c_str(), nullptr);
+
+    if (errno == ERANGE)
+    {
+      throw Error{ std::nullopt, U"Float out of range." };
+    }
+
+    return std::make_shared<value::Float>(result);
+  }
+
+  /**
    * Float#random(min: Float | null = null, max: Float | null = null) => Float
    *
    * Generates random floating point decimal value. Optional minimum and
    * maximum values can be given.
    */
   static value::ptr
-  Random(const Runtime&, const std::vector<value::ptr>& arguments)
+  Random(Runtime&, const std::vector<value::ptr>& arguments)
   {
     thread_local static std::random_device device;
     thread_local static std::mt19937 generator(device());
@@ -74,6 +101,11 @@ namespace snek::interpreter::prototype
       std::nullopt
     );
 
+    fields[U"parse"] = value::Function::MakeNative(
+      { { U"input", runtime->string_type() } },
+      runtime->float_type(),
+      Parse
+    );
     fields[U"random"] = value::Function::MakeNative(
       {
         { U"min", nullable_float, null_expression },
