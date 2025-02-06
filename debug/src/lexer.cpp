@@ -37,24 +37,31 @@ using namespace snek::parser;
 std::string ReadFile(const char*);
 
 static void
+PrintToken(const Token& token)
+{
+  using peelo::unicode::encoding::utf8::encode;
+
+  if (const auto position = token.position())
+  {
+    std::cout << encode(position->ToString()) << ": ";
+  }
+  std::cout << encode(token.ToString()) << std::endl;
+}
+
+static void
 ProcessFile(const char* filename)
 {
   using peelo::unicode::encoding::utf8::decode;
   using peelo::unicode::encoding::utf8::encode;
 
   const auto source = ReadFile(filename);
-  Lexer lexer(std::begin(source), std::end(source), decode(filename));
+  Lexer lexer(source, decode(filename));
 
   try
   {
     while (!lexer.PeekToken(Token::Kind::Eof))
     {
-      const auto token = lexer.ReadToken();
-
-      std::cout << encode(token.position().ToString())
-                << ": "
-                << encode(token.ToString())
-                << std::endl;
+      PrintToken(lexer.ReadToken());
     }
   }
   catch (const snek::Error& e)

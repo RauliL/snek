@@ -36,28 +36,35 @@ using namespace snek::parser;
 std::string ReadFile(const char*);
 
 static void
+PrintNode(const std::shared_ptr<Node>& node)
+{
+  using peelo::unicode::encoding::utf8::encode;
+
+  if (!node)
+  {
+    return;
+  }
+  if (const auto position = node->position())
+  {
+    std::cout << encode(position->ToString()) << ": ";
+  }
+  std::cout << encode(node->ToString()) << std::endl;
+}
+
+static void
 ProcessFile(const char* filename)
 {
   using peelo::unicode::encoding::utf8::decode;
   using peelo::unicode::encoding::utf8::encode;
 
   const auto source = ReadFile(filename);
-  Lexer lexer(std::begin(source), std::end(source), decode(filename));
+  Lexer lexer(source, decode(filename));
 
   try
   {
     while (!lexer.PeekToken(Token::Kind::Eof))
     {
-      const auto statement = statement::Parse(lexer, true);
-
-      if (!statement)
-      {
-        continue;
-      }
-      std::cout << encode(statement->position().ToString())
-                << ": "
-                << encode(statement->ToString())
-                << std::endl;
+      PrintNode(statement::Parse(lexer, true));
     }
   }
   catch (const snek::Error& e)
