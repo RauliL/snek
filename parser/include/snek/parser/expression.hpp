@@ -262,8 +262,8 @@ namespace snek::parser::expression
     explicit Call(
       const std::optional<Position>& position,
       const ptr& expression,
-      const std::vector<ptr>& arguments,
-      bool conditional
+      const std::vector<ptr>& arguments = {},
+      bool conditional = false
     )
       : Base(position)
       , m_expression(expression)
@@ -540,7 +540,7 @@ namespace snek::parser::expression
       const std::optional<Position>& position,
       const ptr& expression,
       const std::u32string& name,
-      bool conditional
+      bool conditional = false
     )
       : Base(position)
       , m_expression(expression)

@@ -37,15 +37,32 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * Record#+(this: Record, other: Record) => Record
+   *
+   * Combines fields of two records into a new record.
+   */
+  static value::ptr
+  Concat(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    const auto r1 = As<value::Record>(arguments[0]);
+    const auto r2 = As<value::Record>(arguments[1]);
+    value::Record::container_type result(r1->fields());
+
+    for (const auto& field : r2->fields())
+    {
+      result[field.first] = field.second;
+    }
+
+    return std::make_shared<value::Record>(result);
+  }
+
+  /**
    * Record#[](this: Record, name: String) => any
    *
    * Returns value of field with given name contained in the record.
    */
   static value::ptr
-  At(
-    Runtime&,
-    const std::vector<value::ptr>& arguments
-  )
+  At(Runtime&, const std::vector<value::ptr>& arguments)
   {
     const auto key = As<value::String>(arguments[1])->ToString();
     const auto result = As<value::Record>(arguments[0])->GetOwnProperty(key);
@@ -67,6 +84,15 @@ namespace snek::interpreter::prototype
   void
   MakeRecord(const Runtime* runtime, value::Record::container_type& fields)
   {
+    fields[U"+"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->record_type() },
+        { U"other", runtime->record_type() },
+      },
+      runtime->record_type(),
+      Concat
+    );
+
     fields[U"[]"] = value::Function::MakeNative(
       {
         { U"this", runtime->record_type() },
