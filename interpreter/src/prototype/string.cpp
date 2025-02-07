@@ -230,6 +230,78 @@ namespace snek::interpreter::prototype
     );
   }
 
+  namespace
+  {
+    class RepeatString final : public value::String
+    {
+    public:
+      explicit RepeatString(
+        const std::shared_ptr<String>& string,
+        size_type count
+      )
+        : m_string(string)
+        , m_count(count)
+        , m_length(string->GetLength()) {}
+
+      inline size_type GetLength() const override
+      {
+        return m_count * m_length;
+      }
+
+      inline value_type At(size_type index) const override
+      {
+        while (index >= m_length)
+        {
+          index -= m_length;
+        }
+
+        return m_string->At(index);
+      }
+
+      inline std::u32string ToString() const override
+      {
+        const auto string = m_string->ToString();
+        std::u32string result;
+
+        result.reserve(m_length * m_count);
+        for (size_type i = 0; i < m_count; ++i)
+        {
+          result.append(string);
+        }
+
+        return result;
+      }
+
+    private:
+      const std::shared_ptr<String> m_string;
+      const size_type m_count;
+      const size_type m_length;
+    };
+  }
+
+  /**
+   * String#*(this: String, count: Int) => String
+   *
+   * Repeats given string given number of times.
+   */
+  static value::ptr
+  Repeat(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    const auto count = static_cast<std::size_t>(
+      static_cast<const value::Int*>(arguments[1].get())->value()
+    );
+
+    if (count == 1)
+    {
+      return arguments[0];
+    }
+
+    return std::make_shared<RepeatString>(
+      std::static_pointer_cast<value::String>(arguments[0]),
+      count
+    );
+  }
+
   /**
    * String#[](this: String, index: Int) => String
    *
@@ -284,7 +356,14 @@ namespace snek::interpreter::prototype
       runtime->string_type(),
       Concatenate
     );
-
+    fields[U"*"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->string_type() },
+        { U"count", runtime->int_type() },
+      },
+      runtime->string_type(),
+      Repeat
+    );
     fields[U"[]"] = value::Function::MakeNative(
       {
         { U"this", runtime->string_type() },

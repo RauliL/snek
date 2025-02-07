@@ -108,6 +108,9 @@ namespace snek::interpreter::type
   using ptr = std::shared_ptr<Base>;
 
   ptr
+  MakeOptional(const ptr& type);
+
+  ptr
   Reify(const Runtime& runtime, const std::vector<ptr>& types);
 
   /**

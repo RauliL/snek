@@ -92,12 +92,7 @@ namespace snek::interpreter::prototype
   void
   MakeInt(const Runtime* runtime, value::Record::container_type& fields)
   {
-    const auto nullable_int = std::make_shared<type::Union>(
-      type::Union::container_type{
-        runtime->int_type(),
-        runtime->void_type()
-      }
-    );
+    const auto optional_int = type::MakeOptional(runtime->int_type());
     const auto null_expression = std::make_shared<parser::expression::Null>(
       std::nullopt
     );
@@ -116,8 +111,8 @@ namespace snek::interpreter::prototype
     );
     fields[U"random"] = value::Function::MakeNative(
       {
-        { U"min", nullable_int, null_expression },
-        { U"max", nullable_int, null_expression },
+        { U"min", optional_int, null_expression },
+        { U"max", optional_int, null_expression },
       },
       runtime->int_type(),
       Random

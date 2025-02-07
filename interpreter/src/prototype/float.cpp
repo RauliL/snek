@@ -91,12 +91,7 @@ namespace snek::interpreter::prototype
   void
   MakeFloat(const Runtime* runtime, value::Record::container_type& fields)
   {
-    const auto nullable_float = std::make_shared<type::Union>(
-      type::Union::container_type{
-        runtime->float_type(),
-        runtime->void_type()
-      }
-    );
+    const auto optional_float = type::MakeOptional(runtime->float_type());
     const auto null_expression = std::make_shared<parser::expression::Null>(
       std::nullopt
     );
@@ -108,8 +103,8 @@ namespace snek::interpreter::prototype
     );
     fields[U"random"] = value::Function::MakeNative(
       {
-        { U"min", nullable_float, null_expression },
-        { U"max", nullable_float, null_expression },
+        { U"min", optional_float, null_expression },
+        { U"max", optional_float, null_expression },
       },
       runtime->float_type(),
       Random

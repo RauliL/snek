@@ -63,6 +63,15 @@ namespace snek::interpreter::type
   }
 
   ptr
+  MakeOptional(const ptr& type)
+  {
+    return std::make_shared<Union>(std::vector<ptr>{
+      type,
+      std::make_shared<Builtin>(BuiltinKind::Void)
+    });
+  }
+
+  ptr
   Reify(const Runtime& runtime, const std::vector<ptr>& types)
   {
     const auto size = types.size();

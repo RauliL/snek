@@ -54,8 +54,15 @@ namespace snek::interpreter::prototype
       const auto element = list->At(i);
 
       if (value::ToBoolean(
-        callback->Call(std::nullopt, runtime, { element }))
-      )
+        callback->Call(
+          std::nullopt,
+          runtime,
+          {
+            element,
+            runtime.MakeInt(static_cast<std::int64_t>(i)),
+          }
+        )
+      ))
       {
         result.push_back(element);
       }
@@ -79,10 +86,70 @@ namespace snek::interpreter::prototype
 
     for (std::size_t i = 0; i < size; ++i)
     {
-      callback->Call(std::nullopt, runtime, { list->At(i) });
+      callback->Call(
+        std::nullopt,
+        runtime,
+        {
+          list->At(i),
+          runtime.MakeInt(static_cast<std::int64_t>(i)),
+        }
+      );
     }
 
     return nullptr;
+  }
+
+  /**
+   * List#indexOf(this: List, element: any, start: Int = 0) => Int | null
+   *
+   * Returns index of given list of which element is equal with the given
+   * value. If the value does not exist in the list, `null` is returned
+   * instead.
+   */
+  static value::ptr
+  IndexOf(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  {
+    const auto list = As<value::List>(arguments[0]);
+    const auto element = arguments[1];
+    const auto start = static_cast<std::size_t>(
+      As<value::Int>(arguments[2])->ToInt()
+    );
+    const auto size = list->GetSize();
+
+    for (std::size_t i = start; i < size; ++i)
+    {
+      // TODO: Add support for "==" method.
+      if (value::Equals(list->At(i), element))
+      {
+        return runtime.MakeInt(static_cast<std::int64_t>(i));
+      }
+    }
+
+    return nullptr;
+  }
+
+  /**
+   * List#includes(this: List, element: any) => Boolean
+   *
+   * Returns `true` if given list contains given value, `false` otherwise.
+   */
+  static value::ptr
+  Includes(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  {
+    const auto list = As<value::List>(arguments[0]);
+    const auto element = arguments[1];
+    const auto size = list->GetSize();
+
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      // TODO: Add support for "==" method.
+      if (value::Equals(list->At(i), element))
+      {
+        return runtime.MakeBoolean(true);
+      }
+    }
+
+    return runtime.MakeBoolean(false);
   }
 
   /**
@@ -113,6 +180,48 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * List#lastIndexOf(
+   *   this: List,
+   *   element: any,
+   *   start: Int | null = null,
+   * ) => Int | null
+   *
+   * Returns last index of given list of which element is equal with the given
+   * value. If the value does not exist in the list, `null` is returned
+   * instead.
+   */
+  static value::ptr
+  LastIndexOf(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  {
+    const auto list = As<value::List>(arguments[0]);
+    const auto element = arguments[1];
+    const auto size = list->GetSize();
+    std::size_t start;
+
+    if (arguments[2])
+    {
+      start = static_cast<std::size_t>(As<value::Int>(arguments[2])->ToInt());
+    } else {
+      start = size - 1;
+    }
+    for (;;)
+    {
+      if (start >= size)
+      {
+        return nullptr;
+      }
+      else if (value::Equals(list->At(start), element))
+      {
+        return runtime.MakeInt(static_cast<std::int64_t>(start));
+      }
+      else if (!--start)
+      {
+        return nullptr;
+      }
+    }
+  }
+
+  /**
    * List#map(this: List, callback: Function) => List
    *
    * Constructs new list from return values of given callback function when
@@ -129,7 +238,14 @@ namespace snek::interpreter::prototype
     result.reserve(size);
     for (std::size_t i = 0; i < size; ++i)
     {
-      result.push_back(callback->Call(std::nullopt, runtime, { list->At(i) }));
+      result.push_back(callback->Call(
+        std::nullopt,
+        runtime,
+        {
+          list->At(i),
+          runtime.MakeInt(static_cast<std::int64_t>(i)),
+        }
+      ));
     }
 
     return value::List::Make(result);
@@ -166,7 +282,15 @@ namespace snek::interpreter::prototype
     }
     for (std::size_t i = start; i < size; ++i)
     {
-      result = callback->Call(std::nullopt, runtime, { result, list->At(i) });
+      result = callback->Call(
+        std::nullopt,
+        runtime,
+        {
+          result,
+          list->At(i),
+          runtime.MakeInt(static_cast<std::int64_t>(i)),
+        }
+      );
     }
 
     return result;
@@ -299,9 +423,66 @@ namespace snek::interpreter::prototype
     );
   }
 
+  namespace
+  {
+    class RepeatList final : public value::List
+    {
+    public:
+      explicit RepeatList(const std::shared_ptr<List>& list, size_type count)
+        : m_list(list)
+        , m_count(count)
+        , m_size(list->GetSize()) {}
+
+      inline size_type GetSize() const override
+      {
+        return m_count * m_size;
+      }
+
+      inline value_type At(size_type index) const override
+      {
+        while (index >= m_size)
+        {
+          index -= m_size;
+        }
+
+        return m_list->At(index);
+      }
+
+    private:
+      const std::shared_ptr<List> m_list;
+      const size_type m_count;
+      const size_type m_size;
+    };
+  }
+
+  /**
+   * List(this: List, count: Int) => List
+   *
+   * Repeats list given number of times.
+   */
+  static value::ptr
+  Repeat(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    const auto count = static_cast<std::size_t>(
+      As<value::Int>(arguments[1])->value()
+    );
+
+    if (count == 1)
+    {
+      return arguments[0];
+    }
+
+    return std::make_shared<RepeatList>(
+      std::static_pointer_cast<value::List>(arguments[0]),
+      count
+    );
+  }
+
   void
   MakeList(const Runtime* runtime, value::Record::container_type& fields)
   {
+    const auto optional_int = type::MakeOptional(runtime->int_type());
+
     fields[U"filter"] = value::Function::MakeNative(
       {
         { U"this", runtime->list_type() },
@@ -330,6 +511,27 @@ namespace snek::interpreter::prototype
       runtime->void_type(),
       ForEach
     );
+    fields[U"indexOf"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->list_type() },
+        { U"element" },
+        {
+          U"start",
+          runtime->int_type(),
+          std::make_shared<parser::expression::Int>(std::nullopt, 0)
+        },
+      },
+      type::MakeOptional(runtime->int_type()),
+      IndexOf
+    );
+    fields[U"includes"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->list_type() },
+        { U"element" },
+      },
+      runtime->boolean_type(),
+      Includes
+    );
     fields[U"join"] = value::Function::MakeNative(
       {
         { U"this", runtime->list_type() },
@@ -337,6 +539,19 @@ namespace snek::interpreter::prototype
       },
       runtime->string_type(),
       Join
+    );
+    fields[U"lastIndexOf"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->list_type() },
+        { U"element" },
+        {
+          U"start",
+          optional_int,
+          std::make_shared<parser::expression::Null>(std::nullopt)
+        },
+      },
+      type::MakeOptional(runtime->int_type()),
+      LastIndexOf
     );
     fields[U"map"] = value::Function::MakeNative(
       {
@@ -404,6 +619,14 @@ namespace snek::interpreter::prototype
       },
       runtime->list_type(),
       Concat
+    );
+    fields[U"*"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->list_type() },
+        { U"count", runtime->int_type() },
+      },
+      runtime->list_type(),
+      Repeat
     );
   }
 }
