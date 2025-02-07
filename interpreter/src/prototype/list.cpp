@@ -489,7 +489,10 @@ namespace snek::interpreter::prototype
         {
           U"callback",
           std::make_shared<type::Function>(
-            std::vector<Parameter>{ { U"element" } },
+            std::vector<Parameter>{
+              { U"element" },
+              { U"index", runtime->int_type() },
+            },
             runtime->boolean_type()
           )
         },
@@ -503,7 +506,10 @@ namespace snek::interpreter::prototype
         {
           U"callback",
           std::make_shared<type::Function>(
-            std::vector<Parameter>{ { U"element" } },
+            std::vector<Parameter>{
+              { U"element" },
+              { U"index", runtime->int_type() },
+            },
             runtime->any_type()
           )
         },
@@ -559,7 +565,10 @@ namespace snek::interpreter::prototype
         {
           U"callback",
           std::make_shared<type::Function>(
-            std::vector<Parameter>{ { U"element" } },
+            std::vector<Parameter>{
+              { U"element" },
+              { U"index", runtime->int_type() },
+            },
             runtime->any_type()
           )
         },
@@ -576,6 +585,7 @@ namespace snek::interpreter::prototype
             std::vector<Parameter>{
               { U"accumulator" },
               { U"current" },
+              { U"index", runtime->int_type() },
             },
             runtime->any_type()
           )
