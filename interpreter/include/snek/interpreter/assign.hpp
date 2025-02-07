@@ -36,4 +36,13 @@ namespace snek::interpreter
     const parser::expression::ptr& variable,
     const value::ptr& value
   );
+
+  void
+  DeclareVar(
+    const Scope::ptr& scope,
+    const parser::expression::ptr& variable,
+    const value::ptr& value,
+    bool read_only,
+    bool exported
+  );
 }

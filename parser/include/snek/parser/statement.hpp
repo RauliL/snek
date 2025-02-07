@@ -156,13 +156,13 @@ namespace snek::parser::statement
       const std::optional<Position>& position,
       bool exported,
       bool read_only,
-      const std::u32string& name,
+      const expression::ptr& variable,
       const expression::ptr& value
     )
       : Base(position)
       , m_exported(exported)
       , m_read_only(read_only)
-      , m_name(name)
+      , m_variable(variable)
       , m_value(value) {}
 
     inline Kind kind() const override
@@ -180,9 +180,9 @@ namespace snek::parser::statement
       return m_read_only;
     }
 
-    inline const std::u32string& name() const
+    inline const expression::ptr& variable() const
     {
-      return m_name;
+      return m_variable;
     }
 
     inline const expression::ptr& value() const
@@ -195,7 +195,7 @@ namespace snek::parser::statement
   private:
     const bool m_exported;
     const bool m_read_only;
-    const std::u32string m_name;
+    const expression::ptr m_variable;
     const expression::ptr m_value;
   };
 

@@ -67,9 +67,18 @@ namespace snek::parser::statement
   ParseDeclareVar(Lexer& lexer, bool exported = false)
   {
     const auto token = lexer.ReadToken();
-    const auto name = lexer.ReadId();
+    const auto variable = expression::ParseTernary(lexer);
     expression::ptr value;
 
+    if (!variable->IsAssignable())
+    {
+      throw Error{
+        variable->position(),
+        U"Cannot assign to " +
+        variable->ToString() +
+        U"."
+      };
+    }
     if (lexer.PeekReadToken(Token::Kind::Assign))
     {
       value = expression::Parse(lexer);
@@ -79,7 +88,7 @@ namespace snek::parser::statement
       token.position(),
       exported,
       token.kind() == Token::Kind::KeywordConst,
-      name,
+      variable,
       value
     );
   }
@@ -356,7 +365,9 @@ namespace snek::parser::statement
     {
       result.append(U"export ");
     }
-    result.append(m_read_only ? U"const " : U"let ").append(m_name);
+    result.append(
+      m_read_only ? U"const " : U"let "
+    ).append(m_variable->ToString());
     if (m_value)
     {
       result.append(U" = ").append(m_value->ToString());

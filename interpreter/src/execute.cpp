@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "snek/error.hpp"
+#include "snek/interpreter/assign.hpp"
 #include "snek/interpreter/evaluate.hpp"
 #include "snek/interpreter/execute.hpp"
 #include "snek/interpreter/jump.hpp"
@@ -77,14 +78,14 @@ namespace snek::interpreter
   ExecuteDeclareVar(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const DeclareVar* statement
+    const parser::statement::DeclareVar* statement
   )
   {
     const auto value = EvaluateExpression(runtime, scope, statement->value());
 
-    scope->DeclareVariable(
-      statement->position(),
-      statement->name(),
+    DeclareVar(
+      scope,
+      statement->variable(),
       value,
       statement->read_only(),
       statement->exported()
@@ -314,7 +315,11 @@ namespace snek::interpreter
         return ExecuteDeclareType(runtime, scope, As<DeclareType>(statement));
 
       case Kind::DeclareVar:
-        return ExecuteDeclareVar(runtime, scope, As<DeclareVar>(statement));
+        return ExecuteDeclareVar(
+          runtime,
+          scope,
+          As<parser::statement::DeclareVar>(statement)
+        );
 
       case Kind::Expression:
         return EvaluateExpression(

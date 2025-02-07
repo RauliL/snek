@@ -25,24 +25,86 @@
  */
 #include "snek/error.hpp"
 #include "snek/interpreter/assign.hpp"
+#include "snek/parser/element.hpp"
 
 namespace snek::interpreter
 {
+  using callback_type = std::function<void(
+    const std::optional<Position>&,
+    const std::u32string&,
+    const value::ptr&
+  )>;
+
   static void
-  AssignId(
-    const Scope::ptr& scope,
-    const parser::expression::Id* variable,
-    const value::ptr& value
+  Process(
+    const parser::expression::ptr&,
+    const value::ptr&,
+    const callback_type&
+  );
+
+  static void
+  ProcessList(
+    const parser::expression::List* variable,
+    const value::ptr& value,
+    const callback_type& callback
   )
   {
-    scope->SetVariable(variable->position(), variable->identifier(), value);
+    const auto& elements = variable->elements();
+    const auto size = elements.size();
+    value::List::size_type list_size;
+    const value::List* list;
+
+    if (!value::IsList(value))
+    {
+      throw Error{
+        variable->position(),
+        U"Cannot assign " +
+        value::ToString(value::KindOf(value)) +
+        U" into list."
+      };
+    }
+    list = static_cast<const value::List*>(value.get());
+    list_size = list->GetSize();
+    if (list_size < size)
+    {
+      throw Error{
+        variable->position(),
+        U"List has too few elements for assignment."
+      };
+    }
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      const auto& element = elements[i];
+
+      if (element->kind() == parser::element::Kind::Value)
+      {
+        Process(element->expression(), list->At(i), callback);
+      } else {
+        std::vector<value::ptr> result;
+
+        result.reserve(list_size - i);
+        if (i + 1 < size)
+        {
+          throw Error{
+            element->position(),
+            U"Variable after `...' variable."
+          };
+        }
+        do
+        {
+          result.push_back(list->At(i++));
+        }
+        while (i < list_size);
+        Process(element->expression(), value::List::Make(result), callback);
+      }
+    }
   }
 
-  void
-  AssignTo(
-    const Scope::ptr& scope,
+  static void
+  Process(
     const parser::expression::ptr& variable,
-    const value::ptr& value
+    const value::ptr& value,
+    const callback_type& callback
   )
   {
     if (!variable)
@@ -53,17 +115,74 @@ namespace snek::interpreter
     switch (variable->kind())
     {
       case parser::expression::Kind::Id:
-        return AssignId(
-          scope,
-          static_cast<const parser::expression::Id*>(variable.get()),
+        callback(
+          variable->position(),
+          static_cast<const parser::expression::Id*>(
+            variable.get()
+          )->identifier(),
           value
         );
+        break;
+
+      case parser::expression::Kind::List:
+        ProcessList(
+          static_cast<const parser::expression::List*>(variable.get()),
+          value,
+          callback
+        );
+        return;
 
       default:
         throw Error{
           variable->position(),
-          U"Cannot assign to `" + variable->ToString() + U"'."
+          U"Cannot assign to " +
+          variable->ToString() +
+          U"."
         };
     }
+  }
+
+  void
+  AssignTo(
+    const Scope::ptr& scope,
+    const parser::expression::ptr& variable,
+    const value::ptr& value
+  )
+  {
+    Process(
+      variable,
+      value,
+      [&](
+        const std::optional<Position>& position,
+        const std::u32string& name,
+        const value::ptr& value
+      )
+      {
+        scope->SetVariable(position, name, value);
+      }
+    );
+  }
+
+  void
+  DeclareVar(
+    const Scope::ptr& scope,
+    const parser::expression::ptr& variable,
+    const value::ptr& value,
+    bool read_only,
+    bool exported
+  )
+  {
+    Process(
+      variable,
+      value,
+      [&](
+        const std::optional<Position>& position,
+        const std::u32string& name,
+        const value::ptr& value
+      )
+      {
+        scope->DeclareVariable(position, name, value, read_only, exported);
+      }
+    );
   }
 }

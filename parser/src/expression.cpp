@@ -654,7 +654,7 @@ namespace snek::parser::expression
     return expression;
   }
 
-  static ptr
+  ptr
   ParseTernary(Lexer& lexer)
   {
     const auto expression = ParseLogicalOr(lexer);

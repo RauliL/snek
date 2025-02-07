@@ -111,6 +111,8 @@ namespace snek::parser::expression
 
   ptr Parse(Lexer& lexer);
 
+  ptr ParseTernary(Lexer& lexer);
+
   class Assign final : public Base
   {
   public:
@@ -508,6 +510,11 @@ namespace snek::parser::expression
     inline const container_type& elements() const
     {
       return m_elements;
+    }
+
+    inline bool IsAssignable() const override
+    {
+      return true;
     }
 
     std::u32string ToString() const override;
