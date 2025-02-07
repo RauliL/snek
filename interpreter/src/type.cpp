@@ -23,6 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <algorithm>
+
 #include "snek/interpreter/runtime.hpp"
 #include "snek/parser/utils.hpp"
 
@@ -247,33 +249,53 @@ namespace snek::interpreter::type
     return U"unknown";
   }
 
+  static bool
+  TestFunctions(
+    const std::vector<Parameter>& a,
+    const std::vector<Parameter>& b,
+    const ptr& a_return_type,
+    const ptr& b_return_type
+  )
+  {
+    const auto a_size = a.size();
+    const auto b_size = b.size();
+    const auto size = std::min(a_size, b_size);
+
+    // TODO: Add special handling for rest parameters.
+    if (a_size < b_size)
+    {
+      return false;
+    }
+
+    if (a_return_type && !a_return_type->Accepts(b_return_type))
+    {
+      return false;
+    }
+
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      if (!a[i].Accepts(b[i]))
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   bool
   Function::Accepts(const Runtime&, const value::ptr& value) const
   {
     if (value::IsFunction(value))
     {
-      const auto size = m_parameters.size();
       const auto function = As<value::Function>(value);
-      const auto& parameters = function->parameters();
-      const auto& return_type = function->return_type();
 
-      if (!m_return_type->Accepts(return_type))
-      {
-        return false;
-      }
-      if (size != parameters.size())
-      {
-        return false;
-      }
-      for (std::size_t i = 0; i < size; ++i)
-      {
-        if (!m_parameters[i].Accepts(parameters[i]))
-        {
-          return false;
-        }
-      }
-
-      return true;
+      return TestFunctions(
+        m_parameters,
+        function->parameters(),
+        m_return_type,
+        function->return_type()
+      );
     }
 
     return false;
@@ -289,25 +311,13 @@ namespace snek::interpreter::type
     else if (that->kind() == Kind::Function)
     {
       const auto function = As<Function>(that);
-      const auto size = m_parameters.size();
 
-      if (size != function->m_parameters.size())
-      {
-        return false;
-      }
-      for (std::size_t i = 0; i < size; ++i)
-      {
-        if (!m_parameters[i].Accepts(function->m_parameters[i]))
-        {
-          return false;
-        }
-      }
-      if (m_return_type && !m_return_type->Accepts(function->m_return_type))
-      {
-        return false;
-      }
-
-      return true;
+      return TestFunctions(
+        m_parameters,
+        function->m_parameters,
+        m_return_type,
+        function->m_return_type
+      );
     }
     else if (that->kind() == Kind::Builtin)
     {
