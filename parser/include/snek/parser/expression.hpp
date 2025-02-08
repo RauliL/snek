@@ -604,6 +604,8 @@ namespace snek::parser::expression
       return m_fields;
     }
 
+    bool IsAssignable() const override;
+
     std::u32string ToString() const override;
 
   private:

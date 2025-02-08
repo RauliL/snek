@@ -23,9 +23,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <unordered_set>
+
 #include "snek/error.hpp"
 #include "snek/interpreter/assign.hpp"
 #include "snek/parser/element.hpp"
+#include "snek/parser/field.hpp"
 
 namespace snek::interpreter
 {
@@ -37,6 +40,7 @@ namespace snek::interpreter
 
   static void
   Process(
+    const Runtime&,
     const parser::expression::ptr&,
     const value::ptr&,
     const callback_type&
@@ -44,6 +48,7 @@ namespace snek::interpreter
 
   static void
   ProcessList(
+    const Runtime& runtime,
     const parser::expression::List* variable,
     const value::ptr& value,
     const callback_type& callback
@@ -60,7 +65,9 @@ namespace snek::interpreter
         variable->position(),
         U"Cannot assign " +
         value::ToString(value::KindOf(value)) +
-        U" into list."
+        U" into " +
+        variable->ToString() +
+        U"."
       };
     }
     list = static_cast<const value::List*>(value.get());
@@ -78,7 +85,7 @@ namespace snek::interpreter
 
       if (element->kind() == parser::element::Kind::Value)
       {
-        Process(element->expression(), list->At(i), callback);
+        Process(runtime, element->expression(), list->At(i), callback);
       } else {
         std::vector<value::ptr> result;
 
@@ -95,13 +102,129 @@ namespace snek::interpreter
           result.push_back(list->At(i++));
         }
         while (i < list_size);
-        Process(element->expression(), value::List::Make(result), callback);
+        Process(
+          runtime,
+          element->expression(),
+          value::List::Make(result),
+          callback
+        );
+      }
+    }
+  }
+
+  static void
+  ProcessRecord(
+    const Runtime& runtime,
+    const parser::expression::Record* variable,
+    const value::ptr& value,
+    const callback_type& callback
+  )
+  {
+    const auto& fields = variable->fields();
+    const auto size = fields.size();
+    std::unordered_set<std::u32string> used_keys;
+
+    if (!value::IsRecord(value))
+    {
+      throw Error{
+        variable->position(),
+        U"Cannot assign " +
+        value::ToString(value::KindOf(value)) +
+        U" into " +
+        variable->ToString() +
+        U"."
+      };
+    }
+    for (std::size_t i = 0; i < size; ++i)
+    {
+      const auto& field = fields[i];
+      const auto kind = field->kind();
+
+      if (kind == parser::field::Kind::Named)
+      {
+        const auto& name = static_cast<const parser::field::Named*>(
+          field.get()
+        )->name();
+        const auto property = value::GetProperty(runtime, value, name);
+
+        if (!property)
+        {
+          throw Error{
+            field->position(),
+            value::ToString(value::KindOf(value)) +
+            U" has no property `" +
+            name +
+            U"'."
+          };
+
+        }
+        callback(field->position(), name, *property);
+        used_keys.insert(name);
+      }
+      else if (kind == parser::field::Kind::Shorthand)
+      {
+        const auto& name = static_cast<const parser::field::Shorthand*>(
+          field.get()
+        )->name();
+        const auto property = value::GetProperty(runtime, value, name);
+
+        if (!property)
+        {
+          throw Error{
+            field->position(),
+            value::ToString(value::KindOf(value)) +
+            U" has no property `" +
+            name +
+            U"'."
+          };
+
+        }
+        callback(field->position(), name, *property);
+        used_keys.insert(name);
+      }
+      else if (kind == parser::field::Kind::Spread)
+      {
+        value::Record::container_type result;
+
+        if (i + 1 < size)
+        {
+          throw Error{
+            variable->position(),
+            U"Variable after `...' variable."
+          };
+        }
+        for (
+          const auto& f
+            :
+          static_cast<const value::Record*>(value.get())->fields()
+        )
+        {
+          if (used_keys.find(f.first) != std::end(used_keys))
+          {
+            continue;
+          }
+          result[f.first] = f.second;
+        }
+        Process(
+          runtime,
+          static_cast<const parser::field::Spread*>(field.get())->expression(),
+          std::make_shared<value::Record>(result),
+          callback
+        );
+      } else {
+        throw Error{
+          fields[i]->position(),
+          U"Cannot assign to " +
+          fields[i]->ToString() +
+          U"."
+        };
       }
     }
   }
 
   static void
   Process(
+    const Runtime& runtime,
     const parser::expression::ptr& variable,
     const value::ptr& value,
     const callback_type& callback
@@ -126,7 +249,17 @@ namespace snek::interpreter
 
       case parser::expression::Kind::List:
         ProcessList(
+          runtime,
           static_cast<const parser::expression::List*>(variable.get()),
+          value,
+          callback
+        );
+        return;
+
+      case parser::expression::Kind::Record:
+        ProcessRecord(
+          runtime,
+          static_cast<const parser::expression::Record*>(variable.get()),
           value,
           callback
         );
@@ -144,12 +277,14 @@ namespace snek::interpreter
 
   void
   AssignTo(
+    const Runtime& runtime,
     const Scope::ptr& scope,
     const parser::expression::ptr& variable,
     const value::ptr& value
   )
   {
     Process(
+      runtime,
       variable,
       value,
       [&](
@@ -165,6 +300,7 @@ namespace snek::interpreter
 
   void
   DeclareVar(
+    const Runtime& runtime,
     const Scope::ptr& scope,
     const parser::expression::ptr& variable,
     const value::ptr& value,
@@ -173,6 +309,7 @@ namespace snek::interpreter
   )
   {
     Process(
+      runtime,
       variable,
       value,
       [&](

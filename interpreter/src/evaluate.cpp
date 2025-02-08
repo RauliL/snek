@@ -270,7 +270,7 @@ namespace snek::interpreter
         position
       );
     }
-    AssignTo(scope, variable, value);
+    AssignTo(runtime, scope, variable, value);
 
     return value;
   }
@@ -402,7 +402,7 @@ namespace snek::interpreter
       expression->position()
     );
 
-    AssignTo(scope, variable, new_value);
+    AssignTo(runtime, scope, variable, new_value);
 
     return expression->pre() ? new_value : value;
   }
@@ -467,7 +467,7 @@ namespace snek::interpreter
       expression->position()
     );
 
-    AssignTo(scope, variable, new_value);
+    AssignTo(runtime, scope, variable, new_value);
 
     return expression->pre() ? new_value : value;
   }

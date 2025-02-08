@@ -957,6 +957,31 @@ namespace snek::parser::expression
     return result.append(1, U'.').append(m_name);
   }
 
+  bool
+  Record::IsAssignable() const
+  {
+    for (const auto& field : m_fields)
+    {
+      const auto kind = field->kind();
+
+      if (kind == field::Kind::Spread)
+      {
+        if (!static_cast<const field::Spread*>(
+          field.get()
+        )->expression()->IsAssignable())
+        {
+          return false;
+        }
+      }
+      else if (kind != field::Kind::Named && kind != field::Kind::Shorthand)
+      {
+        return false;
+      }
+    }
+
+    return true;
+  }
+
   std::u32string
   Record::ToString() const
   {

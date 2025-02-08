@@ -84,6 +84,7 @@ namespace snek::interpreter
     const auto value = EvaluateExpression(runtime, scope, statement->value());
 
     DeclareVar(
+      runtime,
       scope,
       statement->variable(),
       value,

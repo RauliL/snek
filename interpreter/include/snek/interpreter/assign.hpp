@@ -25,13 +25,14 @@
  */
 #pragma once
 
-#include "snek/interpreter/scope.hpp"
+#include "snek/interpreter/runtime.hpp"
 #include "snek/parser/expression.hpp"
 
 namespace snek::interpreter
 {
   void
   AssignTo(
+    const Runtime& runtime,
     const Scope::ptr& scope,
     const parser::expression::ptr& variable,
     const value::ptr& value
@@ -39,6 +40,7 @@ namespace snek::interpreter
 
   void
   DeclareVar(
+    const Runtime& runtime,
     const Scope::ptr& scope,
     const parser::expression::ptr& variable,
     const value::ptr& value,
