@@ -142,9 +142,10 @@ namespace snek::interpreter
 
       if (kind == parser::field::Kind::Named)
       {
-        const auto& name = static_cast<const parser::field::Named*>(
+        const auto named = static_cast<const parser::field::Named*>(
           field.get()
-        )->name();
+        );
+        const auto& name = named->name();
         const auto property = value::GetProperty(runtime, value, name);
 
         if (!property)
@@ -158,7 +159,7 @@ namespace snek::interpreter
           };
 
         }
-        callback(field->position(), name, *property);
+        Process(runtime, named->value(), *property, callback);
         used_keys.insert(name);
       }
       else if (kind == parser::field::Kind::Shorthand)
