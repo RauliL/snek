@@ -25,19 +25,9 @@
  */
 #pragma once
 
-#include <memory>
-#include <vector>
-
-#include "snek/parser/lexer.hpp"
+#include "snek/parser/parameter.hpp"
 
 namespace snek::parser::expression
-{
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
-namespace snek::parser::parameter
 {
   class Base;
 
@@ -124,7 +114,7 @@ namespace snek::parser::field
     explicit Function(
       const std::optional<Position>& position,
       const std::u32string& name,
-      const std::vector<parameter::ptr>& parameters,
+      const std::vector<Parameter>& parameters,
       const type::ptr& return_type,
       const statement::ptr& body
     )
@@ -144,7 +134,7 @@ namespace snek::parser::field
       return m_name;
     }
 
-    inline const std::vector<parameter::ptr>& parameters() const
+    inline const std::vector<Parameter>& parameters() const
     {
       return m_parameters;
     }
@@ -163,7 +153,7 @@ namespace snek::parser::field
 
   private:
     const std::u32string m_name;
-    const std::vector<parameter::ptr> m_parameters;
+    const std::vector<Parameter> m_parameters;
     const type::ptr m_return_type;
     const statement::ptr m_body;
   };

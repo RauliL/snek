@@ -25,17 +25,9 @@
  */
 #pragma once
 
-#include <memory>
 #include <unordered_map>
 
-#include "snek/parser/lexer.hpp"
-
-namespace snek::parser::parameter
-{
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
+#include "snek/parser/parameter.hpp"
 
 namespace snek::parser::type
 {
@@ -99,7 +91,7 @@ namespace snek::parser::type
   public:
     explicit Function(
       const std::optional<Position>& position,
-      const std::vector<parameter::ptr>& parameters,
+      const std::vector<Parameter>& parameters,
       const ptr& return_type
     )
       : Base(position)
@@ -111,7 +103,7 @@ namespace snek::parser::type
       return Kind::Function;
     }
 
-    inline const std::vector<parameter::ptr>& parameters() const
+    inline const std::vector<Parameter>& parameters() const
     {
       return m_parameters;
     }
@@ -124,7 +116,7 @@ namespace snek::parser::type
     std::u32string ToString() const override;
 
   private:
-    const std::vector<parameter::ptr> m_parameters;
+    const std::vector<Parameter> m_parameters;
     const ptr m_return_type;
   };
 

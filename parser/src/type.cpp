@@ -105,11 +105,11 @@ namespace snek::parser::type
   static ptr
   ParseFunction(Lexer& lexer, const std::optional<Position>& position)
   {
-    std::vector<parameter::ptr> parameters;
+    std::vector<Parameter> parameters;
     ptr return_type;
 
     lexer.UnreadToken(Token(position, Token::Kind::LeftParen));
-    parameters = parameter::ParseList(lexer);
+    parameters = Parameter::ParseList(lexer);
     lexer.ReadToken(Token::Kind::FatArrow);
     return_type = Parse(lexer);
 
@@ -248,10 +248,10 @@ namespace snek::parser::type
       {
         result.append(U", ");
       }
-      result.append(m_parameters[i]->ToString());
+      result.append(m_parameters[i].ToString());
     }
     result.append(U") => ");
-    result.append(m_return_type ? m_return_type->ToString() : U"null");
+    result.append(m_return_type ? m_return_type->ToString() : U"any");
 
     return result;
   }

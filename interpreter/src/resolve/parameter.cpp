@@ -27,21 +27,19 @@
 
 namespace snek::interpreter
 {
-  using namespace parser::parameter;
-
   Parameter
   ResolveParameter(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const ptr& parameter
+    const parser::Parameter& parameter
   )
   {
     return {
-      parameter->name(),
-      ResolveType(runtime, scope, parameter->type()),
-      parameter->default_value(),
-      parameter->rest(),
-      parameter->position()
+      parameter.name(),
+      ResolveType(runtime, scope, parameter.type()),
+      parameter.default_value(),
+      parameter.rest(),
+      parameter.position()
     };
   }
 
@@ -49,7 +47,7 @@ namespace snek::interpreter
   ResolveParameterList(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const std::vector<ptr>& parameters
+    const std::vector<parser::Parameter>& parameters
   )
   {
     std::vector<Parameter> result;

@@ -28,10 +28,10 @@
 #include "snek/parser/parameter.hpp"
 #include "snek/parser/type.hpp"
 
-namespace snek::parser::parameter
+namespace snek::parser
 {
-  ptr
-  Parse(Lexer& lexer)
+  Parameter
+  Parameter::Parse(Lexer& lexer)
   {
     const auto position = lexer.position();
     const auto rest = lexer.PeekReadToken(Token::Kind::Spread);
@@ -48,13 +48,13 @@ namespace snek::parser::parameter
       default_value = expression::Parse(lexer);
     }
 
-    return std::make_shared<Base>(position, name, type, default_value, rest);
+    return Parameter(position, name, type, default_value, rest);
   }
 
-  std::vector<ptr>
-  ParseList(Lexer& lexer, bool read_opening_parenthesis)
+  std::vector<Parameter>
+  Parameter::ParseList(Lexer& lexer, bool read_opening_parenthesis)
   {
-    std::vector<ptr> result;
+    std::vector<Parameter> result;
 
     if (read_opening_parenthesis)
     {
@@ -83,7 +83,7 @@ namespace snek::parser::parameter
         };
       }
       lexer.PeekReadToken(Token::Kind::Comma);
-      if (parameter->rest())
+      if (parameter.rest())
       {
         lexer.ReadToken(Token::Kind::RightParen);
         break;
@@ -94,7 +94,7 @@ namespace snek::parser::parameter
   }
 
   std::u32string
-  Base::ToString() const
+  Parameter::ToString() const
   {
     std::u32string result;
 

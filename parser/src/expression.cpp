@@ -138,12 +138,12 @@ namespace snek::parser::expression
     );
   }
 
-  static parameter::ptr
+  static Parameter
   ToParameter(const ptr& expression)
   {
     if (expression->kind() == Kind::Id)
     {
-      return std::make_shared<parameter::Base>(
+      return Parameter(
         expression->position(),
         As<Id>(expression)->identifier()
       );
@@ -155,7 +155,7 @@ namespace snek::parser::expression
 
       if (!assign->op() && variable->kind() == Kind::Id)
       {
-        return std::make_shared<parameter::Base>(
+        return Parameter(
           expression->position(),
           As<Id>(variable)->identifier()
         );
@@ -220,7 +220,7 @@ namespace snek::parser::expression
   static ptr
   ParseFunctionRest(
     const std::optional<Position>& position,
-    const std::vector<parameter::ptr>& parameters,
+    const std::vector<Parameter>& parameters,
     Lexer& lexer
   )
   {
@@ -244,7 +244,7 @@ namespace snek::parser::expression
   {
     return ParseFunctionRest(
       position,
-      parameter::ParseList(lexer, false),
+      Parameter::ParseList(lexer, false),
       lexer)
     ;
   }
@@ -890,7 +890,7 @@ namespace snek::parser::expression
       } else {
         result.append(U", ");
       }
-      result.append(parameter->ToString());
+      result.append(parameter.ToString());
     }
     result.append(1, U')');
     if (m_return_type)

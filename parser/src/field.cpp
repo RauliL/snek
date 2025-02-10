@@ -59,7 +59,7 @@ namespace snek::parser::field
   {
     if (lexer.PeekReadToken(Token::Kind::LeftParen))
     {
-      const auto parameters = parameter::ParseList(lexer, false);
+      const auto parameters = Parameter::ParseList(lexer, false);
       type::ptr return_type;
 
       if (lexer.PeekReadToken(Token::Kind::Arrow))
@@ -136,7 +136,7 @@ namespace snek::parser::field
       {
         result.append(U", ");
       }
-      result.append(m_parameters[i]->ToString());
+      result.append(m_parameters[i].ToString());
     }
     result.append(1, U')');
     if (m_return_type)

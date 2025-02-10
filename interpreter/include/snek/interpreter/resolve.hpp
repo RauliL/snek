@@ -45,14 +45,14 @@ namespace snek::interpreter
   ResolveParameter(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::parameter::ptr& parameter
+    const parser::Parameter& parameter
   );
 
   std::vector<Parameter>
   ResolveParameterList(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const std::vector<parser::parameter::ptr>& parameters
+    const std::vector<parser::Parameter>& parameters
   );
 
   type::ptr

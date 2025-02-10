@@ -44,14 +44,21 @@ namespace snek::parser::type
   using ptr = std::shared_ptr<Base>;
 }
 
-namespace snek::parser::parameter
+namespace snek::parser
 {
-  class Base final : public Node
+  class Parameter final : public Node
   {
   public:
-    DISALLOW_COPY_AND_ASSIGN(Base);
+    DEFAULT_COPY_AND_ASSIGN(Parameter);
 
-    explicit Base(
+    static Parameter Parse(Lexer& lexer);
+
+    static std::vector<Parameter> ParseList(
+      Lexer& lexer,
+      bool read_opening_parenthesis = true
+    );
+
+    explicit Parameter(
       const std::optional<Position>& position,
       const std::u32string& name,
       const type::ptr& type = nullptr,
@@ -92,14 +99,4 @@ namespace snek::parser::parameter
     const expression::ptr m_default_value;
     const bool m_rest;
   };
-
-  using ptr = std::shared_ptr<Base>;
-
-  ptr Parse(Lexer& lexer);
-
-  std::vector<ptr>
-  ParseList(
-    Lexer& lexer,
-    bool read_opening_parenthesis = true
-  );
 }

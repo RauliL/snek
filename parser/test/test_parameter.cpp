@@ -35,58 +35,58 @@ using namespace snek::parser;
 TEST_CASE("Parse simple parameter")
 {
   Lexer lexer("foo");
-  const auto result = parameter::Parse(lexer);
+  const auto result = Parameter::Parse(lexer);
 
-  REQUIRE(!result->name().compare(U"foo"));
-  REQUIRE(!result->type());
-  REQUIRE(!result->default_value());
-  REQUIRE(!result->rest());
+  REQUIRE(!result.name().compare(U"foo"));
+  REQUIRE(!result.type());
+  REQUIRE(!result.default_value());
+  REQUIRE(!result.rest());
 }
 
 TEST_CASE("Parse rest parameter")
 {
   Lexer lexer("...foo");
-  const auto result = parameter::Parse(lexer);
+  const auto result = Parameter::Parse(lexer);
 
-  REQUIRE(!result->name().compare(U"foo"));
-  REQUIRE(!result->type());
-  REQUIRE(!result->default_value());
-  REQUIRE(result->rest());
+  REQUIRE(!result.name().compare(U"foo"));
+  REQUIRE(!result.type());
+  REQUIRE(!result.default_value());
+  REQUIRE(result.rest());
 }
 
 TEST_CASE("Parse typed parameter")
 {
   Lexer lexer("foo: String");
-  const auto result = parameter::Parse(lexer);
+  const auto result = Parameter::Parse(lexer);
 
-  REQUIRE(!result->name().compare(U"foo"));
-  REQUIRE(result->type()->kind() == type::Kind::Named);
-  REQUIRE(!result->default_value());
-  REQUIRE(!result->rest());
+  REQUIRE(!result.name().compare(U"foo"));
+  REQUIRE(result.type()->kind() == type::Kind::Named);
+  REQUIRE(!result.default_value());
+  REQUIRE(!result.rest());
 }
 
 TEST_CASE("Parse parameter with default value")
 {
   Lexer lexer("foo = bar");
-  const auto result = parameter::Parse(lexer);
+  const auto result = Parameter::Parse(lexer);
 
-  REQUIRE(!result->name().compare(U"foo"));
-  REQUIRE(!result->type());
-  REQUIRE(result->default_value()->kind() == expression::Kind::Id);
-  REQUIRE(!result->rest());
+  REQUIRE(!result.name().compare(U"foo"));
+  REQUIRE(!result.type());
+  REQUIRE(result.default_value()->kind() == expression::Kind::Id);
+  REQUIRE(!result.rest());
 }
 
 TEST_CASE("Parse parameter list without opening parenthesis")
 {
   Lexer lexer("foo)");
 
-  REQUIRE_THROWS_AS(parameter::ParseList(lexer), SyntaxError);
+  REQUIRE_THROWS_AS(Parameter::ParseList(lexer), SyntaxError);
 }
 
 TEST_CASE("Parse empty parameter list")
 {
   Lexer lexer("()");
-  const auto result = parameter::ParseList(lexer);
+  const auto result = Parameter::ParseList(lexer);
 
   REQUIRE(result.empty());
 }
@@ -94,26 +94,26 @@ TEST_CASE("Parse empty parameter list")
 TEST_CASE("Parse parameter list with one parameter")
 {
   Lexer lexer("(foo)");
-  const auto result = parameter::ParseList(lexer);
+  const auto result = Parameter::ParseList(lexer);
 
   REQUIRE(result.size() == 1);
-  REQUIRE(!result[0]->name().compare(U"foo"));
+  REQUIRE(!result[0].name().compare(U"foo"));
 }
 
 TEST_CASE("Parse parameter list with two parameters")
 {
   Lexer lexer("(foo, bar)");
-  const auto result = parameter::ParseList(lexer);
+  const auto result = Parameter::ParseList(lexer);
 
   REQUIRE(result.size() == 2);
-  REQUIRE(!result[0]->name().compare(U"foo"));
-  REQUIRE(!result[1]->name().compare(U"bar"));
+  REQUIRE(!result[0].name().compare(U"foo"));
+  REQUIRE(!result[1].name().compare(U"bar"));
 }
 
 TEST_CASE("Parse parameter list with dangling comma")
 {
   Lexer lexer("(foo,)");
-  const auto result = parameter::ParseList(lexer);
+  const auto result = Parameter::ParseList(lexer);
 
   REQUIRE(result.size() == 1);
 }
@@ -122,12 +122,12 @@ TEST_CASE("Parse unterminated parameter list")
 {
   Lexer lexer("(foo");
 
-  REQUIRE_THROWS_AS(parameter::ParseList(lexer), SyntaxError);
+  REQUIRE_THROWS_AS(Parameter::ParseList(lexer), SyntaxError);
 }
 
 TEST_CASE("Parse unterminated parameter list with dangling comma")
 {
   Lexer lexer("(foo,");
 
-  REQUIRE_THROWS_AS(parameter::ParseList(lexer), SyntaxError);
+  REQUIRE_THROWS_AS(Parameter::ParseList(lexer), SyntaxError);
 }
