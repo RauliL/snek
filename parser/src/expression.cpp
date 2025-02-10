@@ -58,7 +58,7 @@ namespace snek::parser::expression
     {
       if (lexer.PeekToken(Token::Kind::Eof))
       {
-        throw Error{
+        throw SyntaxError{
           position,
           std::u32string(U"Unterminated ") +
           description +
@@ -77,7 +77,7 @@ namespace snek::parser::expression
         !lexer.PeekToken(closing_token)
       )
       {
-        throw Error{
+        throw SyntaxError{
           position,
           std::u32string(U"Unterminated ") +
           description +
@@ -162,7 +162,7 @@ namespace snek::parser::expression
       }
     }
 
-    throw Error{
+    throw SyntaxError{
       expression->position(),
       U"Unexpected `" +
       expression->ToString() +
@@ -280,7 +280,7 @@ namespace snek::parser::expression
     switch (token.kind())
     {
       case Token::Kind::Eof:
-        throw Error{
+        throw SyntaxError{
           token.position(),
           U"Unexpected end of input; Missing expression."
         };
@@ -334,7 +334,7 @@ namespace snek::parser::expression
         return ParseParenthesized(token.position(), lexer);
 
       default:
-        throw Error{
+        throw SyntaxError{
           token.position(),
           U"Unexpected " + token.ToString() + U"; Missing expression."
         };
@@ -701,7 +701,7 @@ namespace snek::parser::expression
 
       if (!expression->IsAssignable())
       {
-        throw Error{
+        throw SyntaxError{
           expression->position(),
           U"Cannot assign to `" + expression->ToString() + U"'."
         };

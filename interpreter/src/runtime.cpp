@@ -190,7 +190,7 @@ namespace snek::interpreter
         + U"'."
       );
     }
-    catch (const parser::Error& e)
+    catch (const parser::SyntaxError& e)
     {
       const auto error = runtime.MakeError(e.message);
 

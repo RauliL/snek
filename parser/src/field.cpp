@@ -109,7 +109,7 @@ namespace snek::parser::field
         return ParseNamed(token, lexer);
 
       default:
-        throw Error{
+        throw SyntaxError{
           lexer.position(),
           U"Unexpected " +
           token.ToString() +

@@ -67,7 +67,7 @@ ProcessFile(const char* filename)
       PrintNode(statement::Parse(lexer, true));
     }
   }
-  catch (const Error& e)
+  catch (const SyntaxError& e)
   {
     std::cerr << encode(e.ToString()) << std::endl;
     std::exit(EXIT_FAILURE);

@@ -135,7 +135,7 @@ namespace snek::parser
 
           if (m_offset + (length - 1) >= m_input.length())
           {
-            throw Error{
+            throw SyntaxError{
               position(),
               U"Unable to decode given input as UTF-8."
             };
@@ -155,7 +155,7 @@ namespace snek::parser
               break;
 
             default:
-              throw Error{
+              throw SyntaxError{
                 position(),
                 U"Unable to decode given input as UTF-8."
               };
@@ -166,7 +166,7 @@ namespace snek::parser
 
             if ((c2 & 0xc0) != 0x80)
             {
-              throw Error{
+              throw SyntaxError{
                 position(),
                 U"Unable to decode given input as UTF-8."
               };
@@ -280,7 +280,7 @@ namespace snek::parser
 
     if (token.kind() != expected)
     {
-      throw Error{
+      throw SyntaxError{
         token.position(),
         U"Unexpected " +
         token.ToString() +
@@ -362,7 +362,7 @@ namespace snek::parser
 
     if (token.kind() != Token::Kind::Id)
     {
-      throw Error{
+      throw SyntaxError{
         token.position(),
         U"Unexpected " +
         Token::ToString(token.kind()) +
@@ -380,7 +380,7 @@ namespace snek::parser
 
     if (token.kind() != Token::Kind::String)
     {
-      throw Error{
+      throw SyntaxError{
         token.position(),
         U"Unexpected " +
         Token::ToString(token.kind()) +
@@ -572,7 +572,7 @@ namespace snek::parser
         {
           if (!m_input->PeekRead(U'.'))
           {
-            throw Error{ position, U"Unexpected `..'." };
+            throw SyntaxError{ position, U"Unexpected `..'." };
           }
           kind = Token::Kind::Spread;
         } else {
@@ -716,7 +716,7 @@ namespace snek::parser
         break;
 
       default:
-        throw Error{ position, U"Unexpected input." };
+        throw SyntaxError{ position, U"Unexpected input." };
     }
 
     return Token(position, kind);
@@ -755,7 +755,7 @@ namespace snek::parser
     {
       if (m_input->Eof())
       {
-        throw Error{
+        throw SyntaxError{
           position,
           std::u32string(U"Unterminated string literal; Missing `") +
           separator +
@@ -830,7 +830,7 @@ namespace snek::parser
       }
       if (m_input->Eof() || !std::isdigit(m_input->Peek()))
       {
-        throw Error{ position, U"Missing digits after `e'." };
+        throw SyntaxError{ position, U"Missing digits after `e'." };
       }
       EatDigits(m_input, result);
     }
@@ -847,7 +847,7 @@ namespace snek::parser
 
     if (m_input->Eof())
     {
-      throw Error{
+      throw SyntaxError{
         m_input->position(),
         U"Unexpected end of input; Missing escape sequence."
       };
@@ -885,7 +885,7 @@ namespace snek::parser
 
           if (m_input->Eof())
           {
-            throw Error{
+            throw SyntaxError{
               m_input->position(),
               U"Unterminated escape sequence."
             };
@@ -895,7 +895,7 @@ namespace snek::parser
 
           if (!std::isxdigit(operand))
           {
-            throw Error{
+            throw SyntaxError{
               m_input->position(),
               U"Illegal Unicode hex escape sequence."
             };
@@ -915,7 +915,7 @@ namespace snek::parser
 
         if (!isvalid(c))
         {
-          throw Error{
+          throw SyntaxError{
             m_input->position(),
             U"Illegal Unicode hex escape sequence."
           };
@@ -924,7 +924,7 @@ namespace snek::parser
         return c;
     }
 
-    throw Error{
+    throw SyntaxError{
       m_input->position(),
       U"Illegal escape sequence in string literal."
     };

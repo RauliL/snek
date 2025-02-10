@@ -15,7 +15,6 @@ FetchContent_MakeAvailable(PeeloUnicode)
 add_library(
   SnekParser
   ./src/element.cpp
-  ./src/error.cpp
   ./src/expression.cpp
   ./src/field.cpp
   ./src/import.cpp

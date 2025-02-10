@@ -66,7 +66,7 @@ namespace snek::parser::type
     {
       if (lexer.PeekToken(Token::Kind::Eof))
       {
-        throw Error{
+        throw SyntaxError{
           position,
           std::u32string(U"Unterminated ") +
           description +
@@ -85,7 +85,7 @@ namespace snek::parser::type
         !lexer.PeekToken(closing_token)
       )
       {
-        throw Error{
+        throw SyntaxError{
           position,
           U"Unterminated " +
           std::u32string(description) +
@@ -172,7 +172,7 @@ namespace snek::parser::type
     switch (token.kind())
     {
       case Token::Kind::Eof:
-        throw Error{
+        throw SyntaxError{
           token.position(),
           U"Unexpected end of input; Missing type."
         };
@@ -210,7 +210,7 @@ namespace snek::parser::type
         break;
 
       default:
-        throw Error{
+        throw SyntaxError{
           token.position(),
           U"Unexpected " + token.ToString() + U"; Missing type."
         };

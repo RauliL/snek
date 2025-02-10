@@ -31,11 +31,25 @@
 
 namespace snek::parser
 {
-  struct Error final
+  /**
+   * Representation of an syntax error.
+   */
+  struct SyntaxError final
   {
+    /** Position in source code where the error occurred. */
     std::optional<Position> position;
+    /** The error message. */
     std::u32string message;
 
-    std::u32string ToString() const;
+    /**
+     * Returns human readable form of the error, with source code position
+     * included if such information is available.
+     */
+    inline std::u32string ToString() const
+    {
+      return position
+        ? position->ToString().append(U": ").append(message)
+        : message;
+    }
   };
 }

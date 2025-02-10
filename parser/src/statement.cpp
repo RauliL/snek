@@ -72,7 +72,7 @@ namespace snek::parser::statement
 
     if (!variable->IsAssignable())
     {
-      throw Error{
+      throw SyntaxError{
         variable->position(),
         U"Cannot assign to " +
         variable->ToString() +
@@ -150,7 +150,7 @@ namespace snek::parser::statement
     {
       statement = ParseDeclareType(lexer, true);
     } else {
-      throw Error{
+      throw SyntaxError{
         token.position(),
         U"Unexpected " + lexer.PeekToken().ToString() + U" after `export'."
       };
@@ -169,7 +169,7 @@ namespace snek::parser::statement
     switch (token.kind())
     {
       case Token::Kind::Eof:
-        throw Error{
+        throw SyntaxError{
           token.position(),
           U"Unexpected end of input; Missing statement."
         };
@@ -316,7 +316,7 @@ namespace snek::parser::statement
       case Token::Kind::KeywordImport:
         if (!is_top_level)
         {
-          throw Error{
+          throw SyntaxError{
             token.position(),
             U"Imports are only allowed at top level."
           };
@@ -327,7 +327,7 @@ namespace snek::parser::statement
       case Token::Kind::KeywordExport:
         if (!is_top_level)
         {
-          throw Error{
+          throw SyntaxError{
             token.position(),
             U"Exports are only allowed at top level."
           };

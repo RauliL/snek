@@ -77,7 +77,7 @@ namespace snek::parser::parameter
         !lexer.PeekToken(Token::Kind::Comma)
       )
       {
-        throw Error{
+        throw SyntaxError{
           lexer.position(),
           U"Unterminated parameter list; Missing `)'."
         };

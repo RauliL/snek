@@ -80,7 +80,7 @@ TEST_CASE("Parse parameter list without opening parenthesis")
 {
   Lexer lexer("foo)");
 
-  REQUIRE_THROWS_AS(parameter::ParseList(lexer), Error);
+  REQUIRE_THROWS_AS(parameter::ParseList(lexer), SyntaxError);
 }
 
 TEST_CASE("Parse empty parameter list")
@@ -122,12 +122,12 @@ TEST_CASE("Parse unterminated parameter list")
 {
   Lexer lexer("(foo");
 
-  REQUIRE_THROWS_AS(parameter::ParseList(lexer), Error);
+  REQUIRE_THROWS_AS(parameter::ParseList(lexer), SyntaxError);
 }
 
 TEST_CASE("Parse unterminated parameter list with dangling comma")
 {
   Lexer lexer("(foo,");
 
-  REQUIRE_THROWS_AS(parameter::ParseList(lexer), Error);
+  REQUIRE_THROWS_AS(parameter::ParseList(lexer), SyntaxError);
 }
