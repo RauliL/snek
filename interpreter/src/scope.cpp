@@ -130,8 +130,8 @@ namespace snek::interpreter
 
     if (it != std::end(m_variables))
     {
+      // TODO: Include stack trace.
       throw Error{
-        position,
         {},
         U"Variable `" +
         name +
@@ -156,7 +156,6 @@ namespace snek::interpreter
       {
         // TODO: Include stack trace.
         throw Error{
-          position,
           {},
           U"Variable `" +
           name +
@@ -170,7 +169,7 @@ namespace snek::interpreter
       m_parent->SetVariable(position, name, value);
     } else {
       // TODO: Include stack trace.
-      throw Error{ position, {}, U"Unknown variable: `" + name + U"'." };
+      throw Error{ {}, U"Unknown variable: `" + name + U"'." };
     }
   }
 
@@ -206,7 +205,6 @@ namespace snek::interpreter
     {
       // TODO: Include stack trace.
       throw Error{
-        position,
         {},
         U"Type `'" +
         name +

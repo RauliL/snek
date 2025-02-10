@@ -77,10 +77,7 @@ namespace snek::interpreter
 
         if (!value::IsList(value))
         {
-          throw runtime.MakeError(
-            U"Spread element must be a list.",
-            element->position()
-          );
+          throw runtime.MakeError(U"Spread element must be a list.");
         }
         value_list = As<value::List>(value);
         size = value_list->GetSize();
@@ -167,7 +164,7 @@ namespace snek::interpreter
       }
     }
 
-    throw runtime.MakeError(U"Unknown variable: `" + name + U"'.", field->position());
+    throw runtime.MakeError(U"Unknown variable: `" + name + U"'.");
   }
 
   static void
@@ -182,10 +179,7 @@ namespace snek::interpreter
 
     if (value::KindOf(value) != value::Kind::Record)
     {
-      throw runtime.MakeError(
-        U"Spread element must be a record.",
-        field->position()
-      );
+      throw runtime.MakeError(U"Spread element must be a record.");
     }
     for (const auto& value_field : *static_cast<const value::Record*>(value.get()))
     {
@@ -343,8 +337,9 @@ namespace snek::interpreter
         }
       } else {
         throw runtime.MakeError(
-          U"Cannot spread " + value::ToString(value::KindOf(value)) + U".",
-          expression->position()
+          U"Cannot spread " +
+          value::ToString(value::KindOf(value)) +
+          U"."
         );
       }
     } else {
@@ -390,8 +385,8 @@ namespace snek::interpreter
     }
 
     throw runtime.MakeError(
-      value::ToString(value::KindOf(value)) + U" is not callable.",
-      expression->position()
+      value::ToString(value::KindOf(value)) +
+      U" is not callable."
     );
   }
 
@@ -463,10 +458,7 @@ namespace snek::interpreter
       }
     }
 
-    throw runtime.MakeError(
-      U"Unknown variable: `" + id + U"'.",
-      expression->position()
-    );
+    throw runtime.MakeError(U"Unknown variable: `" + id + U"'.");
   }
 
   static value::ptr
@@ -544,8 +536,7 @@ namespace snek::interpreter
       value::ToString(value::KindOf(value)) +
       U" has no property `" +
       expression->name() +
-      U"'.",
-      expression->position()
+      U"'."
     );
   }
 
@@ -633,7 +624,7 @@ namespace snek::interpreter
         return U"-@";
     }
 
-    throw Error{ std::nullopt, {}, U"Unknown unary operator." };
+    throw Error{ {}, U"Unknown unary operator." };
   }
 
   static value::ptr
@@ -741,10 +732,7 @@ namespace snek::interpreter
         return EvaluateRecord(runtime, scope, As<Record>(expression));
 
       case Kind::Spread:
-        throw runtime.MakeError(
-          U"Unexpected spread expression.",
-          expression->position()
-        );
+        throw runtime.MakeError(U"Unexpected spread expression.");
 
       case Kind::String:
         return value::String::Make(As<String>(expression)->value());

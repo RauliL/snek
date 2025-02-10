@@ -161,8 +161,7 @@ namespace snek::interpreter::value
       throw runtime.MakeError(
         ToString(KindOf(value)) + U" has no property `" +
         name +
-        U"'.",
-        position
+        U"'."
       );
     }
     else if (IsFunction(*property))
@@ -177,8 +176,8 @@ namespace snek::interpreter::value
     }
 
     throw runtime.MakeError(
-      ToString(KindOf(*property)) + U" is not callable.",
-      position
+      ToString(KindOf(*property)) +
+      U" is not callable."
     );
   }
 

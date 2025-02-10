@@ -185,12 +185,13 @@ namespace snek::interpreter
 #endif
     }
 
-    inline Error MakeError(
-      const std::u32string& message,
-      const std::optional<Position>& position = std::nullopt
-    ) const
+    /**
+     * Constructs an error instance with copy of the runtime's current call
+     * stack.
+     */
+    inline Error MakeError(const std::u32string& message) const
     {
-      return Error{ position, m_call_stack, message };
+      return Error{ m_call_stack, message };
     }
 
     value::ptr MakeInt(std::int64_t value);

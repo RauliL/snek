@@ -104,10 +104,7 @@ namespace snek::interpreter
       }
     }
 
-    throw runtime.MakeError(
-      U"Unknown type: `" + name + U"'.",
-      type->position()
-    );
+    throw runtime.MakeError(U"Unknown type: `" + name + U"'.");
   }
 
   static type::ptr

@@ -36,7 +36,7 @@ namespace snek::cli::utils
 
     auto stack_trace = e.stack_trace;
 
-    os << encode(e.ToString()) << std::endl;
+    os << encode(e.message) << std::endl;
     while (!stack_trace.empty())
     {
       os << '\t' << encode(stack_trace.top().ToString()) << std::endl;

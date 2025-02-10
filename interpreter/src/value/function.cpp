@@ -74,15 +74,14 @@ namespace snek::interpreter::value
       {
         argument = EvaluateExpression(runtime, scope, parameter.default_value);
       } else {
-        throw runtime.MakeError(U"Too few arguments.", position);
+        throw runtime.MakeError(U"Too few arguments.");
       }
       if (!parameter.Accepts(runtime, argument))
       {
         throw runtime.MakeError(
           value::ToString(argument) +
           U" cannot be assigned to " +
-          parameter.ToString(),
-          position
+          parameter.ToString()
         );
       }
       callback(parameter, argument);
@@ -215,8 +214,7 @@ namespace snek::interpreter::value
           throw runtime.MakeError(
             U"Unexpected `" +
             parser::statement::Jump::ToString(jump.kind())
-            + U"'.",
-            jump.position()
+            + U"'."
           );
         }
 

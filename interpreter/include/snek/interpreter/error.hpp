@@ -29,12 +29,14 @@
 
 namespace snek::interpreter
 {
+  /**
+   * Representation of an runtime error.
+   */
   struct Error final
   {
-    std::optional<Position> position;
+    /** Copy of the runtime's call stack during when the error occurred. */
     std::stack<Frame> stack_trace;
+    /** The error message. */
     std::u32string message;
-
-    std::u32string ToString() const;
   };
 }

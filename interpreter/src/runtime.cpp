@@ -187,13 +187,12 @@ namespace snek::interpreter
       throw runtime.MakeError(
         U"Unexpected `" +
         parser::statement::Jump::ToString(jump.kind())
-        + U"'.",
-        jump.position()
+        + U"'."
       );
     }
     catch (const parser::Error& e)
     {
-      const auto error = runtime.MakeError(e.message, e.position);
+      const auto error = runtime.MakeError(e.message);
 
       call_stack.pop();
 
@@ -250,7 +249,7 @@ namespace snek::interpreter
     // Do not attempt to import empty paths.
     if (parser::utils::IsBlank(path))
     {
-      throw MakeError(U"Cannot import empty path.", position);
+      throw MakeError(U"Cannot import empty path.");
     }
     cached = m_imported_modules.find(path);
     if (cached == std::end(m_imported_modules))

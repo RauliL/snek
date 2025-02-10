@@ -151,10 +151,7 @@ namespace snek::interpreter
       }
     }
 
-    throw runtime.MakeError(
-      U"Module does not export `" + name + U"'.",
-      position
-    );
+    throw runtime.MakeError(U"Module does not export `" + name + U"'.");
   }
 
   static void

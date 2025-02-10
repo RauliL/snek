@@ -66,18 +66,14 @@ namespace snek::interpreter
         value::ToString(value::KindOf(value)) +
         U" into " +
         variable->ToString() +
-        U".",
-        variable->position()
+        U"."
       );
     }
     list = static_cast<const value::List*>(value.get());
     list_size = list->GetSize();
     if (list_size < size)
     {
-      throw runtime.MakeError(
-        U"List has too few elements for assignment.",
-        variable->position()
-      );
+      throw runtime.MakeError(U"List has too few elements for assignment.");
     }
     for (std::size_t i = 0; i < size; ++i)
     {
@@ -92,10 +88,7 @@ namespace snek::interpreter
         result.reserve(list_size - i);
         if (i + 1 < size)
         {
-          throw runtime.MakeError(
-            U"Variable after `...' variable.",
-            element->position()
-          );
+          throw runtime.MakeError(U"Variable after `...' variable.");
         }
         do
         {
@@ -131,8 +124,7 @@ namespace snek::interpreter
         value::ToString(value::KindOf(value)) +
         U" into " +
         variable->ToString() +
-        U".",
-        variable->position()
+        U"."
       );
     }
     for (std::size_t i = 0; i < size; ++i)
@@ -154,8 +146,7 @@ namespace snek::interpreter
             value::ToString(value::KindOf(value)) +
             U" has no property `" +
             name +
-            U"'.",
-            field->position()
+            U"'."
           );
         }
         Process(runtime, named->value(), *property, callback);
@@ -174,8 +165,7 @@ namespace snek::interpreter
             value::ToString(value::KindOf(value)) +
             U" has no property `" +
             name +
-            U"'.",
-            field->position()
+            U"'."
           );
         }
         callback(field->position(), name, *property);
@@ -187,10 +177,7 @@ namespace snek::interpreter
 
         if (i + 1 < size)
         {
-          throw runtime.MakeError(
-            U"Variable after `...' variable.",
-            variable->position()
-          );
+          throw runtime.MakeError(U"Variable after `...' variable.");
         }
         for (
           const auto& f
@@ -214,8 +201,7 @@ namespace snek::interpreter
         throw runtime.MakeError(
           U"Cannot assign to " +
           fields[i]->ToString() +
-          U".",
-          fields[i]->position()
+          U"."
         );
       }
     }
@@ -268,8 +254,7 @@ namespace snek::interpreter
         throw runtime.MakeError(
           U"Cannot assign to " +
           variable->ToString() +
-          U".",
-          variable->position()
+          U"."
         );
     }
   }

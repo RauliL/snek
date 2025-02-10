@@ -47,10 +47,7 @@ namespace snek::interpreter
 
     if (!ifs.good())
     {
-      throw runtime.MakeError(
-        U"Unable to find module `" + path + U"'.",
-        position
-      );
+      throw runtime.MakeError(U"Unable to find module `" + path + U"'.");
     }
     source.append(
       std::istreambuf_iterator<char>(ifs),
