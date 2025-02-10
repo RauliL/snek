@@ -28,6 +28,7 @@
 #include "snek/interpreter/jump.hpp"
 #include "snek/interpreter/runtime.hpp"
 #include "snek/parser/statement.hpp"
+#include "snek/parser/utils.hpp"
 
 namespace snek::interpreter
 {
@@ -218,9 +219,15 @@ namespace snek::interpreter
     const std::u32string& path
   )
   {
-    const auto cached = m_imported_modules.find(path);
+    module_container_type::const_iterator cached;
     Scope::ptr module;
 
+    // Do not attempt to import empty paths.
+    if (parser::utils::IsBlank(path))
+    {
+      throw Error{ position, U"Cannot import empty path." };
+    }
+    cached = m_imported_modules.find(path);
     if (cached == std::end(m_imported_modules))
     {
       module = m_module_importer(position, *this, path);

@@ -53,6 +53,10 @@ namespace snek::interpreter
         const std::u32string&
       )
     >;
+    using module_container_type = std::unordered_map<
+      std::u32string,
+      Scope::ptr
+    >;
 
     DEFAULT_COPY_AND_ASSIGN(Runtime);
 
@@ -217,7 +221,7 @@ namespace snek::interpreter
     Scope::ptr m_root_scope;
 
     module_importer_type m_module_importer;
-    std::unordered_map<std::u32string, Scope::ptr> m_imported_modules;
+    module_container_type m_imported_modules;
 
 #if defined(SNEK_ENABLE_BOOLEAN_CACHE)
     value::ptr m_true_value;

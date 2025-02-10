@@ -25,12 +25,23 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <cctype>
 #include <cstdint>
 #include <string>
 
+#include <peelo/unicode/ctype/isspace.hpp>
+
 namespace snek::parser::utils
 {
+  inline bool
+  IsBlank(const std::u32string& s)
+  {
+    using peelo::unicode::ctype::isspace;
+
+    return s.empty() || std::all_of(std::begin(s), std::end(s), isspace);
+  }
+
   inline bool
   IsNewLine(char32_t c)
   {
