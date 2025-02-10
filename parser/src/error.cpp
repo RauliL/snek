@@ -23,9 +23,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
+#include "snek/parser/error.hpp"
 
-namespace snek
+namespace snek::parser
 {
   std::u32string
   Error::ToString() const

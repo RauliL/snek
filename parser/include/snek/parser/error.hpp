@@ -23,66 +23,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <cstdlib>
-#include <iostream>
+#pragma once
 
-#include <peelo/unicode/encoding/utf8.hpp>
+#include <optional>
 
-#include "snek/parser/error.hpp"
-#include "snek/parser/statement.hpp"
+#include "snek/position.hpp"
 
-using namespace snek::parser;
-
-std::string ReadFile(const char*);
-
-static void
-PrintNode(const std::shared_ptr<Node>& node)
+namespace snek::parser
 {
-  using peelo::unicode::encoding::utf8::encode;
-
-  if (!node)
+  struct Error final
   {
-    return;
-  }
-  if (const auto position = node->position())
-  {
-    std::cout << encode(position->ToString()) << ": ";
-  }
-  std::cout << encode(node->ToString()) << std::endl;
-}
+    std::optional<Position> position;
+    std::u32string message;
 
-static void
-ProcessFile(const char* filename)
-{
-  using peelo::unicode::encoding::utf8::decode;
-  using peelo::unicode::encoding::utf8::encode;
-
-  const auto source = ReadFile(filename);
-  Lexer lexer(source, decode(filename));
-
-  try
-  {
-    while (!lexer.PeekToken(Token::Kind::Eof))
-    {
-      PrintNode(statement::Parse(lexer, true));
-    }
-  }
-  catch (const Error& e)
-  {
-    std::cerr << encode(e.ToString()) << std::endl;
-    std::exit(EXIT_FAILURE);
-  }
-}
-
-int
-main(int argc, char** argv)
-{
-  if (argc != 2)
-  {
-    std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
-    std::exit(EXIT_FAILURE);
-  }
-  ProcessFile(argv[1]);
-
-  return EXIT_SUCCESS;
+    std::u32string ToString() const;
+  };
 }

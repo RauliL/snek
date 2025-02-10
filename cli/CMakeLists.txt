@@ -4,6 +4,7 @@ add_executable(
   SnekCli
   ./src/main.cpp
   ./src/repl.cpp
+  ./src/utils.cpp
 )
 
 target_include_directories(

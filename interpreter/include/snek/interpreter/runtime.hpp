@@ -26,6 +26,7 @@
 #pragma once
 
 #include "snek/interpreter/config.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/scope.hpp"
 
 namespace snek::interpreter
@@ -46,6 +47,7 @@ namespace snek::interpreter
     static constexpr std::size_t kIntCacheSize = -kIntCacheMin + kIntCacheMax;
 #endif
 
+    using call_stack_type = std::stack<Frame>;
     using module_importer_type = std::function<
       Scope::ptr(
         const std::optional<Position>&,
@@ -164,6 +166,16 @@ namespace snek::interpreter
       return m_root_scope;
     }
 
+    inline call_stack_type& call_stack()
+    {
+      return m_call_stack;
+    }
+
+    inline const call_stack_type& call_stack() const
+    {
+      return m_call_stack;
+    }
+
     inline value::ptr MakeBoolean(bool value)
     {
 #if defined(SNEK_ENABLE_BOOLEAN_CACHE)
@@ -171,6 +183,14 @@ namespace snek::interpreter
 #else
       return std::make_shared<value::Boolean>(value);
 #endif
+    }
+
+    inline Error MakeError(
+      const std::u32string& message,
+      const std::optional<Position>& position = std::nullopt
+    ) const
+    {
+      return Error{ position, m_call_stack, message };
     }
 
     value::ptr MakeInt(std::int64_t value);
@@ -219,6 +239,8 @@ namespace snek::interpreter
     value::ptr m_string_prototype;
 
     Scope::ptr m_root_scope;
+
+    call_stack_type m_call_stack;
 
     module_importer_type m_module_importer;
     module_container_type m_imported_modules;

@@ -158,7 +158,8 @@ namespace snek::interpreter::value
     const ptr& value,
     const std::u32string& name,
     const std::vector<ptr>& arguments = {},
-    const std::optional<Position>& position = std::nullopt
+    const std::optional<Position>& position = std::nullopt,
+    bool tail_call = false
   );
 
   inline bool Equals(const ptr& a, const ptr& b)
@@ -306,6 +307,15 @@ namespace snek::interpreter::value
       const std::shared_ptr<Function>& function
     );
 
+    static ptr
+    Call(
+      const std::optional<Position>& position,
+      Runtime& runtime,
+      const std::shared_ptr<value::Function>& function,
+      const std::vector<ptr>& arguments,
+      bool tail_call = false
+    );
+
     inline Kind kind() const override
     {
       return Kind::Function;
@@ -315,12 +325,6 @@ namespace snek::interpreter::value
 
     virtual const type::ptr& return_type() const = 0;
 
-    virtual ptr Call(
-      const std::optional<Position>& position,
-      Runtime& runtime,
-      const std::vector<ptr>& arguments
-    ) const = 0;
-
     bool Equals(const Base& that) const override;
 
     std::u32string ToString() const override;
@@ -329,6 +333,13 @@ namespace snek::interpreter::value
     {
       return ToString();
     }
+
+  protected:
+    virtual ptr Call(
+      const std::optional<Position>& position,
+      Runtime& runtime,
+      const std::vector<ptr>& arguments
+    ) const = 0;
   };
 
   class Int final : public Number

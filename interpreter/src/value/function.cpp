@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/evaluate.hpp"
 #include "snek/interpreter/execute.hpp"
 #include "snek/interpreter/jump.hpp"
@@ -31,7 +31,10 @@
 
 namespace snek::interpreter::value
 {
-  using argument_callback_type = std::function<void(const Parameter&, const value::ptr&)>;
+  using argument_callback_type = std::function<void(
+    const Parameter&,
+    const value::ptr&
+  )>;
 
   static void
   ProcessArguments(
@@ -71,16 +74,16 @@ namespace snek::interpreter::value
       {
         argument = EvaluateExpression(runtime, scope, parameter.default_value);
       } else {
-        throw Error({ position, U"Too few arguments." });
+        throw runtime.MakeError(U"Too few arguments.", position);
       }
       if (!parameter.Accepts(runtime, argument))
       {
-        throw Error{
-          position,
+        throw runtime.MakeError(
           value::ToString(argument) +
           U" cannot be assigned to " +
-          parameter.ToString()
-        };
+          parameter.ToString(),
+          position
+        );
       }
       callback(parameter, argument);
     }
@@ -111,6 +114,7 @@ namespace snek::interpreter::value
         return m_return_type;
       }
 
+    protected:
       ptr
       Call(
         const std::optional<Position>& position,
@@ -167,6 +171,7 @@ namespace snek::interpreter::value
         return m_return_type;
       }
 
+    protected:
       ptr
       Call(
         const std::optional<Position>& position,
@@ -207,12 +212,12 @@ namespace snek::interpreter::value
             return jump.value();
           }
 
-          throw Error{
-            jump.position(),
+          throw runtime.MakeError(
             U"Unexpected `" +
             parser::statement::Jump::ToString(jump.kind())
-            + U"'."
-          };
+            + U"'.",
+            jump.position()
+          );
         }
 
         return nullptr;
@@ -254,6 +259,7 @@ namespace snek::interpreter::value
         return m_function->return_type();
       }
 
+    protected:
       inline ptr
       Call(
         const std::optional<Position>& position,
@@ -265,9 +271,10 @@ namespace snek::interpreter::value
 
         bound_arguments.insert(std::begin(bound_arguments), m_this_value);
 
-        return m_function->Call(
+        return Function::Call(
           position,
           runtime,
+          m_function,
           bound_arguments
         );
       }
@@ -316,6 +323,49 @@ namespace snek::interpreter::value
   )
   {
     return std::make_shared<BoundFunction>(this_value, function);
+  }
+
+  ptr
+  Function::Call(
+    const std::optional<Position>& position,
+    Runtime& runtime,
+    const std::shared_ptr<Function>& function,
+    const std::vector<ptr>& arguments,
+    bool tail_call
+  )
+  {
+    auto& call_stack = runtime.call_stack();
+    const auto use_tail = tail_call && !call_stack.empty();
+    ptr value;
+
+    if (use_tail)
+    {
+      auto& frame = call_stack.top();
+
+      frame.function = function;
+      frame.arguments = arguments;
+    } else {
+      call_stack.push({ position, function, arguments });
+    }
+    try
+    {
+      value = function->Call(position, runtime, arguments);
+    }
+    catch (const Error& e)
+    {
+      if (!use_tail)
+      {
+        call_stack.pop();
+      }
+
+      throw e;
+    }
+    if (!use_tail)
+    {
+      call_stack.pop();
+    }
+
+    return value;
   }
 
   bool

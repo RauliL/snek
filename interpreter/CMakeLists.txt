@@ -27,8 +27,10 @@ add_library(
   SnekInterpreter
   ./src/api.cpp
   ./src/assign.cpp
+  ./src/error.cpp
   ./src/evaluate.cpp
   ./src/execute.cpp
+  ./src/frame.cpp
   ./src/module.cpp
   ./src/parameter.cpp
   ./src/prototype/boolean.cpp

@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter::value
@@ -150,29 +150,36 @@ namespace snek::interpreter::value
     const ptr& value,
     const std::u32string& name,
     const std::vector<ptr>& arguments,
-    const std::optional<Position>& position
+    const std::optional<Position>& position,
+    bool tail_call
   )
   {
     const auto property = GetProperty(runtime, value, name);
 
     if (!property)
     {
-      throw Error{
-        position,
+      throw runtime.MakeError(
         ToString(KindOf(value)) + U" has no property `" +
         name +
-        U"'."
-      };
+        U"'.",
+        position
+      );
     }
     else if (IsFunction(*property))
     {
-      return As<Function>(*property)->Call(position, runtime, arguments);
+      return value::Function::Call(
+        position,
+        runtime,
+        std::static_pointer_cast<Function>(*property),
+        arguments,
+        tail_call
+      );
     }
 
-    throw Error{
-      position,
-      ToString(KindOf(*property)) + U" is not callable."
-    };
+    throw runtime.MakeError(
+      ToString(KindOf(*property)) + U" is not callable.",
+      position
+    );
   }
 
   bool

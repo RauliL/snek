@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter
@@ -132,6 +132,7 @@ namespace snek::interpreter
     {
       throw Error{
         position,
+        {},
         U"Variable `" +
         name +
         U"' has already been declared."
@@ -153,8 +154,10 @@ namespace snek::interpreter
     {
       if (it->second.read_only)
       {
+        // TODO: Include stack trace.
         throw Error{
           position,
+          {},
           U"Variable `" +
           name +
           U"' has been declared as read only."
@@ -166,7 +169,8 @@ namespace snek::interpreter
     {
       m_parent->SetVariable(position, name, value);
     } else {
-      throw Error{ position, U"Unknown variable: `" + name + U"'." };
+      // TODO: Include stack trace.
+      throw Error{ position, {}, U"Unknown variable: `" + name + U"'." };
     }
   }
 
@@ -200,8 +204,10 @@ namespace snek::interpreter
 
     if (it != std::end(m_types))
     {
+      // TODO: Include stack trace.
       throw Error{
         position,
+        {},
         U"Type `'" +
         name +
         U"' has already been declared."

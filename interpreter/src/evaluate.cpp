@@ -23,8 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
 #include "snek/interpreter/assign.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/evaluate.hpp"
 #include "snek/interpreter/resolve.hpp"
 #include "snek/parser/element.hpp"
@@ -77,10 +77,10 @@ namespace snek::interpreter
 
         if (!value::IsList(value))
         {
-          throw Error{
-            element->position(),
-            U"Spread element must be a list."
-          };
+          throw runtime.MakeError(
+            U"Spread element must be a list.",
+            element->position()
+          );
         }
         value_list = As<value::List>(value);
         size = value_list->GetSize();
@@ -148,6 +148,7 @@ namespace snek::interpreter
 
   static void
   EvaluateShorthandField(
+    const Runtime& runtime,
     const Scope::ptr& scope,
     const parser::field::Shorthand* field,
     value::Record::container_type& record
@@ -166,7 +167,7 @@ namespace snek::interpreter
       }
     }
 
-    throw Error{ field->position(), U"Unknown variable: `" + name + U"'." };
+    throw runtime.MakeError(U"Unknown variable: `" + name + U"'.", field->position());
   }
 
   static void
@@ -181,10 +182,10 @@ namespace snek::interpreter
 
     if (value::KindOf(value) != value::Kind::Record)
     {
-      throw Error{
-        field->position(),
-        U"Spread element must be a record."
-      };
+      throw runtime.MakeError(
+        U"Spread element must be a record.",
+        field->position()
+      );
     }
     for (const auto& value_field : *static_cast<const value::Record*>(value.get()))
     {
@@ -231,6 +232,7 @@ namespace snek::interpreter
 
       case parser::field::Kind::Shorthand:
         EvaluateShorthandField(
+          runtime,
           scope,
           As<parser::field::Shorthand>(field),
           record
@@ -279,7 +281,8 @@ namespace snek::interpreter
   EvaluateBinary(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Binary* expression
+    const Binary* expression,
+    bool tail_call
   )
   {
     const auto left = EvaluateExpression(runtime, scope, expression->left());
@@ -303,7 +306,8 @@ namespace snek::interpreter
           left,
           Binary::ToString(op),
           { EvaluateExpression(runtime, scope, expression->right()) },
-          expression->position()
+          expression->position(),
+          tail_call
         );
     }
   }
@@ -338,10 +342,10 @@ namespace snek::interpreter
           arguments.push_back(list->At(i));
         }
       } else {
-        throw Error{
-          expression->position(),
-          U"Cannot spread " + value::ToString(value::KindOf(value)) + U"."
-        };
+        throw runtime.MakeError(
+          U"Cannot spread " + value::ToString(value::KindOf(value)) + U".",
+          expression->position()
+        );
       }
     } else {
       arguments.push_back(EvaluateExpression(runtime, scope, expression));
@@ -352,7 +356,8 @@ namespace snek::interpreter
   EvaluateCall(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Call* expression
+    const Call* expression,
+    bool tail_call
   )
   {
     const auto value = EvaluateExpression(
@@ -367,7 +372,6 @@ namespace snek::interpreter
     }
     else if (value::KindOf(value) == value::Kind::Function)
     {
-      const auto function = std::static_pointer_cast<value::Function>(value);
       std::vector<value::ptr> arguments;
 
       arguments.reserve(expression->arguments().size());
@@ -376,20 +380,27 @@ namespace snek::interpreter
         EvaluateArgument(runtime, scope, argument, arguments);
       }
 
-      return function->Call(expression->position(), runtime, arguments);
+      return value::Function::Call(
+        expression->position(),
+        runtime,
+        std::static_pointer_cast<value::Function>(value),
+        arguments,
+        tail_call
+      );
     }
 
-    throw Error{
-      expression->position(),
-      value::ToString(value::KindOf(value)) + U" is not callable."
-    };
+    throw runtime.MakeError(
+      value::ToString(value::KindOf(value)) + U" is not callable.",
+      expression->position()
+    );
   }
 
   static value::ptr
   EvaluateDecrement(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Decrement* expression
+    const Decrement* expression,
+    bool tail_call
   )
   {
     const auto& variable = expression->variable();
@@ -399,7 +410,8 @@ namespace snek::interpreter
       value,
       U"-",
       { runtime.MakeInt(1) },
-      expression->position()
+      expression->position(),
+      tail_call
     );
 
     AssignTo(runtime, scope, variable, new_value);
@@ -433,7 +445,11 @@ namespace snek::interpreter
   }
 
   static value::ptr
-  EvaluateId(const Scope::ptr& scope, const Id* expression)
+  EvaluateId(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const Id* expression
+  )
   {
     const auto& id = expression->identifier();
 
@@ -447,14 +463,18 @@ namespace snek::interpreter
       }
     }
 
-    throw Error{ expression->position(), U"Unknown variable: `" + id + U"'." };
+    throw runtime.MakeError(
+      U"Unknown variable: `" + id + U"'.",
+      expression->position()
+    );
   }
 
   static value::ptr
   EvaluateIncrement(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Increment* expression
+    const Increment* expression,
+    bool tail_call
   )
   {
     const auto& variable = expression->variable();
@@ -464,7 +484,8 @@ namespace snek::interpreter
       value,
       U"+",
       { runtime.MakeInt(1) },
-      expression->position()
+      expression->position(),
+      tail_call
     );
 
     AssignTo(runtime, scope, variable, new_value);
@@ -519,13 +540,13 @@ namespace snek::interpreter
       return *property;
     }
 
-    throw Error{
-      expression->position(),
+    throw runtime.MakeError(
       value::ToString(value::KindOf(value)) +
       U" has no property `" +
       expression->name() +
-      U"'."
-    };
+      U"'.",
+      expression->position()
+    );
   }
 
   static value::ptr
@@ -549,7 +570,8 @@ namespace snek::interpreter
   EvaluateSubscript(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Subscript* expression
+    const Subscript* expression,
+    bool tail_call
   )
   {
     const auto value = EvaluateExpression(
@@ -568,7 +590,8 @@ namespace snek::interpreter
       value,
       U"[]",
       { EvaluateExpression(runtime, scope, expression->index()) },
-      expression->position()
+      expression->position(),
+      tail_call
     );
   }
 
@@ -610,14 +633,15 @@ namespace snek::interpreter
         return U"-@";
     }
 
-    throw Error{ std::nullopt, U"Unknown unary operator." };
+    throw Error{ std::nullopt, {}, U"Unknown unary operator." };
   }
 
   static value::ptr
   EvaluateUnary(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Unary* expression
+    const Unary* expression,
+    bool tail_call
   )
   {
     const auto op = expression->op();
@@ -637,7 +661,8 @@ namespace snek::interpreter
       operand,
       GetMethodName(op),
       {},
-      expression->position()
+      expression->position(),
+      tail_call
     );
   }
 
@@ -645,7 +670,8 @@ namespace snek::interpreter
   EvaluateExpression(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const ptr& expression
+    const ptr& expression,
+    bool tail_call
   )
   {
     if (!expression)
@@ -659,16 +685,26 @@ namespace snek::interpreter
         return EvaluateAssign(runtime, scope, As<Assign>(expression));
 
       case Kind::Binary:
-        return EvaluateBinary(runtime, scope, As<Binary>(expression));
+        return EvaluateBinary(
+          runtime,
+          scope,
+          As<Binary>(expression),
+          tail_call
+        );
 
       case Kind::Boolean:
         return runtime.MakeBoolean(As<Boolean>(expression)->value());
 
       case Kind::Call:
-        return EvaluateCall(runtime, scope, As<Call>(expression));
+        return EvaluateCall(runtime, scope, As<Call>(expression), tail_call);
 
       case Kind::Decrement:
-        return EvaluateDecrement(runtime, scope, As<Decrement>(expression));
+        return EvaluateDecrement(
+          runtime,
+          scope,
+          As<Decrement>(expression),
+          tail_call
+        );
 
       case Kind::Float:
         return std::make_shared<value::Float>(
@@ -679,10 +715,15 @@ namespace snek::interpreter
         return EvaluateFunction(runtime, scope, As<Function>(expression));
 
       case Kind::Id:
-        return EvaluateId(scope, As<Id>(expression));
+        return EvaluateId(runtime, scope, As<Id>(expression));
 
       case Kind::Increment:
-        return EvaluateIncrement(runtime, scope, As<Increment>(expression));
+        return EvaluateIncrement(
+          runtime,
+          scope,
+          As<Increment>(expression),
+          tail_call
+        );
 
       case Kind::Int:
         return runtime.MakeInt(As<Int>(expression)->value());
@@ -700,22 +741,27 @@ namespace snek::interpreter
         return EvaluateRecord(runtime, scope, As<Record>(expression));
 
       case Kind::Spread:
-        throw Error{
-          expression->position(),
-          U"Unexpected spread expression."
-        };
+        throw runtime.MakeError(
+          U"Unexpected spread expression.",
+          expression->position()
+        );
 
       case Kind::String:
         return value::String::Make(As<String>(expression)->value());
 
       case Kind::Subscript:
-        return EvaluateSubscript(runtime, scope, As<Subscript>(expression));
+        return EvaluateSubscript(
+          runtime,
+          scope,
+          As<Subscript>(expression),
+          tail_call
+        );
 
       case Kind::Ternary:
         return EvaluateTernary(runtime, scope, As<Ternary>(expression));
 
       case Kind::Unary:
-        return EvaluateUnary(runtime, scope, As<Unary>(expression));
+        return EvaluateUnary(runtime, scope, As<Unary>(expression), tail_call);
     }
 
     return nullptr;

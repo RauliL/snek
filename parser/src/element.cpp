@@ -23,8 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
 #include "snek/parser/element.hpp"
+#include "snek/parser/error.hpp"
 #include "snek/parser/expression.hpp"
 
 namespace snek::parser::element

@@ -27,7 +27,7 @@
 
 #include <peelo/unicode/encoding/utf8.hpp>
 
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter
@@ -47,7 +47,10 @@ namespace snek::interpreter
 
     if (!ifs.good())
     {
-      throw Error{ position, U"Unable to find module `" + path + U"'." };
+      throw runtime.MakeError(
+        U"Unable to find module `" + path + U"'.",
+        position
+      );
     }
     source.append(
       std::istreambuf_iterator<char>(ifs),

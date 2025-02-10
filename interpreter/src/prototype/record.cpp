@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 #include "snek/parser/utils.hpp"
 
@@ -62,7 +62,7 @@ namespace snek::interpreter::prototype
    * Returns value of field with given name contained in the record.
    */
   static value::ptr
-  At(Runtime&, const std::vector<value::ptr>& arguments)
+  At(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto key = As<value::String>(arguments[1])->ToString();
     const auto result = As<value::Record>(arguments[0])->GetOwnProperty(key);
@@ -72,13 +72,12 @@ namespace snek::interpreter::prototype
       return *result;
     }
 
-    throw Error{
-      std::nullopt,
+    throw runtime.MakeError(
       value::ToString(value::KindOf(arguments[0])) +
       U" has no property `" +
       parser::utils::ToJsonString(key) +
       U"'."
-    };
+    );
   }
 
   void

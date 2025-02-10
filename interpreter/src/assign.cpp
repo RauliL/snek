@@ -25,8 +25,8 @@
  */
 #include <unordered_set>
 
-#include "snek/error.hpp"
 #include "snek/interpreter/assign.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/parser/element.hpp"
 #include "snek/parser/field.hpp"
 
@@ -61,23 +61,23 @@ namespace snek::interpreter
 
     if (!value::IsList(value))
     {
-      throw Error{
-        variable->position(),
+      throw runtime.MakeError(
         U"Cannot assign " +
         value::ToString(value::KindOf(value)) +
         U" into " +
         variable->ToString() +
-        U"."
-      };
+        U".",
+        variable->position()
+      );
     }
     list = static_cast<const value::List*>(value.get());
     list_size = list->GetSize();
     if (list_size < size)
     {
-      throw Error{
-        variable->position(),
-        U"List has too few elements for assignment."
-      };
+      throw runtime.MakeError(
+        U"List has too few elements for assignment.",
+        variable->position()
+      );
     }
     for (std::size_t i = 0; i < size; ++i)
     {
@@ -92,10 +92,10 @@ namespace snek::interpreter
         result.reserve(list_size - i);
         if (i + 1 < size)
         {
-          throw Error{
-            element->position(),
-            U"Variable after `...' variable."
-          };
+          throw runtime.MakeError(
+            U"Variable after `...' variable.",
+            element->position()
+          );
         }
         do
         {
@@ -126,14 +126,14 @@ namespace snek::interpreter
 
     if (!value::IsRecord(value))
     {
-      throw Error{
-        variable->position(),
+      throw runtime.MakeError(
         U"Cannot assign " +
         value::ToString(value::KindOf(value)) +
         U" into " +
         variable->ToString() +
-        U"."
-      };
+        U".",
+        variable->position()
+      );
     }
     for (std::size_t i = 0; i < size; ++i)
     {
@@ -150,14 +150,13 @@ namespace snek::interpreter
 
         if (!property)
         {
-          throw Error{
-            field->position(),
+          throw runtime.MakeError(
             value::ToString(value::KindOf(value)) +
             U" has no property `" +
             name +
-            U"'."
-          };
-
+            U"'.",
+            field->position()
+          );
         }
         Process(runtime, named->value(), *property, callback);
         used_keys.insert(name);
@@ -171,14 +170,13 @@ namespace snek::interpreter
 
         if (!property)
         {
-          throw Error{
-            field->position(),
+          throw runtime.MakeError(
             value::ToString(value::KindOf(value)) +
             U" has no property `" +
             name +
-            U"'."
-          };
-
+            U"'.",
+            field->position()
+          );
         }
         callback(field->position(), name, *property);
         used_keys.insert(name);
@@ -189,10 +187,10 @@ namespace snek::interpreter
 
         if (i + 1 < size)
         {
-          throw Error{
-            variable->position(),
-            U"Variable after `...' variable."
-          };
+          throw runtime.MakeError(
+            U"Variable after `...' variable.",
+            variable->position()
+          );
         }
         for (
           const auto& f
@@ -213,12 +211,12 @@ namespace snek::interpreter
           callback
         );
       } else {
-        throw Error{
-          fields[i]->position(),
+        throw runtime.MakeError(
           U"Cannot assign to " +
           fields[i]->ToString() +
-          U"."
-        };
+          U".",
+          fields[i]->position()
+        );
       }
     }
   }
@@ -267,12 +265,12 @@ namespace snek::interpreter
         return;
 
       default:
-        throw Error{
-          variable->position(),
+        throw runtime.MakeError(
           U"Cannot assign to " +
           variable->ToString() +
-          U"."
-        };
+          U".",
+          variable->position()
+        );
     }
   }
 

@@ -26,7 +26,7 @@
 #include <peelo/unicode/ctype/tolower.hpp>
 #include <peelo/unicode/ctype/toupper.hpp>
 
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter::prototype
@@ -38,7 +38,11 @@ namespace snek::interpreter::prototype
   }
 
   static value::String::size_type
-  AsIndex(const value::String* string, const value::ptr& index_value)
+  AsIndex(
+    const Runtime& runtime,
+    const value::String* string,
+    const value::ptr& index_value
+  )
   {
     const auto length = string->GetLength();
     auto index = static_cast<const value::Int*>(index_value.get())->value();
@@ -49,7 +53,7 @@ namespace snek::interpreter::prototype
     }
     if (!length || length < 0 || index >= static_cast<std::int64_t>(length))
     {
-      throw Error{ std::nullopt, U"String index out of bounds." };
+      throw runtime.MakeError(U"String index out of bounds.");
     }
 
     return static_cast<value::String::size_type>(index);
@@ -64,7 +68,7 @@ namespace snek::interpreter::prototype
   CodePointAt(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto string = AsString(arguments[0]);
-    const auto index = AsIndex(string, arguments[1]);
+    const auto index = AsIndex(runtime, string, arguments[1]);
 
     return runtime.MakeInt(static_cast<std::int64_t>(string->At(index)));
   }
@@ -308,10 +312,10 @@ namespace snek::interpreter::prototype
    * Returns character from given index.
    */
   static value::ptr
-  At(Runtime&, const std::vector<value::ptr>& arguments)
+  At(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto string = AsString(arguments[0]);
-    const auto index = AsIndex(string, arguments[1]);
+    const auto index = AsIndex(runtime, string, arguments[1]);
 
     return value::String::Make(std::u32string(1, string->At(index)));
   }

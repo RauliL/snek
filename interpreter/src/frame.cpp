@@ -23,66 +23,27 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <cstdlib>
-#include <iostream>
+#include "snek/interpreter/frame.hpp"
 
-#include <peelo/unicode/encoding/utf8.hpp>
-
-#include "snek/parser/error.hpp"
-#include "snek/parser/statement.hpp"
-
-using namespace snek::parser;
-
-std::string ReadFile(const char*);
-
-static void
-PrintNode(const std::shared_ptr<Node>& node)
+namespace snek::interpreter
 {
-  using peelo::unicode::encoding::utf8::encode;
-
-  if (!node)
+  std::u32string
+  Frame::ToString() const
   {
-    return;
-  }
-  if (const auto position = node->position())
-  {
-    std::cout << encode(position->ToString()) << ": ";
-  }
-  std::cout << encode(node->ToString()) << std::endl;
-}
-
-static void
-ProcessFile(const char* filename)
-{
-  using peelo::unicode::encoding::utf8::decode;
-  using peelo::unicode::encoding::utf8::encode;
-
-  const auto source = ReadFile(filename);
-  Lexer lexer(source, decode(filename));
-
-  try
-  {
-    while (!lexer.PeekToken(Token::Kind::Eof))
+    if (position)
     {
-      PrintNode(statement::Parse(lexer, true));
+      if (function)
+      {
+        return position->ToString().append(U": ").append(function->ToString());
+      }
+
+      return position->ToString().append(U": <module>");
     }
-  }
-  catch (const Error& e)
-  {
-    std::cerr << encode(e.ToString()) << std::endl;
-    std::exit(EXIT_FAILURE);
-  }
-}
+    else if (function)
+    {
+      return function->ToString();
+    }
 
-int
-main(int argc, char** argv)
-{
-  if (argc != 2)
-  {
-    std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
-    std::exit(EXIT_FAILURE);
+    return U"<module>";
   }
-  ProcessFile(argv[1]);
-
-  return EXIT_SUCCESS;
 }

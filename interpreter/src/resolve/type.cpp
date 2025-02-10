@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/resolve.hpp"
 
 namespace snek::interpreter
@@ -104,7 +104,10 @@ namespace snek::interpreter
       }
     }
 
-    throw Error{ type->position(), U"Unknown type: `" + name + U"'." };
+    throw runtime.MakeError(
+      U"Unknown type: `" + name + U"'.",
+      type->position()
+    );
   }
 
   static type::ptr

@@ -23,8 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
 #include "snek/interpreter/assign.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/evaluate.hpp"
 #include "snek/interpreter/execute.hpp"
 #include "snek/interpreter/jump.hpp"
@@ -120,6 +120,7 @@ namespace snek::interpreter
 
   static void
   ImportNamed(
+    const Runtime& runtime,
     const Scope::ptr& module,
     const Scope::ptr& scope,
     const parser::import::Named* specifier
@@ -150,7 +151,10 @@ namespace snek::interpreter
       }
     }
 
-    throw Error{ position, U"Module does not export `" + name + U"'." };
+    throw runtime.MakeError(
+      U"Module does not export `" + name + U"'.",
+      position
+    );
   }
 
   static void
@@ -220,6 +224,7 @@ namespace snek::interpreter
       {
         case parser::import::Kind::Named:
           ImportNamed(
+            runtime,
             module,
             scope,
             static_cast<const parser::import::Named*>(specifier.get())
@@ -285,14 +290,20 @@ namespace snek::interpreter
     const parser::statement::Jump* statement
   )
   {
+    const auto kind = statement->jump_kind();
     value::ptr value;
 
     if (const auto value_expression = statement->value())
     {
-      value = EvaluateExpression(runtime, scope, value_expression);
+      value = EvaluateExpression(
+        runtime,
+        scope,
+        value_expression,
+        kind == JumpKind::Return
+      );
     }
 
-    throw Jump(statement->position(), statement->jump_kind(), value);
+    throw Jump(statement->position(), kind, value);
   }
 
   value::ptr

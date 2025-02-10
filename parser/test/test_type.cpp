@@ -25,7 +25,7 @@
  */
 #include <catch2/catch_test_macros.hpp>
 
-#include "snek/error.hpp"
+#include "snek/parser/error.hpp"
 #include "snek/parser/type.hpp"
 
 using namespace snek::parser;
@@ -41,7 +41,7 @@ TEST_CASE("Hitting end of input while parsing a type")
 {
   Lexer lexer("");
 
-  REQUIRE_THROWS_AS(type::Parse(lexer), snek::Error);
+  REQUIRE_THROWS_AS(type::Parse(lexer), Error);
 }
 
 TEST_CASE("Parse named type")
@@ -148,7 +148,7 @@ TEST_CASE("Parse unterminated record type")
 {
   Lexer lexer("{ \"foo\": bar");
 
-  REQUIRE_THROWS_AS(type::Parse(lexer), snek::Error);
+  REQUIRE_THROWS_AS(type::Parse(lexer), Error);
 }
 
 TEST_CASE("Parse empty tuple type")
@@ -203,14 +203,14 @@ TEST_CASE("Parse unterminated tuple type")
 {
   Lexer lexer("[foo,");
 
-  REQUIRE_THROWS_AS(type::Parse(lexer), snek::Error);
+  REQUIRE_THROWS_AS(type::Parse(lexer), Error);
 }
 
 TEST_CASE("Parse unrecognized type")
 {
   Lexer lexer("+");
 
-  REQUIRE_THROWS_AS(type::Parse(lexer), snek::Error);
+  REQUIRE_THROWS_AS(type::Parse(lexer), Error);
 }
 
 TEST_CASE("Parse list type")
@@ -225,7 +225,7 @@ TEST_CASE("Parse list type without closing bracket")
 {
   Lexer lexer("foo[");
 
-  REQUIRE_THROWS_AS(type::Parse(lexer), snek::Error);
+  REQUIRE_THROWS_AS(type::Parse(lexer), Error);
 }
 
 TEST_CASE("Parse nested list type")

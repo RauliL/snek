@@ -36,10 +36,10 @@
 
 #include <peelo/unicode/encoding/utf8.hpp>
 
-#include "snek/error.hpp"
+#include "snek/cli/utils.hpp"
 #include "snek/interpreter/runtime.hpp"
 
-using snek::Error;
+using snek::interpreter::Error;
 using snek::interpreter::Runtime;
 using snek::interpreter::Scope;
 
@@ -152,15 +152,13 @@ RunScript(
   const std::string& source
 )
 {
-  using peelo::unicode::encoding::utf8::encode;
-
   try
   {
     runtime.RunScript(scope, source, filename);
   }
   catch (const Error& e)
   {
-    std::cerr << encode(e.ToString()) << std::endl;
+    snek::cli::utils::PrintStackTrace(std::cerr, e);
     std::exit(EXIT_FAILURE);
   }
 }
@@ -194,7 +192,7 @@ RunFile(
               << std::endl;
     std::exit(EXIT_FAILURE);
   }
-  source = ReadStream(ifs);
+  source.append(ReadStream(ifs));
   ifs.close();
   RunScript(runtime, scope, decode(filename), source);
 }

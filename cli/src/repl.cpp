@@ -29,7 +29,7 @@
 
 #include "linenoise.hpp"
 
-#include "snek/error.hpp"
+#include "snek/cli/utils.hpp"
 #include "snek/interpreter/runtime.hpp"
 
 #if !defined(BUFSIZ)
@@ -38,6 +38,7 @@
 
 namespace snek::cli
 {
+  using interpreter::Error;
   using interpreter::Runtime;
   using interpreter::Scope;
 
@@ -157,7 +158,7 @@ namespace snek::cli
       }
       catch (const Error& e)
       {
-        std::cout << encode(e.ToString()) << std::endl;
+        utils::PrintStackTrace(std::cout, e);
       }
       source.clear();
     }
