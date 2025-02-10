@@ -25,8 +25,8 @@
  */
 #include <peelo/unicode/encoding/utf8.hpp>
 
-#include "snek/error.hpp"
 #include "snek/parser/element.hpp"
+#include "snek/parser/error.hpp"
 #include "snek/parser/field.hpp"
 #include "snek/parser/parameter.hpp"
 #include "snek/parser/statement.hpp"

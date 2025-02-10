@@ -23,7 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter::prototype
@@ -45,7 +45,9 @@ namespace snek::interpreter::prototype
   Filter(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
-    const auto callback = As<value::Function>(arguments[1]);
+    const auto callback = std::static_pointer_cast<value::Function>(
+      arguments[1]
+    );
     const auto size = list->GetSize();
     std::vector<value::ptr> result;
 
@@ -54,9 +56,10 @@ namespace snek::interpreter::prototype
       const auto element = list->At(i);
 
       if (value::ToBoolean(
-        callback->Call(
+        value::Function::Call(
           std::nullopt,
           runtime,
+          callback,
           {
             element,
             runtime.MakeInt(static_cast<std::int64_t>(i)),
@@ -81,14 +84,17 @@ namespace snek::interpreter::prototype
   ForEach(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
-    const auto callback = As<value::Function>(arguments[1]);
+    const auto callback = std::static_pointer_cast<value::Function>(
+      arguments[1]
+    );
     const auto size = list->GetSize();
 
     for (std::size_t i = 0; i < size; ++i)
     {
-      callback->Call(
+      value::Function::Call(
         std::nullopt,
         runtime,
+        callback,
         {
           list->At(i),
           runtime.MakeInt(static_cast<std::int64_t>(i)),
@@ -231,16 +237,19 @@ namespace snek::interpreter::prototype
   Map(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
-    const auto callback = As<value::Function>(arguments[1]);
+    const auto callback = std::static_pointer_cast<value::Function>(
+      arguments[1]
+    );
     const auto size = list->GetSize();
     std::vector<value::ptr> result;
 
     result.reserve(size);
     for (std::size_t i = 0; i < size; ++i)
     {
-      result.push_back(callback->Call(
+      result.push_back(value::Function::Call(
         std::nullopt,
         runtime,
+        callback,
         {
           list->At(i),
           runtime.MakeInt(static_cast<std::int64_t>(i)),
@@ -263,7 +272,9 @@ namespace snek::interpreter::prototype
   Reduce(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
-    const auto callback = As<value::Function>(arguments[1]);
+    const auto callback = std::static_pointer_cast<value::Function>(
+      arguments[1]
+    );
     const auto size = list->GetSize();
     value::ptr result;
     std::size_t start;
@@ -282,9 +293,10 @@ namespace snek::interpreter::prototype
     }
     for (std::size_t i = start; i < size; ++i)
     {
-      result = callback->Call(
+      result = value::Function::Call(
         std::nullopt,
         runtime,
+        callback,
         {
           result,
           list->At(i),
@@ -350,7 +362,7 @@ namespace snek::interpreter::prototype
    * exception will be thrown.
    */
   static value::ptr
-  At(Runtime&, const std::vector<value::ptr>& arguments)
+  At(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
     const auto size = list->GetSize();
@@ -368,7 +380,7 @@ namespace snek::interpreter::prototype
       index >= static_cast<value::Number::int_type>(size)
     )
     {
-      throw Error{ std::nullopt, U"List index out of bounds." };
+      throw runtime.MakeError(U"List index out of bounds.");
     }
 
     return list->At(index);

@@ -28,7 +28,7 @@
 #include <peelo/unicode/ctype/isvalid.hpp>
 #include <peelo/unicode/encoding/utf8.hpp>
 
-#include "snek/error.hpp"
+#include "snek/parser/error.hpp"
 #include "snek/parser/lexer.hpp"
 #include "snek/parser/utils.hpp"
 

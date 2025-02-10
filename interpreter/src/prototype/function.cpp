@@ -35,9 +35,10 @@ namespace snek::interpreter::prototype
   static value::ptr
   Call(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    return static_cast<const value::Function*>(arguments[0].get())->Call(
+    return value::Function::Call(
       std::nullopt,
       runtime,
+      std::static_pointer_cast<value::Function>(arguments[0]),
       static_cast<const value::List*>(arguments[1].get())->ToVector()
     );
   }

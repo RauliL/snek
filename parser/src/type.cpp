@@ -25,7 +25,7 @@
  */
 #include <functional>
 
-#include "snek/error.hpp"
+#include "snek/parser/error.hpp"
 #include "snek/parser/parameter.hpp"
 #include "snek/parser/type.hpp"
 #include "snek/parser/utils.hpp"

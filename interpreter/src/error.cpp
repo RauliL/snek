@@ -23,19 +23,19 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#pragma once
+#include "snek/interpreter/error.hpp"
 
-#include <optional>
-
-#include "snek/position.hpp"
-
-namespace snek
+namespace snek::interpreter
 {
-  struct Error final
+  std::u32string
+  Error::ToString() const
   {
-    std::optional<Position> position;
-    std::u32string message;
+    // TODO: Include stack trace.
+    if (position)
+    {
+      return position->ToString().append(U": ").append(message);
+    }
 
-    std::u32string ToString() const;
-  };
+    return message;
+  }
 }

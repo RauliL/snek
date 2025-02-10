@@ -30,7 +30,7 @@
 
 #include <peelo/unicode/encoding/utf8.hpp>
 
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter::prototype
@@ -47,7 +47,7 @@ namespace snek::interpreter::prototype
    * Parses given string as floating point decimal and returns result.
    */
   static value::ptr
-  Parse(Runtime&, const std::vector<value::ptr>& arguments)
+  Parse(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     using peelo::unicode::encoding::utf8::encode;
 
@@ -57,7 +57,7 @@ namespace snek::interpreter::prototype
 
     if (errno == ERANGE)
     {
-      throw Error{ std::nullopt, U"Float out of range." };
+      throw runtime.MakeError(U"Float out of range.");
     }
 
     return std::make_shared<value::Float>(result);

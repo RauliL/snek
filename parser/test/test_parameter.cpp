@@ -25,7 +25,7 @@
  */
 #include <catch2/catch_test_macros.hpp>
 
-#include "snek/error.hpp"
+#include "snek/parser/error.hpp"
 #include "snek/parser/expression.hpp"
 #include "snek/parser/parameter.hpp"
 #include "snek/parser/type.hpp"
@@ -80,7 +80,7 @@ TEST_CASE("Parse parameter list without opening parenthesis")
 {
   Lexer lexer("foo)");
 
-  REQUIRE_THROWS_AS(parameter::ParseList(lexer), snek::Error);
+  REQUIRE_THROWS_AS(parameter::ParseList(lexer), Error);
 }
 
 TEST_CASE("Parse empty parameter list")
@@ -122,12 +122,12 @@ TEST_CASE("Parse unterminated parameter list")
 {
   Lexer lexer("(foo");
 
-  REQUIRE_THROWS_AS(parameter::ParseList(lexer), snek::Error);
+  REQUIRE_THROWS_AS(parameter::ParseList(lexer), Error);
 }
 
 TEST_CASE("Parse unterminated parameter list with dangling comma")
 {
   Lexer lexer("(foo,");
 
-  REQUIRE_THROWS_AS(parameter::ParseList(lexer), snek::Error);
+  REQUIRE_THROWS_AS(parameter::ParseList(lexer), Error);
 }

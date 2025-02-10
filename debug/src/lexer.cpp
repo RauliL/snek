@@ -29,7 +29,7 @@
 
 #include <peelo/unicode/encoding/utf8.hpp>
 
-#include "snek/error.hpp"
+#include "snek/parser/error.hpp"
 #include "snek/parser/lexer.hpp"
 
 using namespace snek::parser;
@@ -64,7 +64,7 @@ ProcessFile(const char* filename)
       PrintToken(lexer.ReadToken());
     }
   }
-  catch (const snek::Error& e)
+  catch (const Error& e)
   {
     std::cerr << encode(e.ToString()) << std::endl;
     std::exit(EXIT_FAILURE);

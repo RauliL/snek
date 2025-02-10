@@ -30,7 +30,7 @@
 
 #include <peelo/unicode/encoding/utf8.hpp>
 
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 
 namespace snek::interpreter::prototype
@@ -58,7 +58,7 @@ namespace snek::interpreter::prototype
 
     if (errno == ERANGE)
     {
-      throw Error{ std::nullopt, U"Integer out of range." };
+      throw runtime.MakeError(U"Integer out of range.");
     }
 
     return runtime.MakeInt(result);

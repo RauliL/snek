@@ -23,10 +23,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/error.hpp"
+#include "snek/interpreter/error.hpp"
 #include "snek/interpreter/execute.hpp"
 #include "snek/interpreter/jump.hpp"
 #include "snek/interpreter/runtime.hpp"
+#include "snek/parser/error.hpp"
 #include "snek/parser/statement.hpp"
 #include "snek/parser/utils.hpp"
 
@@ -156,11 +157,20 @@ namespace snek::interpreter
   ParseAndRunScript(
     Runtime& runtime,
     const Scope::ptr& scope,
-    parser::Lexer& lexer
+    parser::Lexer& lexer,
+    const std::u32string& filename,
+    int line,
+    int column
   )
   {
+    auto& call_stack = runtime.call_stack();
     value::ptr value;
 
+    call_stack.push({
+      std::make_optional<Position>({ filename, line, column }),
+      nullptr,
+      {}
+    });
     try
     {
       while (!lexer.PeekToken(parser::Token::Kind::Eof))
@@ -174,13 +184,28 @@ namespace snek::interpreter
     }
     catch (const Jump& jump)
     {
-      throw Error{
-        jump.position(),
+      throw runtime.MakeError(
         U"Unexpected `" +
         parser::statement::Jump::ToString(jump.kind())
-        + U"'."
-      };
+        + U"'.",
+        jump.position()
+      );
     }
+    catch (const parser::Error& e)
+    {
+      const auto error = runtime.MakeError(e.message, e.position);
+
+      call_stack.pop();
+
+      throw error;
+    }
+    catch (const Error& e)
+    {
+      call_stack.pop();
+
+      throw e;
+    }
+    call_stack.pop();
 
     return value;
   }
@@ -196,7 +221,7 @@ namespace snek::interpreter
   {
     parser::Lexer lexer(source, filename, line, column);
 
-    return ParseAndRunScript(*this, scope, lexer);
+    return ParseAndRunScript(*this, scope, lexer, filename, line, column);
   }
 
   value::ptr
@@ -210,7 +235,7 @@ namespace snek::interpreter
   {
     parser::Lexer lexer(source, filename, line, column);
 
-    return ParseAndRunScript(*this, scope, lexer);
+    return ParseAndRunScript(*this, scope, lexer, filename, line, column);
   }
 
   Scope::ptr
@@ -225,7 +250,7 @@ namespace snek::interpreter
     // Do not attempt to import empty paths.
     if (parser::utils::IsBlank(path))
     {
-      throw Error{ position, U"Cannot import empty path." };
+      throw MakeError(U"Cannot import empty path.", position);
     }
     cached = m_imported_modules.find(path);
     if (cached == std::end(m_imported_modules))
