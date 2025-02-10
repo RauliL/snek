@@ -281,7 +281,8 @@ namespace snek::interpreter
   EvaluateBinary(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Binary* expression
+    const Binary* expression,
+    bool tail_call
   )
   {
     const auto left = EvaluateExpression(runtime, scope, expression->left());
@@ -305,7 +306,8 @@ namespace snek::interpreter
           left,
           Binary::ToString(op),
           { EvaluateExpression(runtime, scope, expression->right()) },
-          expression->position()
+          expression->position(),
+          tail_call
         );
     }
   }
@@ -354,7 +356,8 @@ namespace snek::interpreter
   EvaluateCall(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Call* expression
+    const Call* expression,
+    bool tail_call
   )
   {
     const auto value = EvaluateExpression(
@@ -381,7 +384,8 @@ namespace snek::interpreter
         expression->position(),
         runtime,
         std::static_pointer_cast<value::Function>(value),
-        arguments
+        arguments,
+        tail_call
       );
     }
 
@@ -395,7 +399,8 @@ namespace snek::interpreter
   EvaluateDecrement(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Decrement* expression
+    const Decrement* expression,
+    bool tail_call
   )
   {
     const auto& variable = expression->variable();
@@ -405,7 +410,8 @@ namespace snek::interpreter
       value,
       U"-",
       { runtime.MakeInt(1) },
-      expression->position()
+      expression->position(),
+      tail_call
     );
 
     AssignTo(runtime, scope, variable, new_value);
@@ -467,7 +473,8 @@ namespace snek::interpreter
   EvaluateIncrement(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Increment* expression
+    const Increment* expression,
+    bool tail_call
   )
   {
     const auto& variable = expression->variable();
@@ -477,7 +484,8 @@ namespace snek::interpreter
       value,
       U"+",
       { runtime.MakeInt(1) },
-      expression->position()
+      expression->position(),
+      tail_call
     );
 
     AssignTo(runtime, scope, variable, new_value);
@@ -562,7 +570,8 @@ namespace snek::interpreter
   EvaluateSubscript(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Subscript* expression
+    const Subscript* expression,
+    bool tail_call
   )
   {
     const auto value = EvaluateExpression(
@@ -581,7 +590,8 @@ namespace snek::interpreter
       value,
       U"[]",
       { EvaluateExpression(runtime, scope, expression->index()) },
-      expression->position()
+      expression->position(),
+      tail_call
     );
   }
 
@@ -630,7 +640,8 @@ namespace snek::interpreter
   EvaluateUnary(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Unary* expression
+    const Unary* expression,
+    bool tail_call
   )
   {
     const auto op = expression->op();
@@ -650,7 +661,8 @@ namespace snek::interpreter
       operand,
       GetMethodName(op),
       {},
-      expression->position()
+      expression->position(),
+      tail_call
     );
   }
 
@@ -658,7 +670,8 @@ namespace snek::interpreter
   EvaluateExpression(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const ptr& expression
+    const ptr& expression,
+    bool tail_call
   )
   {
     if (!expression)
@@ -672,16 +685,26 @@ namespace snek::interpreter
         return EvaluateAssign(runtime, scope, As<Assign>(expression));
 
       case Kind::Binary:
-        return EvaluateBinary(runtime, scope, As<Binary>(expression));
+        return EvaluateBinary(
+          runtime,
+          scope,
+          As<Binary>(expression),
+          tail_call
+        );
 
       case Kind::Boolean:
         return runtime.MakeBoolean(As<Boolean>(expression)->value());
 
       case Kind::Call:
-        return EvaluateCall(runtime, scope, As<Call>(expression));
+        return EvaluateCall(runtime, scope, As<Call>(expression), tail_call);
 
       case Kind::Decrement:
-        return EvaluateDecrement(runtime, scope, As<Decrement>(expression));
+        return EvaluateDecrement(
+          runtime,
+          scope,
+          As<Decrement>(expression),
+          tail_call
+        );
 
       case Kind::Float:
         return std::make_shared<value::Float>(
@@ -695,7 +718,12 @@ namespace snek::interpreter
         return EvaluateId(runtime, scope, As<Id>(expression));
 
       case Kind::Increment:
-        return EvaluateIncrement(runtime, scope, As<Increment>(expression));
+        return EvaluateIncrement(
+          runtime,
+          scope,
+          As<Increment>(expression),
+          tail_call
+        );
 
       case Kind::Int:
         return runtime.MakeInt(As<Int>(expression)->value());
@@ -722,13 +750,18 @@ namespace snek::interpreter
         return value::String::Make(As<String>(expression)->value());
 
       case Kind::Subscript:
-        return EvaluateSubscript(runtime, scope, As<Subscript>(expression));
+        return EvaluateSubscript(
+          runtime,
+          scope,
+          As<Subscript>(expression),
+          tail_call
+        );
 
       case Kind::Ternary:
         return EvaluateTernary(runtime, scope, As<Ternary>(expression));
 
       case Kind::Unary:
-        return EvaluateUnary(runtime, scope, As<Unary>(expression));
+        return EvaluateUnary(runtime, scope, As<Unary>(expression), tail_call);
     }
 
     return nullptr;

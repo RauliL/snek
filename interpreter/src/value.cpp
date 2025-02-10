@@ -150,7 +150,8 @@ namespace snek::interpreter::value
     const ptr& value,
     const std::u32string& name,
     const std::vector<ptr>& arguments,
-    const std::optional<Position>& position
+    const std::optional<Position>& position,
+    bool tail_call
   )
   {
     const auto property = GetProperty(runtime, value, name);
@@ -170,7 +171,8 @@ namespace snek::interpreter::value
         position,
         runtime,
         std::static_pointer_cast<Function>(*property),
-        arguments
+        arguments,
+        tail_call
       );
     }
 

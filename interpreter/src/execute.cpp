@@ -290,14 +290,20 @@ namespace snek::interpreter
     const parser::statement::Jump* statement
   )
   {
+    const auto kind = statement->jump_kind();
     value::ptr value;
 
     if (const auto value_expression = statement->value())
     {
-      value = EvaluateExpression(runtime, scope, value_expression);
+      value = EvaluateExpression(
+        runtime,
+        scope,
+        value_expression,
+        kind == JumpKind::Return
+      );
     }
 
-    throw Jump(statement->position(), statement->jump_kind(), value);
+    throw Jump(statement->position(), kind, value);
   }
 
   value::ptr

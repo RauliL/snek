@@ -330,25 +330,40 @@ namespace snek::interpreter::value
     const std::optional<Position>& position,
     Runtime& runtime,
     const std::shared_ptr<Function>& function,
-    const std::vector<ptr>& arguments
+    const std::vector<ptr>& arguments,
+    bool tail_call
   )
   {
     auto& call_stack = runtime.call_stack();
+    const auto use_tail = tail_call && !call_stack.empty();
     ptr value;
 
-    // TODO: Add tail call optimization.
-    call_stack.push({ position, function, arguments });
+    if (use_tail)
+    {
+      auto& frame = call_stack.top();
+
+      frame.function = function;
+      frame.arguments = arguments;
+    } else {
+      call_stack.push({ position, function, arguments });
+    }
     try
     {
       value = function->Call(position, runtime, arguments);
     }
     catch (const Error& e)
     {
-      call_stack.pop();
+      if (!use_tail)
+      {
+        call_stack.pop();
+      }
 
       throw e;
     }
-    call_stack.pop();
+    if (!use_tail)
+    {
+      call_stack.pop();
+    }
 
     return value;
   }
