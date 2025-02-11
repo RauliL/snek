@@ -37,6 +37,66 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * Record#entries(this: Record) => [String, any][]
+   *
+   * Returns all non-inherited fields that the record has.
+   */
+  static value::ptr
+  Entries(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    const auto record = As<value::Record>(arguments[0]);
+    std::vector<value::ptr> result;
+
+    for (const auto& field : record->fields())
+    {
+      result.push_back(value::List::Make({
+        value::String::Make(field.first),
+        field.second,
+      }));
+    }
+
+    return value::List::Make(result);
+  }
+
+  /**
+   * Record#keys(this: Record) => String[]
+   *
+   * Returns all non-inherited field names that the record has.
+   */
+  static value::ptr
+  Keys(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    const auto record = As<value::Record>(arguments[0]);
+    std::vector<value::ptr> result;
+
+    for (const auto& field : record->fields())
+    {
+      result.push_back(value::String::Make(field.first));
+    }
+
+    return value::List::Make(result);
+  }
+
+  /**
+   * Record#values(this: Record) => List
+   *
+   * Returns all non-inherited field values that the record has.
+   */
+  static value::ptr
+  Values(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    const auto record = As<value::Record>(arguments[0]);
+    std::vector<value::ptr> result;
+
+    for (const auto& field : record->fields())
+    {
+      result.push_back(field.second);
+    }
+
+    return value::List::Make(result);
+  }
+
+  /**
    * Record#+(this: Record, other: Record) => Record
    *
    * Combines fields of two records into a new record.
@@ -83,6 +143,24 @@ namespace snek::interpreter::prototype
   void
   MakeRecord(const Runtime* runtime, value::Record::container_type& fields)
   {
+    fields[U"entries"] = value::Function::MakeNative(
+      { { U"this", runtime->record_type() } },
+      std::make_shared<type::List>(std::make_shared<type::Tuple>(
+        std::vector<type::ptr>{ runtime->string_type(), runtime->any_type() })
+      ),
+      Entries
+    );
+    fields[U"keys"] = value::Function::MakeNative(
+      { { U"this", runtime->record_type() } },
+      std::make_shared<type::List>(runtime->string_type()),
+      Keys
+    );
+    fields[U"values"] = value::Function::MakeNative(
+      { { U"this", runtime->record_type() } },
+      runtime->list_type(),
+      Values
+    );
+
     fields[U"+"] = value::Function::MakeNative(
       {
         { U"this", runtime->record_type() },
