@@ -517,7 +517,7 @@ namespace snek::parser::expression
   class Null final : public Base
   {
   public:
-    explicit Null(const std::optional<Position>& position)
+    explicit Null(const std::optional<Position>& position = std::nullopt)
       : Base(position) {}
 
     inline Kind kind() const override

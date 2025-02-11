@@ -74,6 +74,154 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * String#indexOf(this: String, other: String, start: Int = 0) => Int | Null
+   *
+   * Returns index of given string of which contains given substring.
+   *
+   * If the value does not exist in the list, `null` is returned instead.
+   */
+  static value::ptr
+  IndexOf(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  {
+    const auto string = AsString(arguments[0]);
+    const auto sub = AsString(arguments[1]);
+    const auto length1 = string->GetLength();
+    const auto length2 = sub->GetLength();
+
+    if (!length1 || !length2 || length2 > length1)
+    {
+      return nullptr;
+    }
+    for (
+      std::size_t i = AsIndex(runtime, string, arguments[2]);
+      i < length1;
+      ++i
+    )
+    {
+      bool found = true;
+
+      if (i + length2 > length1)
+      {
+        break;
+      }
+      for (std::size_t j = 0; j < length2; ++j)
+      {
+        if (string->At(i + j) != sub->At(j))
+        {
+          found = false;
+          break;
+        }
+      }
+      if (found)
+      {
+        return runtime.MakeInt(i);
+      }
+    }
+
+    return nullptr;
+  }
+
+  /**
+   * String#includes(this: String, other: String) => Boolean
+   *
+   * Returns true if the given string contains given substring.
+   */
+  static value::ptr
+  Includes(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  {
+    const auto string = AsString(arguments[0]);
+    const auto sub = AsString(arguments[1]);
+    const auto length1 = string->GetLength();
+    const auto length2 = sub->GetLength();
+
+    if (!length2)
+    {
+      return runtime.MakeBoolean(true);
+    }
+    else if (!length1)
+    {
+      return runtime.MakeBoolean(false);
+    }
+    else if (length2 > length1)
+    {
+      return runtime.MakeBoolean(false);
+    }
+    for (std::size_t i = 0; i < length1; ++i)
+    {
+      bool found = true;
+
+      if (i + length2 > length1)
+      {
+        break;
+      }
+      for (std::size_t j = 0; j < length2; ++j)
+      {
+        if (string->At(i + j) != sub->At(j))
+        {
+          found = false;
+          break;
+        }
+      }
+      if (found)
+      {
+        return runtime.MakeBoolean(true);
+      }
+    }
+
+    return runtime.MakeBoolean(false);
+  }
+
+  /**
+   * String#lastIndexOf(
+   *   this: String,
+   *   other: String,
+   *   start: Int | null = null,
+   * ) => Int | null
+   *
+   * Returns last index of given string where given substring appears at. If
+   * the substring does not appear in the string, `null` is returned instead.
+   */
+  static value::ptr
+  LastIndexOf(Runtime& runtime, const std::vector<value::ptr>& arguments)
+  {
+    const auto string = AsString(arguments[0]);
+    const auto substring = AsString(arguments[1]);
+    const auto length1 = string->GetLength();
+    const auto length2 = substring->GetLength();
+    std::size_t start;
+
+    if (arguments[2])
+    {
+      start = AsIndex(runtime, string, arguments[2]);
+    } else {
+      start = length1 - 1;
+    }
+    for (std::size_t i = start; i > 0; --i)
+    {
+      bool found = true;
+
+      if (length1 - i + 1 < length2)
+      {
+        continue;
+      }
+      for (std::size_t j = 0; j < length2; ++j)
+      {
+        if (string->At(i + j - 1) != substring->At(j))
+        {
+          found = false;
+          break;
+        }
+      }
+      if (found)
+      {
+        return runtime.MakeInt(i - 1);
+      }
+    }
+
+    return nullptr;
+  }
+
+  /**
    * String#length(this: String) => Int
    *
    * Returns length of the string.
@@ -323,6 +471,8 @@ namespace snek::interpreter::prototype
   void
   MakeString(const Runtime* runtime, value::Record::container_type& fields)
   {
+    const auto optional_int = type::MakeOptional(runtime->int_type());
+
     fields[U"codePointAt"] = value::Function::MakeNative(
       {
         { U"this", runtime->string_type() },
@@ -330,6 +480,40 @@ namespace snek::interpreter::prototype
       },
       runtime->int_type(),
       CodePointAt
+    );
+    fields[U"indexOf"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->string_type() },
+        { U"other", runtime->string_type() },
+        {
+          U"start",
+          runtime->int_type(),
+          std::make_shared<parser::expression::Int>(std::nullopt, 0)
+        },
+      },
+      optional_int,
+      IndexOf
+    );
+    fields[U"includes"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->string_type() },
+        { U"other", runtime->string_type() },
+      },
+      runtime->boolean_type(),
+      Includes
+    );
+    fields[U"lastIndexOf"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->string_type() },
+        { U"other", runtime->string_type() },
+        {
+          U"start",
+          optional_int,
+          std::make_shared<parser::expression::Null>()
+        },
+      },
+      optional_int,
+      LastIndexOf
     );
     fields[U"length"] = value::Function::MakeNative(
       { { U"this", runtime->string_type() } },

@@ -35,6 +35,28 @@ namespace snek::interpreter::prototype
     return static_cast<const T*>(value.get());
   }
 
+  static value::List::size_type
+  AsIndex(
+    const Runtime& runtime,
+    const value::List* list,
+    const value::ptr& index_value
+  )
+  {
+    const auto size = list->GetSize();
+    auto index = static_cast<const value::Int*>(index_value.get())->value();
+
+    if (index < 0)
+    {
+      index += size;
+    }
+    if (!size || size < 0 || index >= static_cast<std::int64_t>(size))
+    {
+      throw runtime.MakeError(U"List index out of bounds.");
+    }
+
+    return static_cast<value::List::size_type>(index);
+  }
+
   /**
    * List#filter(this: List, callback: Function) => List
    *
@@ -117,9 +139,7 @@ namespace snek::interpreter::prototype
   {
     const auto list = As<value::List>(arguments[0]);
     const auto element = arguments[1];
-    const auto start = static_cast<std::size_t>(
-      As<value::Int>(arguments[2])->ToInt()
-    );
+    const auto start = AsIndex(runtime, list, arguments[2]);
     const auto size = list->GetSize();
 
     for (std::size_t i = start; i < size; ++i)
@@ -206,7 +226,7 @@ namespace snek::interpreter::prototype
 
     if (arguments[2])
     {
-      start = static_cast<std::size_t>(As<value::Int>(arguments[2])->ToInt());
+      start = AsIndex(runtime, list, arguments[2]);
     } else {
       start = size - 1;
     }
@@ -365,25 +385,8 @@ namespace snek::interpreter::prototype
   At(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
     const auto list = As<value::List>(arguments[0]);
-    const auto size = list->GetSize();
-    auto index = std::static_pointer_cast<value::Number>(
-      arguments[1]
-    )->ToInt();
 
-    if (index < 0)
-    {
-      index += size;
-    }
-    if (
-      !size ||
-      index < 0 ||
-      index >= static_cast<value::Number::int_type>(size)
-    )
-    {
-      throw runtime.MakeError(U"List index out of bounds.");
-    }
-
-    return list->At(index);
+    return list->At(AsIndex(runtime, list, arguments[1]));
   }
 
   namespace
@@ -565,7 +568,7 @@ namespace snek::interpreter::prototype
         {
           U"start",
           optional_int,
-          std::make_shared<parser::expression::Null>(std::nullopt)
+          std::make_shared<parser::expression::Null>()
         },
       },
       type::MakeOptional(runtime->int_type()),
