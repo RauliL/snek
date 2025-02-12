@@ -58,7 +58,7 @@ namespace snek::parser
       bool read_opening_parenthesis = true
     );
 
-    explicit Parameter(
+    Parameter(
       const std::optional<Position>& position,
       const std::u32string& name,
       const type::ptr& type = nullptr,
