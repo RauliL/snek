@@ -59,8 +59,8 @@ namespace snek::parser
     );
 
     Parameter(
-      const std::optional<Position>& position,
-      const std::u32string& name,
+      const std::optional<Position>& position = std::nullopt,
+      const std::u32string& name = U"arg",
       const type::ptr& type = nullptr,
       const expression::ptr& default_value = nullptr,
       bool rest = false
@@ -94,9 +94,9 @@ namespace snek::parser
     std::u32string ToString() const override;
 
   private:
-    const std::u32string m_name;
-    const type::ptr m_type;
-    const expression::ptr m_default_value;
-    const bool m_rest;
+    std::u32string m_name;
+    type::ptr m_type;
+    expression::ptr m_default_value;
+    bool m_rest;
   };
 }
