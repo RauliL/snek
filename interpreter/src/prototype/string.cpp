@@ -59,6 +59,21 @@ namespace snek::interpreter::prototype
     return static_cast<value::String::size_type>(index);
   }
 
+  static value::ptr
+  Convert(const value::String* string, char32_t (*callback)(char32_t))
+  {
+    const auto length = string->GetLength();
+    std::u32string result;
+
+    result.reserve(length);
+    for (std::size_t i = 0; i < length; ++i)
+    {
+      result.append(1, callback(string->At(i)));
+    }
+
+    return value::String::Make(result);
+  }
+
   /**
    * String#codePointAt(this: String, index: Int) => Int
    *
@@ -287,22 +302,10 @@ namespace snek::interpreter::prototype
    *
    * Converts string into lower case.
    */
-  static value::ptr
+  static inline value::ptr
   ToLower(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    using peelo::unicode::ctype::tolower;
-
-    const auto s = AsString(arguments[0]);
-    const auto length = s->GetLength();
-    std::u32string result;
-
-    result.reserve(length);
-    for (std::size_t i = 0; i < length; ++i)
-    {
-      result.append(1, tolower(s->At(i)));
-    }
-
-    return value::String::Make(result);
+    return Convert(AsString(arguments[0]), peelo::unicode::ctype::tolower);
   }
 
   /**
@@ -310,22 +313,10 @@ namespace snek::interpreter::prototype
    *
    * Converts string into upper case.
    */
-  static value::ptr
+  static inline value::ptr
   ToUpper(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    using peelo::unicode::ctype::toupper;
-
-    const auto s = AsString(arguments[0]);
-    const auto length = s->GetLength();
-    std::u32string result;
-
-    result.reserve(length);
-    for (std::size_t i = 0; i < length; ++i)
-    {
-      result.append(1, toupper(s->At(i)));
-    }
-
-    return value::String::Make(result);
+    return Convert(AsString(arguments[0]), peelo::unicode::ctype::toupper);
   }
 
   namespace
