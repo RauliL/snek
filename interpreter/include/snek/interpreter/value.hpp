@@ -309,11 +309,11 @@ namespace snek::interpreter::value
 
     static ptr
     Call(
-      const std::optional<Position>& position,
       Runtime& runtime,
       const std::shared_ptr<value::Function>& function,
       const std::vector<ptr>& arguments,
-      bool tail_call = false
+      bool tail_call = false,
+      const std::optional<Position>& position = std::nullopt
     );
 
     inline Kind kind() const override
@@ -336,9 +336,9 @@ namespace snek::interpreter::value
 
   protected:
     virtual ptr Call(
-      const std::optional<Position>& position,
       Runtime& runtime,
-      const std::vector<ptr>& arguments
+      const std::vector<ptr>& arguments,
+      const std::optional<Position>& position
     ) const = 0;
   };
 

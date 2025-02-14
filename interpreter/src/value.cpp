@@ -167,11 +167,11 @@ namespace snek::interpreter::value
     else if (IsFunction(*property))
     {
       return value::Function::Call(
-        position,
         runtime,
         std::static_pointer_cast<Function>(*property),
         arguments,
-        tail_call
+        tail_call,
+        position
       );
     }
 

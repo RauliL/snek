@@ -79,7 +79,6 @@ namespace snek::interpreter::prototype
 
       if (value::ToBoolean(
         value::Function::Call(
-          std::nullopt,
           runtime,
           callback,
           {
@@ -114,7 +113,6 @@ namespace snek::interpreter::prototype
     for (std::size_t i = 0; i < size; ++i)
     {
       value::Function::Call(
-        std::nullopt,
         runtime,
         callback,
         {
@@ -267,7 +265,6 @@ namespace snek::interpreter::prototype
     for (std::size_t i = 0; i < size; ++i)
     {
       result.push_back(value::Function::Call(
-        std::nullopt,
         runtime,
         callback,
         {
@@ -314,7 +311,6 @@ namespace snek::interpreter::prototype
     for (std::size_t i = start; i < size; ++i)
     {
       result = value::Function::Call(
-        std::nullopt,
         runtime,
         callback,
         {

@@ -435,11 +435,11 @@ namespace snek::interpreter
       }
 
       return value::Function::Call(
-        expression->position(),
         runtime,
         std::static_pointer_cast<value::Function>(value),
         arguments,
-        tail_call
+        tail_call,
+        expression->position()
       );
     }
 

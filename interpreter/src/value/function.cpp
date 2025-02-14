@@ -38,7 +38,6 @@ namespace snek::interpreter::value
 
   static void
   ProcessArguments(
-    const std::optional<Position>& position,
     Runtime& runtime,
     const Scope::ptr& scope,
     const std::vector<Parameter>& parameters,
@@ -116,16 +115,15 @@ namespace snek::interpreter::value
     protected:
       ptr
       Call(
-        const std::optional<Position>& position,
         Runtime& runtime,
-        const std::vector<ptr>& arguments
+        const std::vector<ptr>& arguments,
+        const std::optional<Position>&
       ) const override
       {
         std::vector<ptr> callback_arguments;
 
         callback_arguments.reserve(m_parameters.size());
         ProcessArguments(
-          position,
           runtime,
           runtime.root_scope(),
           m_parameters,
@@ -173,9 +171,9 @@ namespace snek::interpreter::value
     protected:
       ptr
       Call(
-        const std::optional<Position>& position,
         Runtime& runtime,
-        const std::vector<ptr>& arguments
+        const std::vector<ptr>& arguments,
+        const std::optional<Position>&
       ) const override
       {
         const auto scope = std::make_shared<Scope>(
@@ -185,7 +183,6 @@ namespace snek::interpreter::value
         );
 
         ProcessArguments(
-          position,
           runtime,
           scope,
           m_parameters,
@@ -255,9 +252,9 @@ namespace snek::interpreter::value
     protected:
       inline ptr
       Call(
-        const std::optional<Position>& position,
         Runtime& runtime,
-        const std::vector<ptr>& arguments
+        const std::vector<ptr>& arguments,
+        const std::optional<Position>& position
       ) const override
       {
         std::vector<ptr> bound_arguments(arguments);
@@ -265,10 +262,11 @@ namespace snek::interpreter::value
         bound_arguments.insert(std::begin(bound_arguments), m_this_value);
 
         return Function::Call(
-          position,
           runtime,
           m_function,
-          bound_arguments
+          bound_arguments,
+          false,
+          position
         );
       }
 
@@ -320,11 +318,11 @@ namespace snek::interpreter::value
 
   ptr
   Function::Call(
-    const std::optional<Position>& position,
     Runtime& runtime,
     const std::shared_ptr<Function>& function,
     const std::vector<ptr>& arguments,
-    bool tail_call
+    bool tail_call,
+    const std::optional<Position>& position
   )
   {
     auto& call_stack = runtime.call_stack();
@@ -342,7 +340,7 @@ namespace snek::interpreter::value
     }
     try
     {
-      value = function->Call(position, runtime, arguments);
+      value = function->Call(runtime, arguments, position);
     }
     catch (const Error& e)
     {
