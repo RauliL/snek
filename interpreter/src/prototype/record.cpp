@@ -23,6 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <unordered_set>
+
 #include "snek/interpreter/error.hpp"
 #include "snek/interpreter/runtime.hpp"
 #include "snek/parser/utils.hpp"
@@ -47,11 +49,11 @@ namespace snek::interpreter::prototype
     const auto record = As<value::Record>(arguments[0]);
     std::vector<value::ptr> result;
 
-    for (const auto& field : record->fields())
+    for (const auto& field : record->GetOwnPropertyNames())
     {
       result.push_back(value::List::Make({
-        value::String::Make(field.first),
-        field.second,
+        value::String::Make(field),
+        *record->GetOwnProperty(field)
       }));
     }
 
@@ -69,9 +71,9 @@ namespace snek::interpreter::prototype
     const auto record = As<value::Record>(arguments[0]);
     std::vector<value::ptr> result;
 
-    for (const auto& field : record->fields())
+    for (const auto& field : record->GetOwnPropertyNames())
     {
-      result.push_back(value::String::Make(field.first));
+      result.push_back(value::String::Make(field));
     }
 
     return value::List::Make(result);
@@ -88,12 +90,83 @@ namespace snek::interpreter::prototype
     const auto record = As<value::Record>(arguments[0]);
     std::vector<value::ptr> result;
 
-    for (const auto& field : record->fields())
+    for (const auto& field : record->GetOwnPropertyNames())
     {
-      result.push_back(field.second);
+      result.push_back(*record->GetOwnProperty(field));
     }
 
     return value::List::Make(result);
+  }
+
+  namespace
+  {
+    class ConcatRecord final : public value::Record
+    {
+    public:
+      using name_container_type = std::unordered_set<key_type>;
+
+      explicit ConcatRecord(
+        const std::shared_ptr<Record>& left,
+        const std::shared_ptr<Record>& right
+      )
+        : m_left(left)
+        , m_left_names(FromVector(left->GetOwnPropertyNames()))
+        , m_right(right)
+        , m_right_names(FromVector(right->GetOwnPropertyNames()))
+        , m_all_names(Merge(m_left_names, m_right_names)) {}
+
+      inline size_type
+      GetSize() const override
+      {
+        return m_all_names.size();
+      }
+
+      inline std::vector<key_type>
+      GetOwnPropertyNames() const override
+      {
+        return m_all_names;
+      }
+
+      std::optional<mapped_type>
+      GetOwnProperty(const std::u32string& name) const override
+      {
+        if (m_right_names.find(name) != std::end(m_right_names))
+        {
+          return m_right->GetOwnProperty(name);
+        }
+        else if (m_left_names.find(name) != std::end(m_left_names))
+        {
+          return m_left->GetOwnProperty(name);
+        }
+
+        return nullptr;
+      }
+
+    private:
+      static inline name_container_type
+      FromVector(const std::vector<key_type>& keys)
+      {
+        return name_container_type(std::begin(keys), std::end(keys));
+      }
+
+      static inline std::vector<key_type>
+      Merge(const name_container_type& left, const name_container_type& right)
+      {
+        name_container_type result;
+
+        result.insert(std::begin(left), std::end(left));
+        result.insert(std::begin(right), std::end(right));
+
+        return std::vector<key_type>(std::begin(result), std::end(result));
+      }
+
+    private:
+      const std::shared_ptr<Record> m_left;
+      const name_container_type m_left_names;
+      const std::shared_ptr<Record> m_right;
+      const name_container_type m_right_names;
+      const std::vector<key_type> m_all_names;
+    };
   }
 
   /**
@@ -104,16 +177,59 @@ namespace snek::interpreter::prototype
   static value::ptr
   Concat(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    const auto r1 = As<value::Record>(arguments[0]);
-    const auto r2 = As<value::Record>(arguments[1]);
-    value::Record::container_type result(r1->fields());
+    return std::make_shared<ConcatRecord>(
+      std::static_pointer_cast<value::Record>(arguments[0]),
+      std::static_pointer_cast<value::Record>(arguments[1])
+    );
+  }
 
-    for (const auto& field : r2->fields())
+  namespace
+  {
+    class RemoveRecord final : public value::Record
     {
-      result[field.first] = field.second;
-    }
+    public:
+      explicit RemoveRecord(
+        const std::shared_ptr<Record>& record,
+        const key_type& removed_name
+      )
+        : m_record(record)
+        , m_removed_name(removed_name) {}
 
-    return std::make_shared<value::Record>(result);
+      inline size_type GetSize() const override
+      {
+        return m_record->GetSize() - 1;
+      }
+
+      inline std::vector<key_type>
+      GetOwnPropertyNames() const override
+      {
+        auto names = m_record->GetOwnPropertyNames();
+        const auto it = std::find(
+          std::begin(names),
+          std::end(names),
+          m_removed_name
+        );
+
+        if (it != std::end(names))
+        {
+          names.erase(it);
+        }
+
+        return names;
+      }
+
+      inline std::optional<mapped_type>
+      GetOwnProperty(const std::u32string& name) const override
+      {
+        return name == m_removed_name
+          ? std::nullopt
+          : m_record->GetOwnProperty(name);
+      }
+
+    private:
+      const std::shared_ptr<Record> m_record;
+      const key_type m_removed_name;
+    };
   }
 
   /**
@@ -124,16 +240,18 @@ namespace snek::interpreter::prototype
   static value::ptr
   Remove(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    auto fields = As<value::Record>(arguments[0])->fields();
+    const auto record = As<value::Record>(arguments[0]);
     const auto key = As<value::String>(arguments[1])->ToString();
-    const auto it = fields.find(key);
 
-    if (it != std::end(fields))
+    if (record->HasOwnProperty(key))
     {
-      fields.erase(it);
+      return std::make_shared<RemoveRecord>(
+        std::static_pointer_cast<value::Record>(arguments[0]),
+        key
+      );
     }
 
-    return std::make_shared<value::Record>(fields);
+    return arguments[0];
   }
 
   /**
@@ -161,7 +279,10 @@ namespace snek::interpreter::prototype
   }
 
   void
-  MakeRecord(const Runtime* runtime, value::Record::container_type& fields)
+  MakeRecord(
+    const Runtime* runtime,
+    std::unordered_map<std::u32string, value::ptr>& fields
+  )
   {
     fields[U"entries"] = value::Function::MakeNative(
       { { U"this", runtime->record_type() } },

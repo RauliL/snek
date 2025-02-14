@@ -74,7 +74,10 @@ namespace snek::interpreter::prototype
   }
 
   void
-  MakeObject(const Runtime* runtime, value::Record::container_type& fields)
+  MakeObject(
+    const Runtime* runtime,
+    std::unordered_map<std::u32string, value::ptr>& fields
+  )
   {
     fields[U"toString"] = value::Function::MakeNative(
       { { U"this" } },

@@ -460,7 +460,10 @@ namespace snek::interpreter::prototype
   }
 
   void
-  MakeString(const Runtime* runtime, value::Record::container_type& fields)
+  MakeString(
+    const Runtime* runtime,
+    std::unordered_map<std::u32string, value::ptr>& fields
+  )
   {
     const auto optional_int = type::MakeOptional(runtime->int_type());
 

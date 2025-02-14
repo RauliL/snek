@@ -30,10 +30,11 @@
 #include "snek/parser/error.hpp"
 #include "snek/parser/statement.hpp"
 #include "snek/parser/utils.hpp"
+#include <unordered_map>
 
 namespace snek::interpreter
 {
-  using prototype_type = value::Record::container_type;
+  using prototype_type = std::unordered_map<std::u32string, value::ptr>;
   using prototype_constructor = void(*)(const Runtime*, prototype_type&);
 
   namespace prototype
@@ -56,7 +57,7 @@ namespace snek::interpreter
     prototype_constructor constructor = nullptr
   )
   {
-    value::Record::container_type fields;
+    prototype_type fields;
 
     fields[U"[[Prototype]]"] = parent;
     if (constructor)
@@ -64,7 +65,7 @@ namespace snek::interpreter
       constructor(runtime, fields);
     }
 
-    return std::make_shared<value::Record>(fields);
+    return value::Record::Make(fields);
   }
 
   Runtime::Runtime(const module_importer_type& module_importer)

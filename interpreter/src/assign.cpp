@@ -172,28 +172,26 @@ namespace snek::interpreter
       }
       else if (kind == parser::field::Kind::Spread)
       {
-        value::Record::container_type result;
+        std::unordered_map<std::u32string, value::ptr> result;
+        const value::Record* r;
 
         if (i + 1 < size)
         {
           throw runtime.MakeError(U"Variable after `...' variable.");
         }
-        for (
-          const auto& f
-            :
-          static_cast<const value::Record*>(value.get())->fields()
-        )
+        r = static_cast<const value::Record*>(value.get());
+        for (const auto& f : r->GetOwnPropertyNames())
         {
-          if (used_keys.find(f.first) != std::end(used_keys))
+          if (used_keys.find(f) != std::end(used_keys))
           {
             continue;
           }
-          result[f.first] = f.second;
+          result[f] = *r->GetOwnProperty(f);
         }
         Process(
           runtime,
           static_cast<const parser::field::Spread*>(field.get())->expression(),
-          std::make_shared<value::Record>(result),
+          value::Record::Make(result),
           callback
         );
       } else {

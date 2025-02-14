@@ -373,7 +373,10 @@ namespace snek::interpreter::prototype
   }
 
   void
-  MakeNumber(const Runtime* runtime, value::Record::container_type& fields)
+  MakeNumber(
+    const Runtime* runtime,
+    std::unordered_map<std::u32string, value::ptr>& fields
+  )
   {
     fields[U"round"] = value::Function::MakeNative(
       { { U"this", runtime->number_type() } },

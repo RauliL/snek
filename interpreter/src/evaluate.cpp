@@ -104,7 +104,7 @@ namespace snek::interpreter
     Runtime& runtime,
     const Scope::ptr& scope,
     const parser::field::Computed* field,
-    value::Record::container_type& record
+    std::unordered_map<std::u32string, value::ptr>& record
   )
   {
     record[
@@ -117,7 +117,7 @@ namespace snek::interpreter
     Runtime& runtime,
     const Scope::ptr& scope,
     const parser::field::Function* field,
-    value::Record::container_type& record
+    std::unordered_map<std::u32string, value::ptr>& record
   )
   {
     record[field->name()] = value::Function::MakeScripted(
@@ -133,7 +133,7 @@ namespace snek::interpreter
     Runtime& runtime,
     const Scope::ptr& scope,
     const parser::field::Named* field,
-    value::Record::container_type& record
+    std::unordered_map<std::u32string, value::ptr>& record
   )
   {
     record[field->name()] = EvaluateExpression(
@@ -148,7 +148,7 @@ namespace snek::interpreter
     const Runtime& runtime,
     const Scope::ptr& scope,
     const parser::field::Shorthand* field,
-    value::Record::container_type& record
+    std::unordered_map<std::u32string, value::ptr>& record
   )
   {
     const auto& name = field->name();
@@ -172,18 +172,20 @@ namespace snek::interpreter
     Runtime& runtime,
     const Scope::ptr& scope,
     const parser::field::Spread* field,
-    value::Record::container_type& record
+    std::unordered_map<std::u32string, value::ptr>& record
   )
   {
     const auto value = EvaluateExpression(runtime, scope, field->expression());
+    const value::Record* r;
 
     if (value::KindOf(value) != value::Kind::Record)
     {
       throw runtime.MakeError(U"Spread element must be a record.");
     }
-    for (const auto& value_field : *static_cast<const value::Record*>(value.get()))
+    r = static_cast<const value::Record*>(value.get());
+    for (const auto& field : r->GetOwnPropertyNames())
     {
-      record[value_field.first] = value_field.second;
+      record[field] = *r->GetOwnProperty(field);
     }
   }
 
@@ -192,7 +194,7 @@ namespace snek::interpreter
     Runtime& runtime,
     const Scope::ptr& scope,
     const parser::field::ptr& field,
-    value::Record::container_type& record
+    std::unordered_map<std::u32string, value::ptr>& record
   )
   {
     switch (field->kind())
@@ -606,14 +608,14 @@ namespace snek::interpreter
     const Record* expression
   )
   {
-    value::Record::container_type record;
+    std::unordered_map<std::u32string, value::ptr> record;
 
     for (const auto& field : expression->fields())
     {
       EvaluateField(runtime, scope, field, record);
     }
 
-    return std::make_shared<value::Record>(record);
+    return value::Record::Make(record);
   }
 
   static value::ptr

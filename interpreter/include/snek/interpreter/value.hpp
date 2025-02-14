@@ -407,48 +407,41 @@ namespace snek::interpreter::value
     virtual std::vector<ptr> ToVector() const;
   };
 
-  class Record final : public Base
+  class Record : public Base
   {
   public:
     using key_type = std::u32string;
     using mapped_type = ptr;
-    using container_type = std::unordered_map<key_type, mapped_type>;
-    using value_type = container_type::value_type;
-    using iterator = container_type::const_iterator;
+    using value_type = std::pair<key_type, mapped_type>;
+    using size_type = std::size_t;
 
-    explicit Record(const container_type& fields)
-      : m_fields(fields) {}
+    static ptr Make(const std::unordered_map<key_type, mapped_type>& fields);
+
+    explicit Record() {}
 
     inline Kind kind() const override
     {
       return Kind::Record;
     }
 
-    inline const container_type& fields() const
+    virtual size_type GetSize() const = 0;
+
+    virtual std::optional<ptr> GetOwnProperty(const key_type& name) const = 0;
+
+    inline bool HasOwnProperty(const key_type& name) const
     {
-      return m_fields;
+      const auto fields = GetOwnPropertyNames();
+
+      return std::find(fields.begin(), fields.end(), name) != fields.end();
     }
 
-    inline iterator begin() const
-    {
-      return std::begin(m_fields);
-    }
-
-    inline iterator end() const
-    {
-      return std::end(m_fields);
-    }
-
-    std::optional<ptr> GetOwnProperty(const key_type& name) const;
+    virtual std::vector<key_type> GetOwnPropertyNames() const = 0;
 
     bool Equals(const Base& that) const override;
 
     std::u32string ToString() const override;
 
     std::u32string ToSource() const override;
-
-  private:
-    const container_type m_fields;
   };
 
   class String : public Base

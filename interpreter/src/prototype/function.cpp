@@ -43,7 +43,10 @@ namespace snek::interpreter::prototype
   }
 
   void
-  MakeFunction(const Runtime* runtime, value::Record::container_type& fields)
+  MakeFunction(
+    const Runtime* runtime,
+    std::unordered_map<std::u32string, value::ptr>& fields
+  )
   {
     fields[U"call"] = value::Function::MakeNative(
       {

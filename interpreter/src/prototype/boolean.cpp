@@ -48,7 +48,10 @@ namespace snek::interpreter::prototype
   }
 
   void
-  MakeBoolean(const Runtime* runtime, value::Record::container_type& fields)
+  MakeBoolean(
+    const Runtime* runtime,
+    std::unordered_map<std::u32string, value::ptr>& fields
+  )
   {
     fields[U"random"] = value::Function::MakeNative(
       {

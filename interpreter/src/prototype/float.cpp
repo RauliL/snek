@@ -89,7 +89,10 @@ namespace snek::interpreter::prototype
   }
 
   void
-  MakeFloat(const Runtime* runtime, value::Record::container_type& fields)
+  MakeFloat(
+    const Runtime* runtime,
+    std::unordered_map<std::u32string, value::ptr>& fields
+  )
   {
     const auto optional_float = type::MakeOptional(runtime->float_type());
     const auto null_expression = std::make_shared<parser::expression::Null>(

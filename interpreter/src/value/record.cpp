@@ -28,17 +28,58 @@
 
 namespace snek::interpreter::value
 {
-  std::optional<ptr>
-  Record::GetOwnProperty(const key_type& name) const
+  namespace
   {
-    const auto it = m_fields.find(name);
-
-    if (it != std::end(m_fields))
+    class MapRecord final : public Record
     {
-      return it->second;
-    }
+    public:
+      using container_type = std::unordered_map<key_type, mapped_type>;
 
-    return std::nullopt;
+      explicit MapRecord(const container_type& fields)
+        : m_fields(fields) {}
+
+      inline size_type
+      GetSize() const override
+      {
+        return m_fields.size();
+      }
+
+      std::optional<ptr>
+      GetOwnProperty(const key_type& name) const override
+      {
+        const auto it = m_fields.find(name);
+
+        if (it != std::end(m_fields))
+        {
+          return it->second;
+        }
+
+        return std::nullopt;
+      }
+
+      std::vector<key_type>
+      GetOwnPropertyNames() const override
+      {
+        std::vector<key_type> result;
+
+        result.reserve(m_fields.size());
+        for (const auto& field : m_fields)
+        {
+          result.push_back(field.first);
+        }
+
+        return result;
+      }
+
+    private:
+      const container_type m_fields;
+    };
+  }
+
+  ptr
+  Record::Make(const std::unordered_map<key_type, mapped_type>& fields)
+  {
+    return std::make_shared<MapRecord>(fields);
   }
 
   bool
@@ -52,17 +93,17 @@ namespace snek::interpreter::value
       {
         return true;
       }
-      else if (m_fields.size() != that_record->m_fields.size())
+      else if (GetSize() != that_record->GetSize())
       {
         return false;
       }
-      for (const auto& field : m_fields)
+      for (const auto& field_name : GetOwnPropertyNames())
       {
-        const auto it = that_record->m_fields.find(field.first);
+        const auto property = that_record->GetOwnProperty(field_name);
 
         if (
-          it == std::end(that_record->m_fields) ||
-          !value::Equals(field.second, it->second)
+          !property ||
+          !value::Equals(*GetOwnProperty(field_name), *property)
         )
         {
           return false;
@@ -81,7 +122,7 @@ namespace snek::interpreter::value
     std::u32string result;
     bool first = true;
 
-    for (const auto& field : m_fields)
+    for (const auto& field_name : GetOwnPropertyNames())
     {
       if (first)
       {
@@ -89,9 +130,10 @@ namespace snek::interpreter::value
       } else {
         result.append(U", ");
       }
-      result.append(field.first);
-      result.append(U": ");
-      result.append(value::ToString(field.second));
+      result
+        .append(field_name)
+        .append(U": ")
+        .append(value::ToString(*GetOwnProperty(field_name)));
     }
 
     return result;
@@ -103,7 +145,7 @@ namespace snek::interpreter::value
     std::u32string result(1, '{');
     bool first = true;
 
-    for (const auto& field : m_fields)
+    for (const auto& field_name : GetOwnPropertyNames())
     {
       if (first)
       {
@@ -113,11 +155,11 @@ namespace snek::interpreter::value
       }
       result
         .append(
-          parser::utils::IsId(field.first)
-            ? field.first
-            : parser::utils::ToJsonString(field.first))
+          parser::utils::IsId(field_name)
+            ? field_name
+            : parser::utils::ToJsonString(field_name))
         .append(U": ")
-        .append(value::ToSource(field.second));
+        .append(value::ToSource(*GetOwnProperty(field_name)));
     }
 
     return result.append(1, U'}');

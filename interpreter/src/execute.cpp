@@ -163,19 +163,14 @@ namespace snek::interpreter
 
     if (alias)
     {
-      value::Record::container_type fields;
+      std::unordered_map<std::u32string, value::ptr> fields;
 
       // TODO: Find out what to do with exported types.
       for (const auto& variable : exported_variables)
       {
         fields[variable.first] = variable.second;
       }
-      scope->DeclareVariable(
-        *alias,
-        std::make_shared<value::Record>(fields),
-        true,
-        false
-      );
+      scope->DeclareVariable(*alias, value::Record::Make(fields), true, false);
     } else {
       for (const auto& variable : exported_variables)
       {
