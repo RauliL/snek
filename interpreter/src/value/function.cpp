@@ -265,7 +265,7 @@ namespace snek::interpreter::value
           runtime,
           m_function,
           bound_arguments,
-          false,
+          true,
           position
         );
       }
