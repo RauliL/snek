@@ -1,0 +1,44 @@
+# Some Lo-Dash functions converted for Snek.
+
+# The opposite of before; this method creates a function that invokes func once
+# it's called n or more times.
+export const after = (n: Int, func: Function):
+    let counter = 0
+
+    return (...args):
+        if counter++ >= n:
+            return func(...args)
+
+# Creates a function that invokes func while it's called less than n times.
+# Subsequent calls to the created function return the result of the last func
+# invocation.
+export const before = (n: Int, func: Function):
+    let counter = 0
+    let value
+
+    return (...args):
+        if counter++ < n:
+            value = func(...args)
+
+        return value
+
+# Creates function that invokes func with arguments reversed.
+export const flip = (func: Function) => (...args) => func(...args.reverse())
+
+# Creates a function that negates the result of the predicate func.
+export const negate = (func: Function) => (...args) => !func(...args)
+
+# Creates a function that is restricted to invoking func once. Repeat calls to
+# the function return the value of the first invocation.
+export const once = (func: Function):
+    let called = false
+    let value
+
+    return (...args):
+        if !called:
+            value = func(...args)
+            called = true
+
+        return value
+
+# vim: set syntax=snek:
