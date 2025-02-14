@@ -238,10 +238,7 @@ namespace snek::interpreter
   }
 
   Scope::ptr
-  Runtime::ImportModule(
-    const std::optional<Position>& position,
-    const std::u32string& path
-  )
+  Runtime::ImportModule(const std::u32string& path)
   {
     module_container_type::const_iterator cached;
     Scope::ptr module;
@@ -254,7 +251,7 @@ namespace snek::interpreter
     cached = m_imported_modules.find(path);
     if (cached == std::end(m_imported_modules))
     {
-      module = m_module_importer(position, *this, path);
+      module = m_module_importer(*this, path);
       m_imported_modules[path] = module;
     } else {
       module = cached->second;

@@ -192,12 +192,7 @@ namespace snek::interpreter::value
           arguments,
           [&scope](const Parameter& parameter, const value::ptr& argument)
           {
-            scope->DeclareVariable(
-              parameter.position,
-              parameter.name,
-              argument,
-              false
-            );
+            scope->DeclareVariable(parameter.name, argument, false);
           }
         );
         try

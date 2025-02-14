@@ -33,7 +33,6 @@
 namespace snek::interpreter
 {
   using callback_type = std::function<void(
-    const std::optional<Position>&,
     const std::u32string&,
     const value::ptr&
   )>;
@@ -168,7 +167,7 @@ namespace snek::interpreter
             U"'."
           );
         }
-        callback(field->position(), name, *property);
+        callback(name, *property);
         used_keys.insert(name);
       }
       else if (kind == parser::field::Kind::Spread)
@@ -224,7 +223,6 @@ namespace snek::interpreter
     {
       case parser::expression::Kind::Id:
         callback(
-          variable->position(),
           static_cast<const parser::expression::Id*>(
             variable.get()
           )->identifier(),
@@ -271,13 +269,9 @@ namespace snek::interpreter
       runtime,
       variable,
       value,
-      [&](
-        const std::optional<Position>& position,
-        const std::u32string& name,
-        const value::ptr& value
-      )
+      [&](const std::u32string& name, const value::ptr& value)
       {
-        scope->SetVariable(position, name, value);
+        scope->SetVariable(name, value);
       }
     );
   }
@@ -296,13 +290,9 @@ namespace snek::interpreter
       runtime,
       variable,
       value,
-      [&](
-        const std::optional<Position>& position,
-        const std::u32string& name,
-        const value::ptr& value
-      )
+      [&](const std::u32string& name, const value::ptr& value)
       {
-        scope->DeclareVariable(position, name, value, read_only, exported);
+        scope->DeclareVariable(name, value, read_only, exported);
       }
     );
   }

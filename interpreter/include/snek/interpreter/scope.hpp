@@ -76,7 +76,6 @@ namespace snek::interpreter
     ) const;
 
     void DeclareVariable(
-      const std::optional<Position>& position,
       const std::u32string& name,
       const value::ptr& value,
       bool read_only = false,
@@ -84,7 +83,6 @@ namespace snek::interpreter
     );
 
     void SetVariable(
-      const std::optional<Position>& position,
       const std::u32string& name,
       const value::ptr& value
     );
@@ -96,7 +94,6 @@ namespace snek::interpreter
     ) const;
 
     void DeclareType(
-      const std::optional<Position>& position,
       const std::u32string& name,
       const type::ptr& type,
       bool exported = false

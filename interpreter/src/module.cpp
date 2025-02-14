@@ -33,11 +33,7 @@
 namespace snek::interpreter
 {
   Scope::ptr
-  ImportFilesystemModule(
-    const std::optional<Position>& position,
-    Runtime& runtime,
-    const std::u32string& path
-  )
+  ImportFilesystemModule(Runtime& runtime, const std::u32string& path)
   {
     using peelo::unicode::encoding::utf8::encode;
 
@@ -55,11 +51,7 @@ namespace snek::interpreter
     );
     ifs.close();
     module = std::make_shared<Scope>(runtime.root_scope());
-    module->DeclareVariable(
-      position,
-      U"__name__",
-      value::String::Make(path)
-    );
+    module->DeclareVariable(U"__name__", value::String::Make(path));
     runtime.RunScript(module, source, path);
 
     return module;

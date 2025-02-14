@@ -119,7 +119,6 @@ namespace snek::interpreter
 
   void
   Scope::DeclareVariable(
-    const std::optional<Position>& position,
     const std::u32string& name,
     const value::ptr& value,
     bool read_only,
@@ -143,7 +142,6 @@ namespace snek::interpreter
 
   void
   Scope::SetVariable(
-    const std::optional<Position>& position,
     const std::u32string& name,
     const value::ptr& value
   )
@@ -166,7 +164,7 @@ namespace snek::interpreter
     }
     else if (m_parent)
     {
-      m_parent->SetVariable(position, name, value);
+      m_parent->SetVariable(name, value);
     } else {
       // TODO: Include stack trace.
       throw Error{ {}, U"Unknown variable: `" + name + U"'." };
@@ -193,7 +191,6 @@ namespace snek::interpreter
   }
 
   void Scope::DeclareType(
-    const std::optional<Position>& position,
     const std::u32string& name,
     const type::ptr& type,
     bool exported

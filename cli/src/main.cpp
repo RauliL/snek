@@ -218,7 +218,6 @@ main(int argc, char** argv)
   // Define the magic variable used to detect whether an module is being
   // imported or not.
   scope->DeclareVariable(
-    std::nullopt,
     U"__name__",
     snek::interpreter::value::String::Make(U"__main__")
   );

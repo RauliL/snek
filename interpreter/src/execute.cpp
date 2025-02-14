@@ -65,7 +65,6 @@ namespace snek::interpreter
   )
   {
     scope->DeclareType(
-      statement->position(),
       statement->name(),
       ResolveType(runtime, scope, statement->type()),
       statement->exported()
@@ -126,7 +125,6 @@ namespace snek::interpreter
     const parser::import::Named* specifier
   )
   {
-    const auto& position = specifier->position();
     const auto& name = specifier->name();
     const auto& alias = specifier->alias();
     value::ptr value_slot;
@@ -134,7 +132,6 @@ namespace snek::interpreter
     if (module->FindVariable(name, value_slot, true))
     {
       scope->DeclareVariable(
-        position,
         alias ? *alias : name,
         value_slot,
         true,
@@ -146,7 +143,7 @@ namespace snek::interpreter
 
       if (module->FindType(name, type_slot, true))
       {
-        scope->DeclareType(position, alias ? *alias : name, type_slot, false);
+        scope->DeclareType(alias ? *alias : name, type_slot, false);
         return;
       }
     }
@@ -161,7 +158,6 @@ namespace snek::interpreter
     const parser::import::Star* specifier
   )
   {
-    const auto position = specifier->position();
     const auto& alias = specifier->alias();
     const auto exported_variables = module->GetExportedVariables();
 
@@ -175,7 +171,6 @@ namespace snek::interpreter
         fields[variable.first] = variable.second;
       }
       scope->DeclareVariable(
-        position,
         *alias,
         std::make_shared<value::Record>(fields),
         true,
@@ -185,7 +180,6 @@ namespace snek::interpreter
       for (const auto& variable : exported_variables)
       {
         scope->DeclareVariable(
-          position,
           variable.first,
           variable.second,
           true,
@@ -194,7 +188,7 @@ namespace snek::interpreter
       }
       for (const auto& type : module->GetExportedTypes())
       {
-        scope->DeclareType(position, type.first, type.second, false);
+        scope->DeclareType(type.first, type.second, false);
       }
     }
   }
@@ -206,10 +200,7 @@ namespace snek::interpreter
     const Import* statement
   )
   {
-    const auto module = runtime.ImportModule(
-      statement->position(),
-      statement->path()
-    );
+    const auto module = runtime.ImportModule(statement->path());
 
     for (const auto& specifier : statement->specifiers())
     {
