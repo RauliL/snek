@@ -183,9 +183,9 @@ namespace snek::interpreter
       throw runtime.MakeError(U"Spread element must be a record.");
     }
     r = static_cast<const value::Record*>(value.get());
-    for (const auto& field : r->GetOwnPropertyNames())
+    for (const auto& f : r->GetOwnPropertyNames())
     {
-      record[field] = *r->GetOwnProperty(field);
+      record[f] = *r->GetOwnProperty(f);
     }
   }
 
