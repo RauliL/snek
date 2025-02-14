@@ -119,6 +119,9 @@ namespace snek::parser::expression
       BitwiseXor = static_cast<int>(Token::Kind::AssignBitwiseXor),
       LeftShift = static_cast<int>(Token::Kind::AssignLeftShift),
       RightShift = static_cast<int>(Token::Kind::AssignRightShift),
+      LogicalAnd = static_cast<int>(Token::Kind::AssignLogicalAnd),
+      LogicalOr = static_cast<int>(Token::Kind::AssignLogicalOr),
+      NullCoalescing = static_cast<int>(Token::Kind::AssignNullCoalescing),
     };
 
     explicit Assign(
@@ -185,6 +188,7 @@ namespace snek::parser::expression
       RightShift = static_cast<int>(Token::Kind::RightShift),
       LogicalAnd = static_cast<int>(Token::Kind::LogicalAnd),
       LogicalOr = static_cast<int>(Token::Kind::LogicalOr),
+      NullCoalescing = static_cast<int>(Token::Kind::NullCoalescing),
     };
 
     explicit Binary(const ptr& left, Operator op, const ptr& right)

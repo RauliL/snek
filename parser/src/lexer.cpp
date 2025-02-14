@@ -661,21 +661,39 @@ namespace snek::parser
         break;
 
       case '&':
-        kind =
-          m_input->PeekRead(U'&')
-            ? Token::Kind::LogicalAnd
-            : m_input->PeekRead(U'=')
-            ? Token::Kind::AssignBitwiseAnd
-            : Token::Kind::BitwiseAnd;
+        if (m_input->PeekRead(U'&'))
+        {
+          if (m_input->PeekRead(U'='))
+          {
+            kind = Token::Kind::AssignLogicalAnd;
+          } else {
+            kind = Token::Kind::LogicalAnd;
+          }
+        }
+        else if (m_input->PeekRead(U'='))
+        {
+          kind = Token::Kind::AssignBitwiseAnd;
+        } else {
+          kind = Token::Kind::BitwiseAnd;
+        }
         break;
 
       case '|':
-        kind =
-          m_input->PeekRead(U'|')
-            ? Token::Kind::LogicalOr
-            : m_input->PeekRead(U'=')
-            ? Token::Kind::AssignBitwiseOr
-            : Token::Kind::BitwiseOr;
+        if (m_input->PeekRead(U'|'))
+        {
+          if (m_input->PeekRead(U'='))
+          {
+            kind = Token::Kind::AssignLogicalOr;
+          } else {
+            kind = Token::Kind::LogicalOr;
+          }
+        }
+        else if (m_input->PeekRead(U'='))
+        {
+          kind = Token::Kind::AssignBitwiseOr;
+        } else {
+          kind = Token::Kind::BitwiseOr;
+        }
         break;
 
       case '<':
@@ -709,10 +727,21 @@ namespace snek::parser
         break;
 
       case '?':
-        kind =
-          m_input->PeekRead(U'.')
-            ? Token::Kind::ConditionalDot
-            : Token::Kind::Ternary;
+        if (m_input->PeekRead(U'.'))
+        {
+          kind = Token::Kind::ConditionalDot;
+        }
+        else if (m_input->PeekRead(U'?'))
+        {
+          if (m_input->PeekRead(U'='))
+          {
+            kind = Token::Kind::AssignNullCoalescing;
+          } else {
+            kind = Token::Kind::NullCoalescing;
+          }
+        } else {
+          kind = Token::Kind::Ternary;
+        }
         break;
 
       default:

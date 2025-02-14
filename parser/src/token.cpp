@@ -167,6 +167,9 @@ namespace snek::parser
       case Token::Kind::Decrement:
         return U"`--'";
 
+      case Token::Kind::NullCoalescing:
+        return U"`\?\?'";
+
       case Token::Kind::Assign:
         return U"`='";
 
@@ -199,6 +202,15 @@ namespace snek::parser
 
       case Token::Kind::AssignRightShift:
         return U"`>>='";
+
+      case Token::Kind::AssignLogicalAnd:
+        return U"`&&='";
+
+      case Token::Kind::AssignLogicalOr:
+        return U"`||='";
+
+      case Token::Kind::AssignNullCoalescing:
+        return U"`\?\?='";
 
       case Token::Kind::KeywordAs:
         return U"`as'";

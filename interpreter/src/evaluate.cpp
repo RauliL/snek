@@ -251,24 +251,78 @@ namespace snek::interpreter
     const Assign* expression
   )
   {
-    const auto& position = expression->position();
-    const auto& op = expression->op();
     const auto& variable = expression->variable();
-    auto value = EvaluateExpression(runtime, scope, expression->value());
+    const auto& op = expression->op();
+    value::ptr new_value;
 
     if (op)
     {
-      value = value::CallMethod(
-        runtime,
-        EvaluateExpression(runtime, scope, variable),
-        Assign::ToString(*op),
-        { value },
-        position
-      );
-    }
-    AssignTo(runtime, scope, variable, value);
+      switch (*op)
+      {
+        case parser::expression::Assign::Operator::LogicalAnd:
+          {
+            const auto old_value = EvaluateExpression(runtime, scope, variable);
 
-    return value;
+            if (!value::ToBoolean(old_value))
+            {
+              return old_value;
+            }
+            new_value = EvaluateExpression(
+              runtime,
+              scope,
+              expression->value()
+            );
+          }
+          break;
+
+        case parser::expression::Assign::Operator::LogicalOr:
+          {
+            const auto old_value = EvaluateExpression(runtime, scope, variable);
+
+            if (value::ToBoolean(old_value))
+            {
+              return old_value;
+            }
+            new_value = EvaluateExpression(
+              runtime,
+              scope,
+              expression->value()
+            );
+          }
+          break;
+
+        case parser::expression::Assign::Operator::NullCoalescing:
+          {
+            const auto old_value = EvaluateExpression(runtime, scope, variable);
+
+            if (old_value)
+            {
+              return old_value;
+            }
+            new_value = EvaluateExpression(
+              runtime,
+              scope,
+              expression->value()
+            );
+          }
+          break;
+
+        default:
+          new_value = value::CallMethod(
+            runtime,
+            EvaluateExpression(runtime, scope, variable),
+            Assign::ToString(*op),
+            { EvaluateExpression(runtime, scope, expression->value()) },
+            expression->position()
+          );
+          break;
+      }
+    } else {
+      new_value = EvaluateExpression(runtime, scope, expression->value());
+    }
+    AssignTo(runtime, scope, variable, new_value);
+
+    return new_value;
   }
 
   static value::ptr
@@ -291,6 +345,11 @@ namespace snek::interpreter
 
       case Binary::Operator::LogicalOr:
         return value::ToBoolean(left)
+          ? left
+          : EvaluateExpression(runtime, scope, expression->right());
+
+      case Binary::Operator::NullCoalescing:
+        return left
           ? left
           : EvaluateExpression(runtime, scope, expression->right());
 

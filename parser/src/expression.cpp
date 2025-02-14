@@ -643,7 +643,10 @@ namespace snek::parser::expression
   {
     auto expression = ParseLogicalAnd(lexer);
 
-    while (lexer.PeekToken(Token::Kind::LogicalOr))
+    while (
+      lexer.PeekToken(Token::Kind::LogicalOr) ||
+      lexer.PeekToken(Token::Kind::NullCoalescing)
+    )
     {
       const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
       const auto operand = ParseLogicalAnd(lexer);
@@ -692,7 +695,10 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::AssignBitwiseOr) ||
       lexer.PeekToken(Token::Kind::AssignBitwiseXor) ||
       lexer.PeekToken(Token::Kind::AssignLeftShift) ||
-      lexer.PeekToken(Token::Kind::AssignRightShift)
+      lexer.PeekToken(Token::Kind::AssignRightShift) ||
+      lexer.PeekToken(Token::Kind::AssignLogicalAnd) ||
+      lexer.PeekToken(Token::Kind::AssignLogicalOr) ||
+      lexer.PeekToken(Token::Kind::AssignNullCoalescing)
     )
     {
       const auto token = lexer.ReadToken();
@@ -754,6 +760,15 @@ namespace snek::parser::expression
 
       case Operator::RightShift:
         return U">>";
+
+      case Operator::LogicalAnd:
+        return U"&&";
+
+      case Operator::LogicalOr:
+        return U"||";
+
+      case Operator::NullCoalescing:
+        return U"??";
     }
 
     return U"unknown";
@@ -830,6 +845,9 @@ namespace snek::parser::expression
 
       case Operator::LogicalOr:
         return U"||";
+
+      case Operator::NullCoalescing:
+        return U"??";
     }
 
     return U"unknown";

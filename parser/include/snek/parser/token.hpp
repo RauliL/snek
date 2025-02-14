@@ -89,6 +89,7 @@ namespace snek::parser
       LogicalOr,
       Increment,
       Decrement,
+      NullCoalescing,
 
       // Assignment operators.
       Assign,
@@ -102,6 +103,9 @@ namespace snek::parser
       AssignBitwiseXor,
       AssignLeftShift,
       AssignRightShift,
+      AssignLogicalAnd,
+      AssignLogicalOr,
+      AssignNullCoalescing,
 
       // Reserved keywords.
       KeywordAs,
