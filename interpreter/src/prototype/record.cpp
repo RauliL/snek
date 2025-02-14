@@ -117,6 +117,26 @@ namespace snek::interpreter::prototype
   }
 
   /**
+   * Record#-(this: Record, field: String) => Record
+   *
+   * Removes field from the record.
+   */
+  static value::ptr
+  Remove(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    auto fields = As<value::Record>(arguments[0])->fields();
+    const auto key = As<value::String>(arguments[1])->ToString();
+    const auto it = fields.find(key);
+
+    if (it != std::end(fields))
+    {
+      fields.erase(it);
+    }
+
+    return std::make_shared<value::Record>(fields);
+  }
+
+  /**
    * Record#[](this: Record, name: String) => any
    *
    * Returns value of field with given name contained in the record.
@@ -168,6 +188,14 @@ namespace snek::interpreter::prototype
       },
       runtime->record_type(),
       Concat
+    );
+    fields[U"-"] = value::Function::MakeNative(
+      {
+        { U"this", runtime->record_type() },
+        { U"field", runtime->string_type() },
+      },
+      runtime->record_type(),
+      Remove
     );
 
     fields[U"[]"] = value::Function::MakeNative(
