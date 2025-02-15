@@ -53,8 +53,7 @@ namespace snek::interpreter
     const callback_type& callback
   )
   {
-    const auto& elements = variable->elements();
-    const auto size = elements.size();
+    const auto size = variable->elements.size();
     value::List::size_type list_size;
     const value::List* list;
 
@@ -76,11 +75,11 @@ namespace snek::interpreter
     }
     for (std::size_t i = 0; i < size; ++i)
     {
-      const auto& element = elements[i];
+      const auto& element = variable->elements[i];
 
-      if (element->kind() == parser::element::Kind::Value)
+      if (element->kind == parser::element::Kind::Value)
       {
-        Process(runtime, element->expression(), list->At(i), callback);
+        Process(runtime, element->expression, list->At(i), callback);
       } else {
         std::vector<value::ptr> result;
 
@@ -96,7 +95,7 @@ namespace snek::interpreter
         while (i < list_size);
         Process(
           runtime,
-          element->expression(),
+          element->expression,
           value::List::Make(result),
           callback
         );
@@ -112,8 +111,7 @@ namespace snek::interpreter
     const callback_type& callback
   )
   {
-    const auto& fields = variable->fields();
-    const auto size = fields.size();
+    const auto size = variable->fields.size();
     std::unordered_set<std::u32string> used_keys;
 
     if (!value::IsRecord(value))
@@ -128,7 +126,7 @@ namespace snek::interpreter
     }
     for (std::size_t i = 0; i < size; ++i)
     {
-      const auto& field = fields[i];
+      const auto& field = variable->fields[i];
       const auto kind = field->kind();
 
       if (kind == parser::field::Kind::Named)
@@ -136,7 +134,7 @@ namespace snek::interpreter
         const auto named = static_cast<const parser::field::Named*>(
           field.get()
         );
-        const auto& name = named->name();
+        const auto& name = named->name;
         const auto property = value::GetProperty(runtime, value, name);
 
         if (!property)
@@ -148,14 +146,14 @@ namespace snek::interpreter
             U"'."
           );
         }
-        Process(runtime, named->value(), *property, callback);
+        Process(runtime, named->value, *property, callback);
         used_keys.insert(name);
       }
       else if (kind == parser::field::Kind::Shorthand)
       {
         const auto& name = static_cast<const parser::field::Shorthand*>(
           field.get()
-        )->name();
+        )->name;
         const auto property = value::GetProperty(runtime, value, name);
 
         if (!property)
@@ -190,14 +188,14 @@ namespace snek::interpreter
         }
         Process(
           runtime,
-          static_cast<const parser::field::Spread*>(field.get())->expression(),
+          static_cast<const parser::field::Spread*>(field.get())->expression,
           value::Record::Make(result),
           callback
         );
       } else {
         throw runtime.MakeError(
           U"Cannot assign to " +
-          fields[i]->ToString() +
+          variable->fields[i]->ToString() +
           U"."
         );
       }
@@ -223,7 +221,7 @@ namespace snek::interpreter
         callback(
           static_cast<const parser::expression::Id*>(
             variable.get()
-          )->identifier(),
+          )->identifier,
           value
         );
         break;

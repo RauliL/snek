@@ -144,26 +144,25 @@ namespace snek::parser::expression
     if (expression->kind() == Kind::Id)
     {
       return Parameter(
-        expression->position(),
-        As<Id>(expression)->identifier()
+        expression->position,
+        As<Id>(expression)->identifier
       );
     }
     else if (expression->kind() == Kind::Assign)
     {
       const auto assign = As<Assign>(expression);
-      const auto variable = assign->variable();
 
-      if (!assign->op() && variable->kind() == Kind::Id)
+      if (!assign->op && assign->variable->kind() == Kind::Id)
       {
         return Parameter(
-          expression->position(),
-          As<Id>(variable)->identifier()
+          expression->position,
+          As<Id>(assign->variable)->identifier
         );
       }
     }
 
     throw SyntaxError{
-      expression->position(),
+      expression->position,
       U"Unexpected `" +
       expression->ToString() +
       U"'; Missing function."
@@ -198,12 +197,12 @@ namespace snek::parser::expression
     // TODO: Implement Unicode version of std::strtoll.
     // TODO: Implement different bases.
     const auto value = std::strtoll(
-      encode(*token.text()).c_str(),
+      encode(*token.text).c_str(),
       nullptr,
       10
     );
 
-    return std::make_shared<Int>(token.position(), value);
+    return std::make_shared<Int>(token.position, value);
   }
 
   static ptr
@@ -212,9 +211,9 @@ namespace snek::parser::expression
     using peelo::unicode::encoding::utf8::encode;
 
     // TODO: Implement Unicode version of std::strtod.
-    const auto value = std::strtod(encode(*token.text()).c_str(), nullptr);
+    const auto value = std::strtod(encode(*token.text).c_str(), nullptr);
 
-    return std::make_shared<Float>(token.position(), value);
+    return std::make_shared<Float>(token.position, value);
   }
 
   static ptr
@@ -277,22 +276,22 @@ namespace snek::parser::expression
   {
     const auto token = lexer.ReadToken();
 
-    switch (token.kind())
+    switch (token.kind)
     {
       case Token::Kind::Eof:
         throw SyntaxError{
-          token.position(),
+          token.position,
           U"Unexpected end of input; Missing expression."
         };
 
       case Token::Kind::KeywordTrue:
-        return std::make_shared<Boolean>(token.position(), true);
+        return std::make_shared<Boolean>(token.position, true);
 
       case Token::Kind::KeywordFalse:
-        return std::make_shared<Boolean>(token.position(), false);
+        return std::make_shared<Boolean>(token.position, false);
 
       case Token::Kind::KeywordNull:
-        return std::make_shared<Null>(token.position());
+        return std::make_shared<Null>(token.position);
 
       case Token::Kind::Int:
         return ParseInt(token);
@@ -301,13 +300,13 @@ namespace snek::parser::expression
         return ParseFloat(token);
 
       case Token::Kind::String:
-        return std::make_shared<String>(token.position(), *token.text());
+        return std::make_shared<String>(token.position, *token.text);
 
       case Token::Kind::LeftBracket:
         return std::make_shared<List>(
-          token.position(),
+          token.position,
           ParseMultiple(
-            token.position(),
+            token.position,
             lexer,
             element::Parse,
             Token::Kind::RightBracket,
@@ -317,9 +316,9 @@ namespace snek::parser::expression
 
       case Token::Kind::LeftBrace:
         return std::make_shared<Record>(
-          token.position(),
+          token.position,
           ParseMultiple(
-            token.position(),
+            token.position,
             lexer,
             field::Parse,
             Token::Kind::RightBrace,
@@ -328,14 +327,14 @@ namespace snek::parser::expression
         );
 
       case Token::Kind::Id:
-        return std::make_shared<Id>(token.position(), *token.text());
+        return std::make_shared<Id>(token.position, *token.text);
 
       case Token::Kind::LeftParen:
-        return ParseParenthesized(token.position(), lexer);
+        return ParseParenthesized(token.position, lexer);
 
       default:
         throw SyntaxError{
-          token.position(),
+          token.position,
           U"Unexpected " + token.ToString() + U"; Missing expression."
         };
     }
@@ -354,8 +353,8 @@ namespace snek::parser::expression
       const auto token = lexer.ReadToken();
 
       return std::make_shared<Unary>(
-        token.position(),
-        static_cast<Unary::Operator>(token.kind()),
+        token.position,
+        static_cast<Unary::Operator>(token.kind),
         ParseUnary(lexer)
       );
     }
@@ -364,7 +363,7 @@ namespace snek::parser::expression
       const auto token = lexer.ReadToken();
 
       return std::make_shared<Increment>(
-        token.position(),
+        token.position,
         ParseUnary(lexer),
         true
       );
@@ -374,7 +373,7 @@ namespace snek::parser::expression
       const auto token = lexer.ReadToken();
 
       return std::make_shared<Decrement>(
-        token.position(),
+        token.position,
         ParseUnary(lexer),
         true
       );
@@ -393,11 +392,11 @@ namespace snek::parser::expression
     {
       const auto token = lexer.ReadToken();
 
-      switch (token.kind())
+      switch (token.kind)
       {
         case Token::Kind::Dot:
           expression = std::make_shared<Property>(
-            token.position(),
+            token.position,
             expression,
             lexer.ReadId(),
             false
@@ -406,16 +405,16 @@ namespace snek::parser::expression
 
         case Token::Kind::LeftParen:
           expression = std::make_shared<Call>(
-            token.position(),
+            token.position,
             expression,
-            ParseArgumentList(token.position(), lexer),
+            ParseArgumentList(token.position, lexer),
             false
           );
           break;
 
         case Token::Kind::LeftBracket:
           expression = std::make_shared<Subscript>(
-            token.position(),
+            token.position,
             expression,
             Parse(lexer),
             false
@@ -427,16 +426,16 @@ namespace snek::parser::expression
           if (lexer.PeekReadToken(Token::Kind::LeftParen))
           {
             expression = std::make_shared<Call>(
-              token.position(),
+              token.position,
               expression,
-              ParseArgumentList(token.position(), lexer),
+              ParseArgumentList(token.position, lexer),
               true
             );
           }
           else if (lexer.PeekReadToken(Token::Kind::LeftBracket))
           {
             expression = std::make_shared<Subscript>(
-              token.position(),
+              token.position,
               expression,
               Parse(lexer),
               true
@@ -444,7 +443,7 @@ namespace snek::parser::expression
             lexer.ReadToken(Token::Kind::RightBracket);
           } else {
             expression = std::make_shared<Property>(
-              token.position(),
+              token.position,
               expression,
               lexer.ReadId(),
               true
@@ -454,7 +453,7 @@ namespace snek::parser::expression
 
         case Token::Kind::Increment:
           expression = std::make_shared<Increment>(
-            token.position(),
+            token.position,
             expression,
             false
           );
@@ -462,7 +461,7 @@ namespace snek::parser::expression
 
         case Token::Kind::Decrement:
           expression = std::make_shared<Decrement>(
-            token.position(),
+            token.position,
             expression,
             false
           );
@@ -487,7 +486,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::Mod)
     )
     {
-      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind);
       const auto operand = ParseUnary(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -506,7 +505,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::Sub)
     )
     {
-      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind);
       const auto operand = ParseMultiplicative(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -525,7 +524,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::RightShift)
     )
     {
-      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind);
       const auto operand = ParseAdditive(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -546,7 +545,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::GreaterThanEqual)
     )
     {
-      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind);
       const auto operand = ParseShift(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -565,7 +564,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::NotEqual)
     )
     {
-      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind);
       const auto operand = ParseRelational(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -581,7 +580,7 @@ namespace snek::parser::expression
 
     while (lexer.PeekToken(Token::Kind::BitwiseAnd))
     {
-      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind);
       const auto operand = ParseEquality(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -597,7 +596,7 @@ namespace snek::parser::expression
 
     while (lexer.PeekToken(Token::Kind::BitwiseXor))
     {
-      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind);
       const auto operand = ParseBitwiseAnd(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -613,7 +612,7 @@ namespace snek::parser::expression
 
     while (lexer.PeekToken(Token::Kind::BitwiseOr))
     {
-      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind);
       const auto operand = ParseBitwiseXor(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -629,7 +628,7 @@ namespace snek::parser::expression
 
     while (lexer.PeekToken(Token::Kind::LogicalAnd))
     {
-      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind);
       const auto operand = ParseBitwiseOr(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -648,7 +647,7 @@ namespace snek::parser::expression
       lexer.PeekToken(Token::Kind::NullCoalescing)
     )
     {
-      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind());
+      const auto op = static_cast<Binary::Operator>(lexer.ReadToken().kind);
       const auto operand = ParseLogicalAnd(lexer);
 
       expression = std::make_shared<Binary>(expression, op, operand);
@@ -669,7 +668,7 @@ namespace snek::parser::expression
       lexer.ReadToken(Token::Kind::Colon);
 
       return std::make_shared<Ternary>(
-        expression->position(),
+        expression->position,
         expression,
         then_expression,
         Parse(lexer)
@@ -702,19 +701,19 @@ namespace snek::parser::expression
     )
     {
       const auto token = lexer.ReadToken();
-      const auto kind = token.kind();
+      const auto kind = token.kind;
       const auto value = Parse(lexer);
 
       if (!expression->IsAssignable())
       {
         throw SyntaxError{
-          expression->position(),
+          expression->position,
           U"Cannot assign to `" + expression->ToString() + U"'."
         };
       }
 
       return std::make_shared<Assign>(
-        token.position(),
+        token.position,
         expression,
         value,
         kind == Token::Kind::Assign
@@ -777,14 +776,14 @@ namespace snek::parser::expression
   std::u32string
   Assign::ToString() const
   {
-    std::u32string result(m_variable->ToString());
+    auto result = variable->ToString();
 
-    if (m_op)
+    if (op)
     {
-      result.append(1, U' ').append(ToString(*m_op));
+      result.append(1, U' ').append(ToString(*op));
     }
 
-    return result.append(U"= ").append(m_value->ToString());
+    return result.append(U"= ").append(value->ToString());
   }
 
   std::u32string
@@ -856,20 +855,20 @@ namespace snek::parser::expression
   std::u32string
   Binary::ToString() const
   {
-    return m_left->ToString()
+    return left->ToString()
       .append(1, U' ')
-      .append(ToString(m_op))
+      .append(ToString(op))
       .append(1, U' ')
-      .append(m_right->ToString());
+      .append(right->ToString());
   }
 
   std::u32string
   Call::ToString() const
   {
-    std::u32string result(m_expression->ToString());
-    const auto size = m_arguments.size();
+    auto result = expression->ToString();
+    const auto size = arguments.size();
 
-    if (m_conditional)
+    if (conditional)
     {
       result.append(U"?.");
     }
@@ -880,7 +879,7 @@ namespace snek::parser::expression
       {
         result.append(U", ");
       }
-      result.append(m_arguments[i]->ToString());
+      result.append(arguments[i]->ToString());
     }
 
     return result.append(1, U')');
@@ -889,9 +888,9 @@ namespace snek::parser::expression
   std::u32string
   Decrement::ToString() const
   {
-    return m_pre
-      ? U"--" + m_variable->ToString()
-      : m_variable->ToString() + U"--";
+    return pre
+      ? U"--" + variable->ToString()
+      : variable->ToString() + U"--";
   }
 
   std::u32string
@@ -900,7 +899,7 @@ namespace snek::parser::expression
     std::u32string result(1, U'(');
     bool first = true;
 
-    for (const auto& parameter : m_parameters)
+    for (const auto& parameter : parameters)
     {
       if (first)
       {
@@ -911,10 +910,11 @@ namespace snek::parser::expression
       result.append(parameter.ToString());
     }
     result.append(1, U')');
-    if (m_return_type)
+    if (return_type)
     {
-      result.append(U": ");
-      result.append(m_return_type->ToString());
+      result
+        .append(U": ")
+        .append(return_type->ToString());
     }
 
     return result;
@@ -923,31 +923,30 @@ namespace snek::parser::expression
   std::u32string
   Int::ToString() const
   {
-    return utils::IntToString(m_value);
+    return utils::IntToString(value);
   }
 
   std::u32string
   Float::ToString() const
   {
-    return utils::DoubleToString(m_value);
+    return utils::DoubleToString(value);
   }
 
   std::u32string
   Increment::ToString() const
   {
-    return m_pre
-      ? U"++" + m_variable->ToString()
-      : m_variable->ToString() + U"++";
+    return pre
+      ? U"++" + variable->ToString()
+      : variable->ToString() + U"++";
   }
 
   std::u32string
   List::ToString() const
   {
-    std::u32string result;
+    std::u32string result(1, U'[');
     bool first = true;
 
-    result.append(1, U'[');
-    for (const auto& element : m_elements)
+    for (const auto& element : elements)
     {
       if (first)
       {
@@ -957,28 +956,27 @@ namespace snek::parser::expression
       }
       result.append(element->ToString());
     }
-    result.append(1, U']');
 
-    return result;
+    return result.append(1, U']');
   }
 
   std::u32string
   Property::ToString() const
   {
-    std::u32string result(m_expression->ToString());
+    auto result = expression->ToString();
 
-    if (m_conditional)
+    if (conditional)
     {
       result.append(1, U'?');
     }
 
-    return result.append(1, U'.').append(m_name);
+    return result.append(1, U'.').append(name);
   }
 
   bool
   Record::IsAssignable() const
   {
-    for (const auto& field : m_fields)
+    for (const auto& field : fields)
     {
       const auto kind = field->kind();
 
@@ -986,7 +984,7 @@ namespace snek::parser::expression
       {
         if (!static_cast<const field::Spread*>(
           field.get()
-        )->expression()->IsAssignable())
+        )->expression->IsAssignable())
         {
           return false;
         }
@@ -1007,7 +1005,7 @@ namespace snek::parser::expression
     bool first = true;
 
     result.append(1, U'{');
-    for (const auto& field : m_fields)
+    for (const auto& field : fields)
     {
       if (first)
       {
@@ -1025,30 +1023,30 @@ namespace snek::parser::expression
   std::u32string
   String::ToString() const
   {
-    return utils::ToJsonString(m_value);
+    return utils::ToJsonString(value);
   }
 
   std::u32string
   Subscript::ToString() const
   {
-    std::u32string result(m_expression->ToString());
+    auto result = expression->ToString();
 
-    if (m_conditional)
+    if (conditional)
     {
       result.append(U"?.");
     }
 
-    return result.append(1, U'[').append(m_index->ToString()).append(1, U']');
+    return result.append(1, U'[').append(index->ToString()).append(1, U']');
   }
 
   std::u32string
   Ternary::ToString() const
   {
-    return m_condition->ToString()
+    return condition->ToString()
       .append(U" ? ")
-      .append(m_then_expression->ToString())
+      .append(then_expression->ToString())
       .append(U" : ")
-      .append(m_else_expression->ToString());
+      .append(else_expression->ToString());
   }
 
   std::u32string
@@ -1075,6 +1073,6 @@ namespace snek::parser::expression
   std::u32string
   Unary::ToString() const
   {
-    return ToString(m_op).append(m_operand->ToString());
+    return ToString(op).append(operand->ToString());
   }
 }

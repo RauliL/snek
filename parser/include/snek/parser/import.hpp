@@ -42,22 +42,16 @@ namespace snek::parser::import
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
 
+    const std::optional<std::u32string> alias;
+
     explicit Base(
       const std::optional<Position>& position,
-      const std::optional<std::u32string>& alias = std::nullopt
+      const std::optional<std::u32string>& alias_ = std::nullopt
     )
       : Node(position)
-      , m_alias(alias) {}
+      , alias(alias_) {}
 
     virtual Kind kind() const = 0;
-
-    inline const std::optional<std::u32string>& alias() const
-    {
-      return m_alias;
-    }
-
-  private:
-    const std::optional<std::u32string> m_alias;
   };
 
   using ptr = std::shared_ptr<Base>;
@@ -67,38 +61,32 @@ namespace snek::parser::import
   class Named final : public Base
   {
   public:
+    const std::u32string name;
+
     explicit Named(
       const std::optional<Position>& position,
-      const std::u32string name,
+      const std::u32string name_,
       const std::optional<std::u32string>& alias = std::nullopt
     )
       : Base(position, alias)
-      , m_name(name) {}
+      , name(name_) {}
 
     inline Kind kind() const override
     {
       return Kind::Named;
     }
 
-    inline const std::u32string& name() const
-    {
-      return m_name;
-    }
-
     inline std::u32string ToString() const override
     {
-      std::u32string result(name());
+      auto result = name;
 
-      if (const auto al = alias())
+      if (alias)
       {
-        result.append(U" as ").append(*al);
+        result.append(U" as ").append(*alias);
       }
 
       return result;
     }
-
-  private:
-    const std::u32string m_name;
   };
 
   class Star final : public Base
@@ -119,9 +107,9 @@ namespace snek::parser::import
     {
       std::u32string result(U"*");
 
-      if (const auto al = alias())
+      if (alias)
       {
-        result.append(U" as ").append(*al);
+        result.append(U" as ").append(*alias);
       }
 
       return result;

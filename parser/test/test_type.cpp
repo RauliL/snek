@@ -66,7 +66,7 @@ TEST_CASE("Parse boolean type: true")
   const auto result = type::Parse(lexer);
 
   REQUIRE(result->kind() == type::Kind::Boolean);
-  REQUIRE(As<type::Boolean>(result)->value());
+  REQUIRE(As<type::Boolean>(result)->value);
 }
 
 TEST_CASE("Parse boolean type: false")
@@ -75,7 +75,7 @@ TEST_CASE("Parse boolean type: false")
   const auto result = type::Parse(lexer);
 
   REQUIRE(result->kind() == type::Kind::Boolean);
-  REQUIRE(!As<type::Boolean>(result)->value());
+  REQUIRE(!As<type::Boolean>(result)->value);
 }
 
 TEST_CASE("Parse string type")
@@ -84,7 +84,7 @@ TEST_CASE("Parse string type")
   const auto result = type::Parse(lexer);
 
   REQUIRE(result->kind() == type::Kind::String);
-  REQUIRE(!As<type::String>(result)->value().compare(U"foo"));
+  REQUIRE(!As<type::String>(result)->value.compare(U"foo"));
 }
 
 TEST_CASE("Parse function type")
@@ -95,8 +95,8 @@ TEST_CASE("Parse function type")
 
   REQUIRE(result->kind() == type::Kind::Function);
   function = As<type::Function>(result);
-  REQUIRE(function->parameters().size() == 1);
-  REQUIRE(function->return_type()->kind() == type::Kind::Named);
+  REQUIRE(function->parameters.size() == 1);
+  REQUIRE(function->return_type->kind() == type::Kind::Named);
 }
 
 TEST_CASE("Parse empty record type")
@@ -105,7 +105,7 @@ TEST_CASE("Parse empty record type")
   const auto result = type::Parse(lexer);
 
   REQUIRE(result->kind() == type::Kind::Record);
-  REQUIRE(As<type::Record>(result)->fields().empty());
+  REQUIRE(As<type::Record>(result)->fields.empty());
 }
 
 TEST_CASE("Parse record type with one field")
@@ -114,7 +114,7 @@ TEST_CASE("Parse record type with one field")
   const auto result = type::Parse(lexer);
 
   REQUIRE(result->kind() == type::Kind::Record);
-  REQUIRE(As<type::Record>(result)->fields().size() == 1);
+  REQUIRE(As<type::Record>(result)->fields.size() == 1);
 }
 
 TEST_CASE("Parse record type with one field and dangling comma")
@@ -123,7 +123,7 @@ TEST_CASE("Parse record type with one field and dangling comma")
   const auto result = type::Parse(lexer);
 
   REQUIRE(result->kind() == type::Kind::Record);
-  REQUIRE(As<type::Record>(result)->fields().size() == 1);
+  REQUIRE(As<type::Record>(result)->fields.size() == 1);
 }
 
 TEST_CASE("Parse record type with string as field name")
@@ -132,7 +132,7 @@ TEST_CASE("Parse record type with string as field name")
   const auto result = type::Parse(lexer);
 
   REQUIRE(result->kind() == type::Kind::Record);
-  REQUIRE(As<type::Record>(result)->fields().size() == 1);
+  REQUIRE(As<type::Record>(result)->fields.size() == 1);
 }
 
 TEST_CASE("Parse record type with two fields")
@@ -141,7 +141,7 @@ TEST_CASE("Parse record type with two fields")
   const auto result = type::Parse(lexer);
 
   REQUIRE(result->kind() == type::Kind::Record);
-  REQUIRE(As<type::Record>(result)->fields().size() == 2);
+  REQUIRE(As<type::Record>(result)->fields.size() == 2);
 }
 
 TEST_CASE("Parse unterminated record type")
@@ -159,8 +159,8 @@ TEST_CASE("Parse empty tuple type")
 
   REQUIRE(result->kind() == type::Kind::Multiple);
   multiple = As<type::Multiple>(result);
-  REQUIRE(multiple->multiple_kind() == type::Multiple::MultipleKind::Tuple);
-  REQUIRE(multiple->types().empty());
+  REQUIRE(multiple->multiple_kind == type::Multiple::MultipleKind::Tuple);
+  REQUIRE(multiple->types.empty());
 }
 
 TEST_CASE("Parse tuple type with one element")
@@ -171,8 +171,8 @@ TEST_CASE("Parse tuple type with one element")
 
   REQUIRE(result->kind() == type::Kind::Multiple);
   multiple = As<type::Multiple>(result);
-  REQUIRE(multiple->multiple_kind() == type::Multiple::MultipleKind::Tuple);
-  REQUIRE(multiple->types().size() == 1);
+  REQUIRE(multiple->multiple_kind == type::Multiple::MultipleKind::Tuple);
+  REQUIRE(multiple->types.size() == 1);
 }
 
 TEST_CASE("Parse tuple type with one element and dangling comma")
@@ -183,8 +183,8 @@ TEST_CASE("Parse tuple type with one element and dangling comma")
 
   REQUIRE(result->kind() == type::Kind::Multiple);
   multiple = As<type::Multiple>(result);
-  REQUIRE(multiple->multiple_kind() == type::Multiple::MultipleKind::Tuple);
-  REQUIRE(multiple->types().size() == 1);
+  REQUIRE(multiple->multiple_kind == type::Multiple::MultipleKind::Tuple);
+  REQUIRE(multiple->types.size() == 1);
 }
 
 TEST_CASE("Parse tuple type with two elements")
@@ -195,8 +195,8 @@ TEST_CASE("Parse tuple type with two elements")
 
   REQUIRE(result->kind() == type::Kind::Multiple);
   multiple = As<type::Multiple>(result);
-  REQUIRE(multiple->multiple_kind() == type::Multiple::MultipleKind::Tuple);
-  REQUIRE(multiple->types().size() == 2);
+  REQUIRE(multiple->multiple_kind == type::Multiple::MultipleKind::Tuple);
+  REQUIRE(multiple->types.size() == 2);
 }
 
 TEST_CASE("Parse unterminated tuple type")
@@ -234,7 +234,7 @@ TEST_CASE("Parse nested list type")
   const auto result = type::Parse(lexer);
 
   REQUIRE(result->kind() == type::Kind::List);
-  REQUIRE(As<type::List>(result)->element_type()->kind() == type::Kind::List);
+  REQUIRE(As<type::List>(result)->element_type->kind() == type::Kind::List);
 }
 
 TEST_CASE("Parse intersection type")
@@ -246,7 +246,7 @@ TEST_CASE("Parse intersection type")
   REQUIRE(result->kind() == type::Kind::Multiple);
   multiple = As<type::Multiple>(result);
   REQUIRE(
-    multiple->multiple_kind() == type::Multiple::MultipleKind::Intersection
+    multiple->multiple_kind == type::Multiple::MultipleKind::Intersection
   );
 }
 
@@ -258,5 +258,5 @@ TEST_CASE("Parse union type")
 
   REQUIRE(result->kind() == type::Kind::Multiple);
   multiple = As<type::Multiple>(result);
-  REQUIRE(multiple->multiple_kind() == type::Multiple::MultipleKind::Union);
+  REQUIRE(multiple->multiple_kind == type::Multiple::MultipleKind::Union);
 }

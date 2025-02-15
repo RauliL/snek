@@ -124,45 +124,29 @@ namespace snek::parser::expression
       NullCoalescing = static_cast<int>(Token::Kind::AssignNullCoalescing),
     };
 
+    const ptr variable;
+    const ptr value;
+    const std::optional<Operator> op;
+
     explicit Assign(
       const std::optional<Position>& position,
-      const ptr& variable,
-      const ptr& value,
-      const std::optional<Operator>& op = std::nullopt
+      const ptr& variable_,
+      const ptr& value_,
+      const std::optional<Operator>& op_ = std::nullopt
     )
       : Base(position)
-      , m_variable(variable)
-      , m_value(value)
-      , m_op(op) {}
+      , variable(variable_)
+      , value(value_)
+      , op(op_) {}
 
     inline Kind kind() const override
     {
       return Kind::Assign;
     }
 
-    inline const ptr& variable() const
-    {
-      return m_variable;
-    }
-
-    inline const ptr& value() const
-    {
-      return m_value;
-    }
-
-    inline const std::optional<Operator>& op() const
-    {
-      return m_op;
-    }
-
     static std::u32string ToString(Operator op);
 
     std::u32string ToString() const override;
-
-  private:
-    const ptr m_variable;
-    const ptr m_value;
-    const std::optional<Operator> m_op;
   };
 
   class Binary final : public Base
@@ -191,227 +175,153 @@ namespace snek::parser::expression
       NullCoalescing = static_cast<int>(Token::Kind::NullCoalescing),
     };
 
-    explicit Binary(const ptr& left, Operator op, const ptr& right)
-      : Base(left->position())
-      , m_left(left)
-      , m_op(op)
-      , m_right(right) {}
+    const ptr left;
+    const Operator op;
+    const ptr right;
+
+    explicit Binary(const ptr& left_, Operator op_, const ptr& right_)
+      : Base(left_->position)
+      , left(left_)
+      , op(op_)
+      , right(right_) {}
 
     inline Kind kind() const override
     {
       return Kind::Binary;
     }
 
-    inline const ptr& left() const
-    {
-      return m_left;
-    }
-
-    inline Operator op() const
-    {
-      return m_op;
-    }
-
-    inline const ptr& right() const
-    {
-      return m_right;
-    }
-
     static std::u32string ToString(Operator op);
 
     std::u32string ToString() const override;
-
-  private:
-    const ptr m_left;
-    const Operator m_op;
-    const ptr m_right;
   };
 
   class Boolean final : public Base
   {
   public:
-    explicit Boolean(const std::optional<Position>& position, bool value)
+    const bool value;
+
+    explicit Boolean(const std::optional<Position>& position, bool value_)
       : Base(position)
-      , m_value(value) {}
+      , value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::Boolean;
     }
 
-    inline bool value() const
-    {
-      return m_value;
-    }
-
     inline std::u32string ToString() const override
     {
-      return m_value ? U"true" : U"false";
+      return value ? U"true" : U"false";
     }
-
-  private:
-    const bool m_value;
   };
 
   class Call final : public Base
   {
   public:
+    const ptr expression;
+    const std::vector<ptr> arguments;
+    const bool conditional;
+
     explicit Call(
       const std::optional<Position>& position,
-      const ptr& expression,
-      const std::vector<ptr>& arguments = {},
-      bool conditional = false
+      const ptr& expression_,
+      const std::vector<ptr>& arguments_ = {},
+      bool conditional_ = false
     )
       : Base(position)
-      , m_expression(expression)
-      , m_arguments(arguments)
-      , m_conditional(conditional) {}
+      , expression(expression_)
+      , arguments(arguments_)
+      , conditional(conditional_) {}
 
     inline Kind kind() const override
     {
       return Kind::Call;
     }
 
-    inline const ptr& expression() const
-    {
-      return m_expression;
-    }
-
-    inline const std::vector<ptr>& arguments() const
-    {
-      return m_arguments;
-    }
-
-    inline bool conditional() const
-    {
-      return m_conditional;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const ptr m_expression;
-    const std::vector<ptr> m_arguments;
-    const bool m_conditional;
   };
 
   class Decrement final : public Base
   {
   public:
+    const ptr variable;
+    const bool pre;
+
     explicit Decrement(
       const std::optional<Position>& position,
-      const ptr& variable,
-      bool pre
+      const ptr& variable_,
+      bool pre_
     )
       : Base(position)
-      , m_variable(variable)
-      , m_pre(pre) {}
+      , variable(variable_)
+      , pre(pre_) {}
 
     inline Kind kind() const override
     {
       return Kind::Decrement;
     }
 
-    inline const ptr& variable() const
-    {
-      return m_variable;
-    }
-
-    inline bool pre() const
-    {
-      return m_pre;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const ptr m_variable;
-    const bool m_pre;
   };
 
   class Float final : public Base
   {
   public:
-    explicit Float(const std::optional<Position>& position, double value)
+    const double value;
+
+    explicit Float(const std::optional<Position>& position, double value_)
       : Base(position)
-      , m_value(value) {}
+      , value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::Float;
     }
 
-    inline double value() const
-    {
-      return m_value;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const double m_value;
   };
 
   class Function final : public Base
   {
   public:
+    const std::vector<Parameter> parameters;
+    const type::ptr return_type;
+    const statement::ptr body;
+
     explicit Function(
       const std::optional<Position>& position,
-      const std::vector<Parameter>& parameters,
-      const type::ptr& return_type,
-      const statement::ptr& body
+      const std::vector<Parameter>& parameters_,
+      const type::ptr& return_type_,
+      const statement::ptr& body_
     )
       : Base(position)
-      , m_parameters(parameters)
-      , m_return_type(return_type)
-      , m_body(body) {}
+      , parameters(parameters_)
+      , return_type(return_type_)
+      , body(body_) {}
 
     inline Kind kind() const override
     {
       return Kind::Function;
     }
 
-    inline const std::vector<Parameter>& parameters() const
-    {
-      return m_parameters;
-    }
-
-    inline const type::ptr& return_type() const
-    {
-      return m_return_type;
-    }
-
-    inline const statement::ptr& body() const
-    {
-      return m_body;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const std::vector<Parameter> m_parameters;
-    const type::ptr m_return_type;
-    const statement::ptr m_body;
   };
 
   class Id final : public Base
   {
   public:
+    const std::u32string identifier;
+
     explicit Id(
       const std::optional<Position>& position,
-      const std::u32string& identifier
+      const std::u32string& identifier_
     )
       : Base(position)
-      , m_identifier(identifier) {}
+      , identifier(identifier_) {}
 
     inline Kind kind() const override
     {
       return Kind::Id;
-    }
-
-    inline const std::u32string& identifier() const
-    {
-      return m_identifier;
     }
 
     inline bool IsAssignable() const override
@@ -421,68 +331,48 @@ namespace snek::parser::expression
 
     inline std::u32string ToString() const override
     {
-      return m_identifier;
+      return identifier;
     }
-
-  private:
-    const std::u32string m_identifier;
   };
 
   class Increment final : public Base
   {
   public:
+    const ptr variable;
+    const bool pre;
+
     explicit Increment(
       const std::optional<Position>& position,
-      const ptr& variable,
-      bool pre
+      const ptr& variable_,
+      bool pre_
     )
       : Base(position)
-      , m_variable(variable)
-      , m_pre(pre) {}
+      , variable(variable_)
+      , pre(pre_) {}
 
     inline Kind kind() const override
     {
       return Kind::Increment;
     }
 
-    inline const ptr& variable() const
-    {
-      return m_variable;
-    }
-
-    inline bool pre() const
-    {
-      return m_pre;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const ptr m_variable;
-    const bool m_pre;
   };
 
   class Int final : public Base
   {
   public:
-    explicit Int(const std::optional<Position>& position, std::int64_t value)
+    const std::int64_t value;
+
+    explicit Int(const std::optional<Position>& position, std::int64_t value_)
       : Base(position)
-      , m_value(value) {}
+      , value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::Int;
     }
 
-    inline std::int64_t value() const
-    {
-      return m_value;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const std::int64_t m_value;
   };
 
   class List final : public Base
@@ -490,21 +380,18 @@ namespace snek::parser::expression
   public:
     using container_type = std::vector<element::ptr>;
 
+    const container_type elements;
+
     explicit List(
       const std::optional<Position>& position,
-      const container_type& elements
+      const container_type& elements_
     )
       : Base(position)
-      , m_elements(elements) {}
+      , elements(elements_) {}
 
     inline Kind kind() const override
     {
       return Kind::List;
-    }
-
-    inline const container_type& elements() const
-    {
-      return m_elements;
     }
 
     inline bool IsAssignable() const override
@@ -513,9 +400,6 @@ namespace snek::parser::expression
     }
 
     std::u32string ToString() const override;
-
-  private:
-    const container_type m_elements;
   };
 
   class Null final : public Base
@@ -538,43 +422,27 @@ namespace snek::parser::expression
   class Property final : public Base
   {
   public:
+    const ptr expression;
+    const std::u32string name;
+    const bool conditional;
+
     explicit Property(
       const std::optional<Position>& position,
-      const ptr& expression,
-      const std::u32string& name,
-      bool conditional = false
+      const ptr& expression_,
+      const std::u32string& name_,
+      bool conditional_ = false
     )
       : Base(position)
-      , m_expression(expression)
-      , m_name(name)
-      , m_conditional(conditional) {}
+      , expression(expression_)
+      , name(name_)
+      , conditional(conditional_) {}
 
     inline Kind kind() const override
     {
       return Kind::Property;
     }
 
-    inline const ptr& expression() const
-    {
-      return m_expression;
-    }
-
-    inline const std::u32string& name() const
-    {
-      return m_name;
-    }
-
-    inline bool conditional() const
-    {
-      return m_conditional;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const ptr m_expression;
-    const std::u32string m_name;
-    const bool m_conditional;
   };
 
   class Record final : public Base
@@ -582,168 +450,118 @@ namespace snek::parser::expression
   public:
     using container_type = std::vector<field::ptr>;
 
+    const container_type fields;
+
     explicit Record(
       const std::optional<Position>& position,
-      const container_type& fields
+      const container_type& fields_
     )
       : Base(position)
-      , m_fields(fields) {}
+      , fields(fields_) {}
 
     inline Kind kind() const override
     {
       return Kind::Record;
     }
 
-    inline const container_type& fields() const
-    {
-      return m_fields;
-    }
-
     bool IsAssignable() const override;
 
     std::u32string ToString() const override;
-
-  private:
-    const container_type m_fields;
   };
 
   class Spread final : public Base
   {
   public:
+    const ptr expression;
+
     explicit Spread(
       const std::optional<Position>& position,
-      const ptr& expression
+      const ptr& expression_
     )
       : Base(position)
-      , m_expression(expression) {}
+      , expression(expression_) {}
 
     inline Kind kind() const override
     {
       return Kind::Spread;
     }
 
-    inline const ptr& expression() const
-    {
-      return m_expression;
-    }
-
     inline std::u32string ToString() const override
     {
-      return U"..." + m_expression->ToString();
+      return U"..." + expression->ToString();
     }
-
-  private:
-    const ptr m_expression;
   };
 
   class String final : public Base
   {
   public:
+    const std::u32string value;
+
     explicit String(
       const std::optional<Position>& position,
-      const std::u32string& value
+      const std::u32string& value_
     )
       : Base(position)
-      , m_value(value) {}
+      , value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::String;
     }
 
-    inline const std::u32string& value() const
-    {
-      return m_value;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const std::u32string m_value;
   };
 
   class Ternary final : public Base
   {
   public:
+    const ptr condition;
+    const ptr then_expression;
+    const ptr else_expression;
+
     explicit Ternary(
       const std::optional<Position>& position,
-      const ptr& condition,
-      const ptr& then_expression,
-      const ptr& else_expression
+      const ptr& condition_,
+      const ptr& then_expression_,
+      const ptr& else_expression_
     )
       : Base(position)
-      , m_condition(condition)
-      , m_then_expression(then_expression)
-      , m_else_expression(else_expression) {}
+      , condition(condition_)
+      , then_expression(then_expression_)
+      , else_expression(else_expression_) {}
 
     inline Kind kind() const override
     {
       return Kind::Ternary;
     }
 
-    inline const ptr& condition() const
-    {
-      return m_condition;
-    }
-
-    inline const ptr& then_expression() const
-    {
-      return m_then_expression;
-    }
-
-    inline const ptr& else_expression() const
-    {
-      return m_else_expression;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const ptr m_condition;
-    const ptr m_then_expression;
-    const ptr m_else_expression;
   };
 
   class Subscript final : public Base
   {
   public:
+    const ptr expression;
+    const ptr index;
+    const bool conditional;
+
     explicit Subscript(
       const std::optional<Position>& position,
-      const ptr& expression,
-      const ptr& index,
-      bool conditional
+      const ptr& expression_,
+      const ptr& index_,
+      bool conditional_
     )
       : Base(position)
-      , m_expression(expression)
-      , m_index(index)
-      , m_conditional(conditional) {}
+      , expression(expression_)
+      , index(index_)
+      , conditional(conditional_) {}
 
     inline Kind kind() const override
     {
       return Kind::Subscript;
     }
 
-    inline const ptr& expression() const
-    {
-      return m_expression;
-    }
-
-    inline const ptr& index() const
-    {
-      return m_index;
-    }
-
-    inline bool conditional() const
-    {
-      return m_conditional;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const ptr m_expression;
-    const ptr m_index;
-    const bool m_conditional;
   };
 
   class Unary final : public Base
@@ -759,36 +577,25 @@ namespace snek::parser::expression
 
     static std::u32string GetMethodName(Operator op);
 
+    const Operator op;
+    const ptr operand;
+
     explicit Unary(
       const std::optional<Position>& position,
-      Operator op,
-      const ptr& operand
+      Operator op_,
+      const ptr& operand_
     )
       : Base(position)
-      , m_op(op)
-      , m_operand(operand) {}
+      , op(op_)
+      , operand(operand_) {}
 
     inline Kind kind() const override
     {
       return Kind::Unary;
     }
 
-    inline Operator op() const
-    {
-      return m_op;
-    }
-
-    inline const ptr& operand() const
-    {
-      return m_operand;
-    }
-
     static std::u32string ToString(Operator op);
 
     std::u32string ToString() const override;
-
-  private:
-    const Operator m_op;
-    const ptr m_operand;
   };
 }

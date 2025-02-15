@@ -68,8 +68,8 @@ namespace snek::parser::field
       }
 
       return std::make_shared<Function>(
-        token.position(),
-        *token.text(),
+        token.position,
+        *token.text,
         parameters,
         return_type,
         statement::ParseFunctionBody(lexer)
@@ -79,12 +79,12 @@ namespace snek::parser::field
     // key such as string or number.
     else if (!lexer.PeekReadToken(Token::Kind::Colon))
     {
-      return std::make_shared<Shorthand>(token.position(), *token.text());
+      return std::make_shared<Shorthand>(token.position, *token.text);
     }
 
     return std::make_shared<Named>(
-      token.position(),
-      *token.text(),
+      token.position,
+      *token.text,
       expression::Parse(lexer)
     );
   }
@@ -94,13 +94,13 @@ namespace snek::parser::field
   {
     const auto token = lexer.ReadToken();
 
-    switch (token.kind())
+    switch (token.kind)
     {
       case Token::Kind::LeftBracket:
-        return ParseComputed(token.position(), lexer);
+        return ParseComputed(token.position, lexer);
 
       case Token::Kind::Spread:
-        return ParseSpread(token.position(), lexer);
+        return ParseSpread(token.position, lexer);
 
       case Token::Kind::Id:
       case Token::Kind::String:
@@ -121,27 +121,28 @@ namespace snek::parser::field
   std::u32string
   Computed::ToString() const
   {
-    return U'[' + m_key->ToString() + U"]: " + m_value->ToString();
+    return U'[' + key->ToString() + U"]: " + value->ToString();
   }
 
   std::u32string
   Function::ToString() const
   {
-    std::u32string result(m_name);
+    std::u32string result(name);
+    const auto size = parameters.size();
 
     result.append(1, U'(');
-    for (std::size_t i = 0; i < m_parameters.size(); ++i)
+    for (std::size_t i = 0; i < size; ++i)
     {
       if (i > 0)
       {
         result.append(U", ");
       }
-      result.append(m_parameters[i].ToString());
+      result.append(parameters[i].ToString());
     }
     result.append(1, U')');
-    if (m_return_type)
+    if (return_type)
     {
-      result.append(U" -> ").append(m_return_type->ToString());
+      result.append(U" -> ").append(return_type->ToString());
     }
 
     return result;
@@ -150,23 +151,23 @@ namespace snek::parser::field
   std::u32string
   Named::ToString() const
   {
-    if (utils::IsId(m_name))
+    if (utils::IsId(name))
     {
-      return m_name + U": " + m_value->ToString();
+      return name + U": " + value->ToString();
     }
 
-    return utils::ToJsonString(m_name) + U": " + m_value->ToString();
+    return utils::ToJsonString(name) + U": " + value->ToString();
   }
 
   std::u32string
   Shorthand::ToString() const
   {
-    return utils::IsId(m_name) ? m_name : utils::ToJsonString(m_name);
+    return utils::IsId(name) ? name : utils::ToJsonString(name);
   }
 
   std::u32string
   Spread::ToString() const
   {
-    return U"..." + m_expression->ToString();
+    return U"..." + expression->ToString();
   }
 }

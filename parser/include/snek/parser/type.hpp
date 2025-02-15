@@ -63,90 +63,70 @@ namespace snek::parser::type
   public:
     using value_type = bool;
 
-    explicit Boolean(const std::optional<Position>& position, value_type value)
+    const value_type value;
+
+    explicit Boolean(
+      const std::optional<Position>& position,
+      value_type value_
+    )
       : Base(position)
-      , m_value(value) {}
+      , value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::Boolean;
     }
 
-    inline value_type value() const
-    {
-      return m_value;
-    }
-
     inline std::u32string ToString() const override
     {
-      return m_value ? U"true" : U"false";
+      return value ? U"true" : U"false";
     }
-
-  private:
-    const value_type m_value;
   };
 
   class Function final : public Base
   {
   public:
+    const std::vector<Parameter> parameters;
+    const ptr return_type;
+
     explicit Function(
       const std::optional<Position>& position,
-      const std::vector<Parameter>& parameters,
-      const ptr& return_type
+      const std::vector<Parameter>& parameters_,
+      const ptr& return_type_
     )
       : Base(position)
-      , m_parameters(parameters)
-      , m_return_type(return_type) {}
+      , parameters(parameters_)
+      , return_type(return_type_) {}
 
     inline Kind kind() const override
     {
       return Kind::Function;
     }
 
-    inline const std::vector<Parameter>& parameters() const
-    {
-      return m_parameters;
-    }
-
-    inline const ptr& return_type() const
-    {
-      return m_return_type;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const std::vector<Parameter> m_parameters;
-    const ptr m_return_type;
   };
 
   class List final : public Base
   {
   public:
+    const ptr element_type;
+
     explicit List(
       const std::optional<Position>& position,
-      const ptr& element_type
+      const ptr& element_type_
     )
       : Base(position)
-      , m_element_type(element_type) {}
+      , element_type(element_type_) {}
 
     inline Kind kind() const override
     {
       return Kind::List;
     }
 
-    inline const ptr& element_type() const
-    {
-      return m_element_type;
-    }
-
     inline std::u32string ToString() const override
     {
-      return m_element_type->ToString() + U"[]";
+      return element_type->ToString() + U"[]";
     }
-
-  private:
-    const ptr m_element_type;
   };
 
   class Multiple final : public Base
@@ -162,64 +142,47 @@ namespace snek::parser::type
       Union,
     };
 
+    const MultipleKind multiple_kind;
+    const container_type types;
+
     explicit Multiple(
       const std::optional<Position>& position,
-      MultipleKind multiple_kind,
-      const container_type& types
+      MultipleKind multiple_kind_,
+      const container_type& types_
     )
       : Base(position)
-      , m_multiple_kind(multiple_kind)
-      , m_types(types) {}
+      , multiple_kind(multiple_kind_)
+      , types(types_) {}
 
     inline Kind kind() const override
     {
       return Kind::Multiple;
     }
 
-    inline MultipleKind multiple_kind() const
-    {
-      return m_multiple_kind;
-    }
-
-    inline const container_type& types() const
-    {
-      return m_types;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const MultipleKind m_multiple_kind;
-    const container_type m_types;
   };
 
   class Named final : public Base
   {
   public:
+    const std::u32string name;
+
     explicit Named(
       const std::optional<Position>& position,
-      const std::u32string& name
+      const std::u32string& name_
     )
       : Base(position)
-      , m_name(name) {}
+      , name(name_) {}
 
     inline Kind kind() const override
     {
       return Kind::Named;
     }
 
-    inline const std::u32string& name() const
-    {
-      return m_name;
-    }
-
     inline std::u32string ToString() const override
     {
-      return m_name;
+      return name;
     }
-
-  private:
-    const std::u32string m_name;
   };
 
   class Null final : public Base
@@ -246,27 +209,21 @@ namespace snek::parser::type
     using mapped_type = ptr;
     using container_type = std::unordered_map<key_type, mapped_type>;
 
+    const container_type fields;
+
     explicit Record(
       const std::optional<Position>& position,
-      const container_type& fields
+      const container_type& fields_
     )
       : Base(position)
-      , m_fields(fields) {}
+      , fields(fields_) {}
 
     inline Kind kind() const override
     {
       return Kind::Record;
     }
 
-    inline const container_type& fields() const
-    {
-      return m_fields;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const container_type m_fields;
   };
 
   class String final : public Base
@@ -275,26 +232,20 @@ namespace snek::parser::type
     using value_type = std::u32string;
     using const_reference = const value_type&;
 
+    const value_type value;
+
     explicit String(
       const std::optional<Position>& position,
-      const_reference value
+      const_reference value_
     )
       : Base(position)
-      , m_value(value) {}
+      , value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::String;
     }
 
-    inline const_reference value() const
-    {
-      return m_value;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const value_type m_value;
   };
 }

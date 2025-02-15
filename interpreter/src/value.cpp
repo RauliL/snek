@@ -190,7 +190,7 @@ namespace snek::interpreter::value
     }
     else if (value->kind() == Kind::Boolean)
     {
-      return As<Boolean>(value)->value();
+      return As<Boolean>(value)->value;
     }
 
     return true;

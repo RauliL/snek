@@ -35,7 +35,7 @@ namespace snek::parser::element
     const auto token = lexer.ReadToken();
     Kind kind = Kind::Value;
 
-    if (token.kind() == Token::Kind::Spread)
+    if (token.kind == Token::Kind::Spread)
     {
       kind = Kind::Spread;
     } else {
@@ -43,7 +43,7 @@ namespace snek::parser::element
     }
 
     return std::make_shared<Base>(
-      token.position(),
+      token.position,
       kind,
       expression::Parse(lexer)
     );
@@ -52,8 +52,8 @@ namespace snek::parser::element
   std::u32string
   Base::ToString() const
   {
-    return m_kind == Kind::Spread
-      ? U"..." + m_expression->ToString()
-      : m_expression->ToString();
+    return kind == Kind::Spread
+      ? U"..." + expression->ToString()
+      : expression->ToString();
   }
 }

@@ -44,9 +44,9 @@ PrintNode(const std::shared_ptr<Node>& node)
   {
     return;
   }
-  if (const auto position = node->position())
+  if (node->position)
   {
-    std::cout << encode(position->ToString()) << ": ";
+    std::cout << encode(node->position->ToString()) << ": ";
   }
   std::cout << encode(node->ToString()) << std::endl;
 }

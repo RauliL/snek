@@ -49,8 +49,6 @@ namespace snek::parser
   class Parameter final : public Node
   {
   public:
-    DEFAULT_COPY_AND_ASSIGN(Parameter);
-
     static Parameter Parse(Lexer& lexer);
 
     static std::vector<Parameter> ParseList(
@@ -58,45 +56,24 @@ namespace snek::parser
       bool read_opening_parenthesis = true
     );
 
+    const std::u32string name;
+    const type::ptr type;
+    const expression::ptr default_value;
+    const bool rest;
+
     Parameter(
       const std::optional<Position>& position = std::nullopt,
-      const std::u32string& name = U"arg",
-      const type::ptr& type = nullptr,
-      const expression::ptr& default_value = nullptr,
-      bool rest = false
+      const std::u32string& name_ = U"arg",
+      const type::ptr& type_ = nullptr,
+      const expression::ptr& default_value_ = nullptr,
+      bool rest_ = false
     )
       : Node(position)
-      , m_name(name)
-      , m_type(type)
-      , m_default_value(default_value)
-      , m_rest(rest) {}
-
-    inline const std::u32string& name() const
-    {
-      return m_name;
-    }
-
-    inline const type::ptr& type() const
-    {
-      return m_type;
-    }
-
-    inline const expression::ptr& default_value() const
-    {
-      return m_default_value;
-    }
-
-    inline bool rest() const
-    {
-      return m_rest;
-    }
+      , name(name_)
+      , type(type_)
+      , default_value(default_value_)
+      , rest(rest_) {}
 
     std::u32string ToString() const override;
-
-  private:
-    std::u32string m_name;
-    type::ptr m_type;
-    expression::ptr m_default_value;
-    bool m_rest;
   };
 }

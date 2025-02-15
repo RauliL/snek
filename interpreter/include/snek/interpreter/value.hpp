@@ -214,33 +214,27 @@ namespace snek::interpreter::value
   public:
     using value_type = bool;
 
-    explicit Boolean(bool value)
-      : m_value(value) {}
+    const value_type value;
+
+    explicit Boolean(bool value_)
+      : value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::Boolean;
     }
 
-    inline value_type value() const
-    {
-      return m_value;
-    }
-
     bool Equals(const Base& that) const override;
 
     inline std::u32string ToString() const override
     {
-      return m_value ? U"true" : U"false";
+      return value ? U"true" : U"false";
     }
 
     inline std::u32string ToSource() const override
     {
       return ToString();
     }
-
-  private:
-    const value_type m_value;
   };
 
   class Float final : public Number
@@ -248,32 +242,26 @@ namespace snek::interpreter::value
   public:
     using value_type = float_type;
 
-    explicit Float(value_type value)
-      : m_value(value) {}
+    const value_type value;
+
+    explicit Float(value_type value_)
+      : value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::Float;
     }
 
-    inline value_type value() const
-    {
-      return m_value;
-    }
-
     int_type ToInt() const override;
 
     inline float_type ToFloat() const override
     {
-      return m_value;
+      return value;
     }
 
     bool Equals(const Base& that) const override;
 
     std::u32string ToString() const override;
-
-  private:
-    const value_type m_value;
   };
 
   class Function : public Base
@@ -347,35 +335,29 @@ namespace snek::interpreter::value
   public:
     using value_type = int_type;
 
-    explicit Int(value_type value)
-      : m_value(value) {}
+    const value_type value;
+
+    explicit Int(value_type value_)
+      : value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::Int;
     }
 
-    inline value_type value() const
-    {
-      return m_value;
-    }
-
     inline int_type ToInt() const override
     {
-      return m_value;
+      return value;
     }
 
     inline float_type ToFloat() const override
     {
-      return static_cast<float_type>(m_value);
+      return static_cast<float_type>(value);
     }
 
     bool Equals(const Base& that) const override;
 
     std::u32string ToString() const override;
-
-  private:
-    const std::int64_t m_value;
   };
 
   class List : public Base

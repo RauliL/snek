@@ -45,8 +45,8 @@ namespace snek::interpreter
   )
   {
     return std::make_shared<type::Function>(
-      ResolveParameterList(runtime, scope, type->parameters()),
-      ResolveType(runtime, scope, type->return_type())
+      ResolveParameterList(runtime, scope, type->parameters),
+      ResolveType(runtime, scope, type->return_type)
     );
   }
 
@@ -57,16 +57,15 @@ namespace snek::interpreter
     const Multiple* type
   )
   {
-    const auto& types = type->types();
     type::Multiple::container_type resolved_types;
 
-    resolved_types.reserve(types.size());
-    for (const auto& subtype : type->types())
+    resolved_types.reserve(type->types.size());
+    for (const auto& subtype : type->types)
     {
       resolved_types.push_back(ResolveType(runtime, scope, subtype));
     }
 
-    switch (type->multiple_kind())
+    switch (type->multiple_kind)
     {
       case Multiple::MultipleKind::Intersection:
         return std::make_shared<type::Intersection>(resolved_types);
@@ -88,9 +87,7 @@ namespace snek::interpreter
     const Named* type
   )
   {
-    const auto& name = type->name();
-
-    if (!name.compare(U"any"))
+    if (!type->name.compare(U"any"))
     {
       return runtime.any_type();
     }
@@ -98,13 +95,13 @@ namespace snek::interpreter
     {
       type::ptr slot;
 
-      if (scope->FindType(name, slot))
+      if (scope->FindType(type->name, slot))
       {
         return slot;
       }
     }
 
-    throw runtime.MakeError(U"Unknown type: `" + name + U"'.");
+    throw runtime.MakeError(U"Unknown type: `" + type->name + U"'.");
   }
 
   static type::ptr
@@ -116,7 +113,7 @@ namespace snek::interpreter
   {
     type::Record::container_type fields;
 
-    for (const auto& field : type->fields())
+    for (const auto& field : type->fields)
     {
       fields[field.first] = ResolveType(runtime, scope, field.second);
     }
@@ -139,7 +136,7 @@ namespace snek::interpreter
     switch (type->kind())
     {
       case Kind::Boolean:
-        return std::make_shared<type::Boolean>(As<Boolean>(type)->value());
+        return std::make_shared<type::Boolean>(As<Boolean>(type)->value);
 
       case Kind::Function:
         return ResolveFunction(runtime, scope, As<Function>(type));
@@ -149,7 +146,7 @@ namespace snek::interpreter
           ResolveType(
             runtime,
             scope,
-            As<List>(type)->element_type()
+            As<List>(type)->element_type
           )
         );
 
@@ -166,7 +163,7 @@ namespace snek::interpreter
         return ResolveRecord(runtime, scope, As<Record>(type));
 
       case Kind::String:
-        return std::make_shared<type::String>(As<String>(type)->value());
+        return std::make_shared<type::String>(As<String>(type)->value);
     }
 
     return nullptr;

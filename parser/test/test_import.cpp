@@ -35,7 +35,7 @@ TEST_CASE("Parse ordinary import specifier")
   const auto result = import::ParseSpecifier(lexer);
 
   REQUIRE(result->kind() == import::Kind::Named);
-  REQUIRE(!result->alias());
+  REQUIRE(!result->alias);
 }
 
 TEST_CASE("Parse ordinary import specifier with alias")
@@ -44,7 +44,7 @@ TEST_CASE("Parse ordinary import specifier with alias")
   const auto result = import::ParseSpecifier(lexer);
 
   REQUIRE(result->kind() == import::Kind::Named);
-  REQUIRE(!result->alias()->compare(U"bar"));
+  REQUIRE(!result->alias->compare(U"bar"));
 }
 
 TEST_CASE("Parse star import specifier")
@@ -53,7 +53,7 @@ TEST_CASE("Parse star import specifier")
   const auto result = import::ParseSpecifier(lexer);
 
   REQUIRE(result->kind() == import::Kind::Star);
-  REQUIRE(!result->alias());
+  REQUIRE(!result->alias);
 }
 
 TEST_CASE("Parse star import specifier with alias")
@@ -62,5 +62,5 @@ TEST_CASE("Parse star import specifier with alias")
   const auto result = import::ParseSpecifier(lexer);
 
   REQUIRE(result->kind() == import::Kind::Star);
-  REQUIRE(!result->alias()->compare(U"foo"));
+  REQUIRE(!result->alias->compare(U"foo"));
 }

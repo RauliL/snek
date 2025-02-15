@@ -47,7 +47,7 @@ namespace snek::parser::statement
     expression::ptr value;
 
     if (
-      token.kind() == Token::Kind::KeywordReturn &&
+      token.kind == Token::Kind::KeywordReturn &&
       !lexer.PeekToken(Token::Kind::Eof) &&
       !lexer.PeekToken(Token::Kind::NewLine) &&
       !lexer.PeekToken(Token::Kind::Semicolon)
@@ -57,8 +57,8 @@ namespace snek::parser::statement
     }
 
     return std::make_shared<Jump>(
-      token.position(),
-      static_cast<JumpKind>(token.kind()),
+      token.position,
+      static_cast<JumpKind>(token.kind),
       value
     );
   }
@@ -73,7 +73,7 @@ namespace snek::parser::statement
     if (!variable->IsAssignable())
     {
       throw SyntaxError{
-        variable->position(),
+        variable->position,
         U"Cannot assign to " +
         variable->ToString() +
         U"."
@@ -85,9 +85,9 @@ namespace snek::parser::statement
     }
 
     return std::make_shared<DeclareVar>(
-      token.position(),
+      token.position,
       exported,
-      token.kind() == Token::Kind::KeywordConst,
+      token.kind == Token::Kind::KeywordConst,
       variable,
       value
     );
@@ -96,7 +96,7 @@ namespace snek::parser::statement
   static ptr
   ParseDeclareType(Lexer& lexer, bool exported = false)
   {
-    const auto position = lexer.ReadToken().position();
+    const auto position = lexer.ReadToken().position;
     const auto name = lexer.ReadId();
 
     lexer.ReadToken(Token::Kind::Assign);
@@ -112,7 +112,7 @@ namespace snek::parser::statement
   static ptr
   ParseImport(Lexer& lexer)
   {
-    const auto position = lexer.ReadToken().position();
+    const auto position = lexer.ReadToken().position;
     Import::container_type specifiers;
     std::u32string path;
 
@@ -151,7 +151,7 @@ namespace snek::parser::statement
       statement = ParseDeclareType(lexer, true);
     } else {
       throw SyntaxError{
-        token.position(),
+        token.position,
         U"Unexpected " + lexer.PeekToken().ToString() + U" after `export'."
       };
     }
@@ -166,11 +166,11 @@ namespace snek::parser::statement
     const auto token = lexer.PeekToken();
     ptr statement;
 
-    switch (token.kind())
+    switch (token.kind)
     {
       case Token::Kind::Eof:
         throw SyntaxError{
-          token.position(),
+          token.position,
           U"Unexpected end of input; Missing statement."
         };
 
@@ -205,7 +205,7 @@ namespace snek::parser::statement
     )
     {
       return std::make_shared<Block>(
-        statement->position(),
+        statement->position,
         Block::container_type{
           statement,
           ParseSimpleStatement(lexer, is_top_level)
@@ -250,7 +250,7 @@ namespace snek::parser::statement
       const auto value = expression::Parse(lexer);
 
       return std::make_shared<Jump>(
-        value->position(),
+        value->position,
         JumpKind::Return,
         value
       );
@@ -263,7 +263,7 @@ namespace snek::parser::statement
   static ptr
   ParseIf(Lexer& lexer)
   {
-    const auto position = lexer.ReadToken().position();
+    const auto position = lexer.ReadToken().position;
     const auto condition = expression::Parse(lexer);
     ptr then_statement;
     ptr else_statement;
@@ -292,7 +292,7 @@ namespace snek::parser::statement
   static ptr
   ParseWhile(Lexer& lexer)
   {
-    const auto position = lexer.ReadToken().position();
+    const auto position = lexer.ReadToken().position;
     const auto condition = expression::Parse(lexer);
 
     lexer.ReadToken(Token::Kind::Colon);
@@ -305,7 +305,7 @@ namespace snek::parser::statement
   {
     const auto token = lexer.PeekToken();
 
-    switch (token.kind())
+    switch (token.kind)
     {
       case Token::Kind::KeywordIf:
         return ParseIf(lexer);
@@ -317,7 +317,7 @@ namespace snek::parser::statement
         if (!is_top_level)
         {
           throw SyntaxError{
-            token.position(),
+            token.position,
             U"Imports are only allowed at top level."
           };
         }
@@ -328,7 +328,7 @@ namespace snek::parser::statement
         if (!is_top_level)
         {
           throw SyntaxError{
-            token.position(),
+            token.position,
             U"Exports are only allowed at top level."
           };
         }
@@ -345,15 +345,15 @@ namespace snek::parser::statement
   {
     std::u32string result;
 
-    if (m_exported)
+    if (is_export)
     {
       result.append(U"export ");
     }
     return result
       .append(U"type ")
-      .append(m_name)
+      .append(name)
       .append(U" = ")
-      .append(m_type->ToString());
+      .append(type->ToString());
   }
 
   std::u32string
@@ -361,16 +361,16 @@ namespace snek::parser::statement
   {
     std::u32string result;
 
-    if (m_exported)
+    if (is_export)
     {
       result.append(U"export ");
     }
-    result.append(
-      m_read_only ? U"const " : U"let "
-    ).append(m_variable->ToString());
-    if (m_value)
+    result
+      .append(is_read_only ? U"const " : U"let ")
+      .append(variable->ToString());
+    if (value)
     {
-      result.append(U" = ").append(m_value->ToString());
+      result.append(U" = ").append(value->ToString());
     }
 
     return result;
@@ -381,12 +381,11 @@ namespace snek::parser::statement
   {
     std::u32string result(U"if ");
 
-    result.append(m_condition->ToString()).append(U": ");
-    result.append(m_then_statement->ToString());
-    if (m_else_statement)
+    result.append(condition->ToString()).append(U": ");
+    result.append(then_statement->ToString());
+    if (else_statement)
     {
-      result.append(U" else: ");
-      result.append(m_else_statement->ToString());
+      result.append(U" else: ").append(else_statement->ToString());
     }
 
     return result;
@@ -396,7 +395,7 @@ namespace snek::parser::statement
   Import::ToString() const
   {
     std::u32string result(U"import ");
-    const auto size = m_specifiers.size();
+    const auto size = specifiers.size();
 
     for (std::size_t i = 0; i < size; ++i)
     {
@@ -404,10 +403,10 @@ namespace snek::parser::statement
       {
         result.append(U", ");
       }
-      result.append(m_specifiers[i]->ToString());
+      result.append(specifiers[i]->ToString());
     }
 
-    return result.append(U" from ").append(utils::ToJsonString(m_path));
+    return result.append(U" from ").append(utils::ToJsonString(path));
   }
 
   std::u32string
@@ -423,11 +422,11 @@ namespace snek::parser::statement
   std::u32string
   Jump::ToString() const
   {
-    std::u32string result(ToString(m_jump_kind));
+    std::u32string result(ToString(jump_kind));
 
-    if (m_value)
+    if (value)
     {
-      result.append(1, U' ').append(m_value->ToString());
+      result.append(1, U' ').append(value->ToString());
     }
 
     return result;
@@ -439,9 +438,9 @@ namespace snek::parser::statement
     std::u32string result(U"while ");
 
     result
-      .append(m_condition->ToString())
+      .append(condition->ToString())
       .append(U": ")
-      .append(m_body->ToString());
+      .append(body->ToString());
 
     return result;
   }

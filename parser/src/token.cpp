@@ -273,11 +273,11 @@ namespace snek::parser
   std::u32string
   Token::ToString() const
   {
-    if (m_text && m_kind != Kind::String)
+    if (text && kind != Kind::String)
     {
-      return std::u32string(1, U'`').append(*m_text).append(1, U'\'');
+      return std::u32string(1, U'`').append(*text).append(1, U'\'');
     }
 
-    return ToString(m_kind);
+    return ToString(kind);
   }
 }

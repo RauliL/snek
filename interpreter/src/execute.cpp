@@ -49,9 +49,11 @@ namespace snek::interpreter
     const Block* statement
   )
   {
-    for (const auto& child : statement->statements())
+    const auto size = statement->statements.size();
+
+    for (std::size_t i = 0; i < size; ++i)
     {
-      ExecuteStatement(runtime, scope, child);
+      ExecuteStatement(runtime, scope, statement->statements[i]);
     }
 
     return nullptr;
@@ -65,9 +67,9 @@ namespace snek::interpreter
   )
   {
     scope->DeclareType(
-      statement->name(),
-      ResolveType(runtime, scope, statement->type()),
-      statement->exported()
+      statement->name,
+      ResolveType(runtime, scope, statement->type),
+      statement->is_export
     );
 
     return nullptr;
@@ -80,15 +82,15 @@ namespace snek::interpreter
     const parser::statement::DeclareVar* statement
   )
   {
-    const auto value = EvaluateExpression(runtime, scope, statement->value());
+    const auto value = EvaluateExpression(runtime, scope, statement->value);
 
     DeclareVar(
       runtime,
       scope,
-      statement->variable(),
+      statement->variable,
       value,
-      statement->read_only(),
-      statement->exported()
+      statement->is_read_only,
+      statement->is_export
     );
 
     return value;
@@ -102,16 +104,16 @@ namespace snek::interpreter
   )
   {
     const auto condition = value::ToBoolean(
-      EvaluateExpression(runtime, scope, statement->condition())
+      EvaluateExpression(runtime, scope, statement->condition)
     );
 
     if (condition)
     {
-      return ExecuteStatement(runtime, scope, statement->then_statement());
+      return ExecuteStatement(runtime, scope, statement->then_statement);
     }
-    else if (const auto else_statement = statement->else_statement())
+    else if (statement->else_statement)
     {
-      return ExecuteStatement(runtime, scope, else_statement);
+      return ExecuteStatement(runtime, scope, statement->else_statement);
     }
 
     return nullptr;
@@ -125,14 +127,12 @@ namespace snek::interpreter
     const parser::import::Named* specifier
   )
   {
-    const auto& name = specifier->name();
-    const auto& alias = specifier->alias();
     value::ptr value_slot;
 
-    if (module->FindVariable(name, value_slot, true))
+    if (module->FindVariable(specifier->name, value_slot, true))
     {
       scope->DeclareVariable(
-        alias ? *alias : name,
+        specifier->alias ? *specifier->alias : specifier->name,
         value_slot,
         true,
         false
@@ -141,14 +141,22 @@ namespace snek::interpreter
     } else {
       type::ptr type_slot;
 
-      if (module->FindType(name, type_slot, true))
+      if (module->FindType(specifier->name, type_slot, true))
       {
-        scope->DeclareType(alias ? *alias : name, type_slot, false);
+        scope->DeclareType(
+          specifier->alias ? *specifier->alias : specifier->name,
+          type_slot,
+          false
+        );
         return;
       }
     }
 
-    throw runtime.MakeError(U"Module does not export `" + name + U"'.");
+    throw runtime.MakeError(
+      U"Module does not export `" +
+      specifier->name +
+      U"'."
+    );
   }
 
   static void
@@ -158,10 +166,9 @@ namespace snek::interpreter
     const parser::import::Star* specifier
   )
   {
-    const auto& alias = specifier->alias();
     const auto exported_variables = module->GetExportedVariables();
 
-    if (alias)
+    if (specifier->alias)
     {
       std::unordered_map<std::u32string, value::ptr> fields;
 
@@ -170,7 +177,12 @@ namespace snek::interpreter
       {
         fields[variable.first] = variable.second;
       }
-      scope->DeclareVariable(*alias, value::Record::Make(fields), true, false);
+      scope->DeclareVariable(
+        *specifier->alias,
+        value::Record::Make(fields),
+        true,
+        false
+      );
     } else {
       for (const auto& variable : exported_variables)
       {
@@ -195,9 +207,9 @@ namespace snek::interpreter
     const Import* statement
   )
   {
-    const auto module = runtime.ImportModule(statement->path());
+    const auto module = runtime.ImportModule(statement->path);
 
-    for (const auto& specifier : statement->specifiers())
+    for (const auto& specifier : statement->specifiers)
     {
       if (!specifier)
       {
@@ -241,14 +253,14 @@ namespace snek::interpreter
       try
       {
         const auto condition = value::ToBoolean(
-          EvaluateExpression(runtime, scope, statement->condition())
+          EvaluateExpression(runtime, scope, statement->condition)
         );
 
         if (!condition)
         {
           break;
         }
-        value = ExecuteStatement(runtime, scope, statement->body());
+        value = ExecuteStatement(runtime, scope, statement->body);
       }
       catch (const Jump& jump)
       {
@@ -273,20 +285,19 @@ namespace snek::interpreter
     const parser::statement::Jump* statement
   )
   {
-    const auto kind = statement->jump_kind();
     value::ptr value;
 
-    if (const auto value_expression = statement->value())
+    if (statement->value)
     {
       value = EvaluateExpression(
         runtime,
         scope,
-        value_expression,
-        kind == JumpKind::Return
+        statement->value,
+        statement->jump_kind == JumpKind::Return
       );
     }
 
-    throw Jump(statement->position(), kind, value);
+    throw Jump(statement->position, statement->jump_kind, value);
   }
 
   value::ptr
@@ -320,7 +331,7 @@ namespace snek::interpreter
         return EvaluateExpression(
           runtime,
           scope,
-          As<Expression>(statement)->expression()
+          As<Expression>(statement)->expression
         );
 
       case Kind::If:

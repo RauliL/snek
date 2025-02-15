@@ -128,31 +128,20 @@ namespace snek::parser
       KeywordWhile,
     };
 
+    Kind kind;
+    std::optional<std::u32string> text;
+
     Token(
       const std::optional<Position>& position = std::nullopt,
-      Kind kind = Kind::Eof,
-      const std::optional<std::u32string>& text = std::nullopt
+      Kind kind_ = Kind::Eof,
+      const std::optional<std::u32string>& text_ = std::nullopt
     )
       : Node(position)
-      , m_kind(kind)
-      , m_text(text) {}
-
-    inline Kind kind() const
-    {
-      return m_kind;
-    }
-
-    inline const std::optional<std::u32string>& text() const
-    {
-      return m_text;
-    }
+      , kind(kind_)
+      , text(text_) {}
 
     static std::u32string ToString(Kind kind);
 
     std::u32string ToString() const override;
-
-  private:
-    Kind m_kind;
-    std::optional<std::u32string> m_text;
   };
 }
