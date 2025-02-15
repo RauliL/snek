@@ -34,10 +34,10 @@ namespace snek::interpreter::value
     switch (that.kind())
     {
       case Kind::Int:
-        return m_value == static_cast<const Int*>(&that)->m_value;
+        return value == static_cast<const Int*>(&that)->value;
 
       case Kind::Float:
-        return m_value == static_cast<const Float*>(&that)->value();
+        return value == static_cast<const Float*>(&that)->value;
 
       default:
         return false;
@@ -47,6 +47,6 @@ namespace snek::interpreter::value
   std::u32string
   Int::ToString() const
   {
-    return parser::utils::IntToString(m_value);
+    return parser::utils::IntToString(value);
   }
 }

@@ -34,17 +34,11 @@ namespace snek::parser
   class Node
   {
   public:
-    Node(const std::optional<Position>& position)
-      : m_position(position) {}
+    std::optional<Position> position;
 
-    inline const std::optional<Position>& position() const
-    {
-      return m_position;
-    }
+    Node(const std::optional<Position>& position_)
+      : position(position_) {}
 
     virtual std::u32string ToString() const = 0;
-
-  private:
-    std::optional<Position> m_position;
   };
 }

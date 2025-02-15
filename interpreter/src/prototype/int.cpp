@@ -38,7 +38,7 @@ namespace snek::interpreter::prototype
   static inline std::int64_t
   AsInt(const value::ptr& value)
   {
-    return static_cast<const value::Int*>(value.get())->value();
+    return static_cast<const value::Int*>(value.get())->value;
   }
 
   /**
@@ -122,5 +122,3 @@ namespace snek::interpreter::prototype
     );
   }
 }
-
-

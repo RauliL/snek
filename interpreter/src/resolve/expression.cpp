@@ -52,9 +52,9 @@ namespace snek::interpreter
     const Assign* expression
   )
   {
-    return expression->op()
+    return expression->op
       ? nullptr
-      : ResolveExpression(runtime, scope, expression->value());
+      : ResolveExpression(runtime, scope, expression->value);
   }
 
   static type::ptr
@@ -64,15 +64,15 @@ namespace snek::interpreter
     const Binary* expression
   )
   {
-    switch (expression->op())
+    switch (expression->op)
     {
       case Binary::Operator::LogicalAnd:
       case Binary::Operator::LogicalOr:
         return type::Reify(
           runtime,
           {
-            ResolveExpression(runtime, scope, expression->left()),
-            ResolveExpression(runtime, scope, expression->right()),
+            ResolveExpression(runtime, scope, expression->left),
+            ResolveExpression(runtime, scope, expression->right),
             runtime.boolean_type(),
             runtime.void_type()
           }
@@ -93,7 +93,7 @@ namespace snek::interpreter
     const auto type = ResolveExpression(
       runtime,
       scope,
-      expression->expression()
+      expression->expression
     );
 
     if (type && type->kind() == type::Kind::Function)
@@ -102,7 +102,7 @@ namespace snek::interpreter
 
       if (const auto return_type = function->return_type())
       {
-        if (expression->conditional())
+        if (expression->conditional)
         {
           return std::make_shared<type::Union>(
             std::vector<type::ptr>{
@@ -130,15 +130,15 @@ namespace snek::interpreter
   {
     type::ptr return_type;
 
-    if (const auto unresolved_return_type = expression->return_type())
+    if (expression->return_type)
     {
-      return_type = ResolveType(runtime, scope, unresolved_return_type);
+      return_type = ResolveType(runtime, scope, expression->return_type);
     } else {
-      return_type = ResolveStatement(runtime, scope, expression->body());
+      return_type = ResolveStatement(runtime, scope, expression->body);
     }
 
     return std::make_shared<type::Function>(
-      ResolveParameterList(runtime, scope, expression->parameters()),
+      ResolveParameterList(runtime, scope, expression->parameters),
       return_type
     );
   }
@@ -151,13 +151,13 @@ namespace snek::interpreter
     std::vector<type::ptr>& resolved_elements
   )
   {
-    const auto type = ResolveExpression(runtime, scope, element->expression());
+    const auto type = ResolveExpression(runtime, scope, element->expression);
 
     if (!type)
     {
       return false;
     }
-    else if (element->kind() == parser::element::Kind::Spread)
+    else if (element->kind == parser::element::Kind::Spread)
     {
       if (type->kind() == type::Kind::Tuple)
       {
@@ -188,7 +188,7 @@ namespace snek::interpreter
   {
     std::vector<type::ptr> resolved_elements;
 
-    for (const auto& element : expression->elements())
+    for (const auto& element : expression->elements)
     {
       if (!ResolveElement(runtime, scope, element, resolved_elements))
       {
@@ -209,17 +209,17 @@ namespace snek::interpreter
     const auto type = ResolveExpression(
       runtime,
       scope,
-      expression->expression()
+      expression->expression
     );
 
     if (type && type->kind() == type::Kind::Record)
     {
       const auto& fields = As<type::Record>(type)->fields();
-      const auto it = fields.find(expression->name());
+      const auto it = fields.find(expression->name);
 
       if (it != std::end(fields))
       {
-        return expression->conditional()
+        return expression->conditional
           ? std::make_shared<type::Union>(std::vector<type::ptr>{
             it->second,
             runtime.void_type()
@@ -240,7 +240,7 @@ namespace snek::interpreter
   {
     type::Record::container_type resolved_fields;
 
-    for (const auto& field : expression->fields())
+    for (const auto& field : expression->fields)
     {
       if (!ResolveField(runtime, scope, field, resolved_fields))
       {
@@ -258,11 +258,12 @@ namespace snek::interpreter
     const Ternary* expression
   )
   {
+    // TODO: Check if condition is constant.
     return type::Reify(
       runtime,
       {
-        ResolveExpression(runtime, scope, expression->then_expression()),
-        ResolveExpression(runtime, scope, expression->else_expression()),
+        ResolveExpression(runtime, scope, expression->then_expression),
+        ResolveExpression(runtime, scope, expression->else_expression),
       }
     );
   }
@@ -274,7 +275,7 @@ namespace snek::interpreter
     const Unary* expression
   )
   {
-    return expression->op() == Unary::Operator::Not
+    return expression->op == Unary::Operator::Not
       ? runtime.boolean_type()
       : nullptr;
   }
@@ -341,7 +342,7 @@ namespace snek::interpreter
         return nullptr;
 
       case Kind::String:
-        return std::make_shared<type::String>(As<String>(expression)->value());
+        return std::make_shared<type::String>(As<String>(expression)->value);
 
       // TODO: Add special case for lists and records where an element/field
       // lookup is done.

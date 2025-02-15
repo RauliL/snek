@@ -48,9 +48,11 @@ namespace snek::interpreter
     std::vector<parser::expression::ptr>& values
   )
   {
-    for (const auto& child : statement->statements())
+    const auto size = statement->statements.size();
+
+    for (std::size_t i = 0; i < size; ++i)
     {
-      FindReturnValues(child, values);
+      FindReturnValues(statement->statements[i], values);
     }
   }
 
@@ -60,8 +62,8 @@ namespace snek::interpreter
     std::vector<parser::expression::ptr>& values
   )
   {
-    FindReturnValues(statement->then_statement(), values);
-    FindReturnValues(statement->else_statement(), values);
+    FindReturnValues(statement->then_statement, values);
+    FindReturnValues(statement->else_statement, values);
   }
 
   static void
@@ -70,13 +72,13 @@ namespace snek::interpreter
     std::vector<parser::expression::ptr>& values
   )
   {
-    if (statement->jump_kind() != JumpKind::Return)
+    if (statement->jump_kind != JumpKind::Return)
     {
       return;
     }
-    if (const auto value = statement->value())
+    if (statement->value)
     {
-      values.push_back(value);
+      values.push_back(statement->value);
     }
   }
 
@@ -106,7 +108,7 @@ namespace snek::interpreter
         break;
 
       case Kind::While:
-        FindReturnValues(As<While>(statement)->body(), values);
+        FindReturnValues(As<While>(statement)->body, values);
         break;
 
       default:
@@ -142,9 +144,9 @@ namespace snek::interpreter
     const DeclareVar* statement
   )
   {
-    if (const auto value = statement->value())
+    if (statement->value)
     {
-      return ResolveExpression(runtime, scope, value);
+      return ResolveExpression(runtime, scope, statement->value);
     }
 
     return nullptr;
@@ -180,7 +182,7 @@ namespace snek::interpreter
         return ResolveExpression(
           runtime,
           scope,
-          As<Expression>(statement)->expression()
+          As<Expression>(statement)->expression
         );
 
       case Kind::Import:

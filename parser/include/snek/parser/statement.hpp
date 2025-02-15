@@ -81,190 +81,125 @@ namespace snek::parser::statement
   public:
     using container_type = std::vector<ptr>;
 
+    const container_type statements;
+
     explicit Block(
       const std::optional<Position>& position,
-      const container_type& statements
+      const container_type& statements_
     )
       : Base(position)
-      , m_statements(statements) {}
+      , statements(statements_) {}
 
     inline Kind kind() const override
     {
       return Kind::Block;
     }
 
-    inline const container_type& statements() const
-    {
-      return m_statements;
-    }
-
     inline std::u32string ToString() const override
     {
       return U"...";
     }
-
-  private:
-    const container_type m_statements;
   };
 
   class DeclareType final : public Base
   {
   public:
+    const bool is_export;
+    const std::u32string name;
+    const type::ptr type;
+
     explicit DeclareType(
       const std::optional<Position>& position,
-      bool is_export,
-      const std::u32string& name,
-      const type::ptr& type
+      bool is_export_,
+      const std::u32string name_,
+      const type::ptr type_
     )
       : Base(position)
-      , m_exported(is_export)
-      , m_name(name)
-      , m_type(type) {}
+      , is_export(is_export_)
+      , name(name_)
+      , type(type_) {}
 
     inline Kind kind() const override
     {
       return Kind::DeclareType;
     }
 
-    inline bool exported() const
-    {
-      return m_exported;
-    }
-
-    inline const std::u32string& name() const
-    {
-      return m_name;
-    }
-
-    inline const type::ptr& type() const
-    {
-      return m_type;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const bool m_exported;
-    const std::u32string m_name;
-    const type::ptr m_type;
   };
 
   class DeclareVar final : public Base
   {
   public:
+    const bool is_export;
+    const bool is_read_only;
+    const expression::ptr variable;
+    const expression::ptr value;
+
     explicit DeclareVar(
       const std::optional<Position>& position,
-      bool exported,
-      bool read_only,
-      const expression::ptr& variable,
-      const expression::ptr& value
+      bool is_export_,
+      bool is_read_only_,
+      const expression::ptr& variable_,
+      const expression::ptr& value_
     )
       : Base(position)
-      , m_exported(exported)
-      , m_read_only(read_only)
-      , m_variable(variable)
-      , m_value(value) {}
+      , is_export(is_export_)
+      , is_read_only(is_read_only_)
+      , variable(variable_)
+      , value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::DeclareVar;
     }
 
-    inline bool exported() const
-    {
-      return m_exported;
-    }
-
-    inline bool read_only() const
-    {
-      return m_read_only;
-    }
-
-    inline const expression::ptr& variable() const
-    {
-      return m_variable;
-    }
-
-    inline const expression::ptr& value() const
-    {
-      return m_value;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const bool m_exported;
-    const bool m_read_only;
-    const expression::ptr m_variable;
-    const expression::ptr m_value;
   };
 
   class Expression final : public Base
   {
   public:
-    explicit Expression(const expression::ptr& expression)
-      : Base(expression->position())
-      , m_expression(expression) {}
+    const expression::ptr expression;
+
+    explicit Expression(const expression::ptr& expression_)
+      : Base(expression_->position)
+      , expression(expression_) {}
 
     inline Kind kind() const override
     {
       return Kind::Expression;
     }
 
-    inline const expression::ptr& expression() const
-    {
-      return m_expression;
-    }
-
     inline std::u32string ToString() const override
     {
-      return m_expression->ToString().append(1, U';');
+      return expression->ToString();
     }
-
-  private:
-    const expression::ptr m_expression;
   };
 
   class If final : public Base
   {
   public:
+    const expression::ptr condition;
+    const ptr then_statement;
+    const ptr else_statement;
+
     explicit If(
       const std::optional<Position>& position,
-      const expression::ptr& condition,
-      const ptr& then_statement,
-      const ptr& else_statement = nullptr
+      const expression::ptr& condition_,
+      const ptr& then_statement_,
+      const ptr& else_statement_ = nullptr
     )
       : Base(position)
-      , m_condition(condition)
-      , m_then_statement(then_statement)
-      , m_else_statement(else_statement) {}
+      , condition(condition_)
+      , then_statement(then_statement_)
+      , else_statement(else_statement_) {}
 
     inline Kind kind() const override
     {
       return Kind::If;
     }
 
-    inline const expression::ptr& condition() const
-    {
-      return m_condition;
-    }
-
-    inline const ptr& then_statement() const
-    {
-      return m_then_statement;
-    }
-
-    inline const ptr& else_statement() const
-    {
-      return m_else_statement;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const expression::ptr m_condition;
-    const ptr m_then_statement;
-    const ptr m_else_statement;
   };
 
   class Import final : public Base
@@ -272,104 +207,71 @@ namespace snek::parser::statement
   public:
     using container_type = std::vector<import::ptr>;
 
+    const container_type specifiers;
+    const std::u32string path;
+
     explicit Import(
       const std::optional<Position>& position,
-      const container_type& specifiers,
-      const std::u32string& path
+      const container_type& specifiers_,
+      const std::u32string& path_
     )
       : Base(position)
-      , m_specifiers(specifiers)
-      , m_path(path) {}
+      , specifiers(specifiers_)
+      , path(path_) {}
 
     inline Kind kind() const override
     {
       return Kind::Import;
     }
 
-    inline const container_type& specifiers() const
-    {
-      return m_specifiers;
-    }
-
-    inline const std::u32string& path() const
-    {
-      return m_path;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const container_type m_specifiers;
-    const std::u32string m_path;
   };
 
   class Jump final : public Base
   {
   public:
+    const JumpKind jump_kind;
+    const expression::ptr value;
+
     explicit Jump(
       const std::optional<Position>& position,
-      JumpKind jump_kind,
-      const expression::ptr& value = nullptr
+      JumpKind jump_kind_,
+      const expression::ptr& value_ = nullptr
     )
       : Base(position)
-      , m_jump_kind(jump_kind)
-      , m_value(value) {}
+      , jump_kind(jump_kind_)
+      , value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::Jump;
     }
 
-    inline JumpKind jump_kind() const
-    {
-      return m_jump_kind;
-    }
-
-    inline const expression::ptr& value() const
-    {
-      return m_value;
-    }
-
     static std::u32string ToString(JumpKind kind);
 
     std::u32string ToString() const override;
-
-  private:
-    const JumpKind m_jump_kind;
-    const expression::ptr m_value;
   };
 
   class While final : public Base
   {
   public:
+    const expression::ptr condition;
+    const ptr body;
+
     explicit While(
       const std::optional<Position>& position,
-      const expression::ptr& condition,
-      const ptr& body
+      const expression::ptr& condition_,
+      const ptr& body_
     )
       : Base(position)
-      , m_condition(condition)
-      , m_body(body) {}
+      , condition(condition_)
+      , body(body_) {}
 
     inline Kind kind() const override
     {
       return Kind::While;
     }
 
-    inline const expression::ptr& condition() const
-    {
-      return m_condition;
-    }
-
-    inline const ptr& body() const
-    {
-      return m_body;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const expression::ptr m_condition;
-    const ptr m_body;
   };
 }

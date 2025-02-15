@@ -41,7 +41,7 @@ namespace snek::interpreter::prototype
     thread_local static std::mt19937 generator(device());
 
     std::bernoulli_distribution d(
-      static_cast<const value::Float*>(arguments[0].get())->value()
+      static_cast<const value::Float*>(arguments[0].get())->value
     );
 
     return runtime.MakeBoolean(d(generator));

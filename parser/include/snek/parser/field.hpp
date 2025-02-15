@@ -77,170 +77,115 @@ namespace snek::parser::field
   class Computed final : public Base
   {
   public:
+    const expression::ptr key;
+    const expression::ptr value;
+
     explicit Computed(
       const std::optional<Position>& position,
-      const expression::ptr& key,
-      const expression::ptr& value
+      const expression::ptr& key_,
+      const expression::ptr& value_
     )
       : Base(position)
-      , m_key(key)
-      , m_value(value) {}
+      , key(key_)
+      , value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::Computed;
     }
 
-    inline const expression::ptr& key() const
-    {
-      return m_key;
-    }
-
-    inline const expression::ptr& value() const
-    {
-      return m_value;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const expression::ptr m_key;
-    const expression::ptr m_value;
   };
 
   class Function final : public Base
   {
   public:
+    const std::u32string name;
+    const std::vector<Parameter> parameters;
+    const type::ptr return_type;
+    const statement::ptr body;
+
     explicit Function(
       const std::optional<Position>& position,
-      const std::u32string& name,
-      const std::vector<Parameter>& parameters,
-      const type::ptr& return_type,
-      const statement::ptr& body
+      const std::u32string& name_,
+      const std::vector<Parameter>& parameters_,
+      const type::ptr& return_type_,
+      const statement::ptr& body_
     )
       : Base(position)
-      , m_name(name)
-      , m_parameters(parameters)
-      , m_return_type(return_type)
-      , m_body(body) {}
+      , name(name_)
+      , parameters(parameters_)
+      , return_type(return_type_)
+      , body(body_) {}
 
     inline Kind kind() const override
     {
       return Kind::Function;
     }
 
-    inline const std::u32string& name() const
-    {
-      return m_name;
-    }
-
-    inline const std::vector<Parameter>& parameters() const
-    {
-      return m_parameters;
-    }
-
-    inline const type::ptr& return_type() const
-    {
-      return m_return_type;
-    }
-
-    inline const statement::ptr& body() const
-    {
-      return m_body;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const std::u32string m_name;
-    const std::vector<Parameter> m_parameters;
-    const type::ptr m_return_type;
-    const statement::ptr m_body;
   };
 
   class Named final : public Base
   {
   public:
+    const std::u32string name;
+    const expression::ptr value;
+
     explicit Named(
       const std::optional<Position>& position,
-      const std::u32string& name,
-      const expression::ptr& value
+      const std::u32string& name_,
+      const expression::ptr& value_
     )
       : Base(position)
-      , m_name(name)
-      , m_value(value) {}
+      , name(name_)
+      , value(value_) {}
 
     inline Kind kind() const override
     {
       return Kind::Named;
     }
 
-    inline const std::u32string& name() const
-    {
-      return m_name;
-    }
-
-    inline const expression::ptr& value() const
-    {
-      return m_value;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const std::u32string m_name;
-    const expression::ptr m_value;
   };
 
   class Shorthand final : public Base
   {
   public:
+    const std::u32string name;
+
     explicit Shorthand(
       const std::optional<Position>& position,
-      const std::u32string& name
+      const std::u32string& name_
     )
       : Base(position)
-      , m_name(name) {}
+      , name(name_) {}
 
     inline Kind kind() const override
     {
       return Kind::Shorthand;
     }
 
-    inline const std::u32string& name() const
-    {
-      return m_name;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const std::u32string m_name;
   };
 
   class Spread final : public Base
   {
   public:
+    const expression::ptr expression;
+
     explicit Spread(
       const std::optional<Position>& position,
-      const expression::ptr& expression
+      const expression::ptr& expression_
     )
       : Base(position)
-      , m_expression(expression) {}
+      , expression(expression_) {}
 
     inline Kind kind() const override
     {
       return Kind::Spread;
     }
 
-    inline const expression::ptr& expression() const
-    {
-      return m_expression;
-    }
-
     std::u32string ToString() const override;
-
-  private:
-    const expression::ptr m_expression;
   };
 }

@@ -83,7 +83,7 @@ namespace snek::parser
         };
       }
       lexer.PeekReadToken(Token::Kind::Comma);
-      if (parameter.rest())
+      if (parameter.rest)
       {
         lexer.ReadToken(Token::Kind::RightParen);
         break;
@@ -98,18 +98,18 @@ namespace snek::parser
   {
     std::u32string result;
 
-    if (m_rest)
+    if (rest)
     {
       result.append(U"...");
     }
-    result.append(m_name);
-    if (m_type)
+    result.append(name);
+    if (type)
     {
-      result.append(U": ").append(m_type->ToString());
+      result.append(U": ").append(type->ToString());
     }
-    if (m_default_value)
+    if (default_value)
     {
-      result.append(U" = ").append(m_default_value->ToString());
+      result.append(U" = ").append(default_value->ToString());
     }
 
     return result;

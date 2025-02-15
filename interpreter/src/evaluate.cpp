@@ -63,14 +63,14 @@ namespace snek::interpreter
     std::vector<value::ptr>& list
   )
   {
-    switch (element->kind())
+    switch (element->kind)
     {
       case parser::element::Kind::Spread:
       {
         const auto value = EvaluateExpression(
           runtime,
           scope,
-          element->expression()
+          element->expression
         );
         const value::List* value_list;
         std::size_t size;
@@ -93,7 +93,7 @@ namespace snek::interpreter
         list.push_back(EvaluateExpression(
           runtime,
           scope,
-          element->expression()
+          element->expression
         ));
         break;
     }
@@ -108,8 +108,8 @@ namespace snek::interpreter
   )
   {
     record[
-      value::ToString(EvaluateExpression(runtime, scope, field->key()))
-    ] = EvaluateExpression(runtime, scope, field->value());
+      value::ToString(EvaluateExpression(runtime, scope, field->key))
+    ] = EvaluateExpression(runtime, scope, field->value);
   }
 
   static void
@@ -120,10 +120,10 @@ namespace snek::interpreter
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
-    record[field->name()] = value::Function::MakeScripted(
-      ResolveParameterList(runtime, scope, field->parameters()),
-      ResolveType(runtime, scope, field->return_type()),
-      field->body(),
+    record[field->name] = value::Function::MakeScripted(
+      ResolveParameterList(runtime, scope, field->parameters),
+      ResolveType(runtime, scope, field->return_type),
+      field->body,
       scope
     );
   }
@@ -136,10 +136,10 @@ namespace snek::interpreter
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
-    record[field->name()] = EvaluateExpression(
+    record[field->name] = EvaluateExpression(
       runtime,
       scope,
-      field->value()
+      field->value
     );
   }
 
@@ -151,20 +151,18 @@ namespace snek::interpreter
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
-    const auto& name = field->name();
-
     if (scope)
     {
       value::ptr value;
 
-      if (scope->FindVariable(name, value))
+      if (scope->FindVariable(field->name, value))
       {
-        record[name] = value;
+        record[field->name] = value;
         return;
       }
     }
 
-    throw runtime.MakeError(U"Unknown variable: `" + name + U"'.");
+    throw runtime.MakeError(U"Unknown variable: `" + field->name + U"'.");
   }
 
   static void
@@ -175,7 +173,7 @@ namespace snek::interpreter
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
-    const auto value = EvaluateExpression(runtime, scope, field->expression());
+    const auto value = EvaluateExpression(runtime, scope, field->expression);
     const value::Record* r;
 
     if (value::KindOf(value) != value::Kind::Record)
@@ -253,17 +251,19 @@ namespace snek::interpreter
     const Assign* expression
   )
   {
-    const auto& variable = expression->variable();
-    const auto& op = expression->op();
     value::ptr new_value;
 
-    if (op)
+    if (expression->op)
     {
-      switch (*op)
+      switch (*expression->op)
       {
         case parser::expression::Assign::Operator::LogicalAnd:
           {
-            const auto old_value = EvaluateExpression(runtime, scope, variable);
+            const auto old_value = EvaluateExpression(
+              runtime,
+              scope,
+              expression->variable
+            );
 
             if (!value::ToBoolean(old_value))
             {
@@ -272,14 +272,18 @@ namespace snek::interpreter
             new_value = EvaluateExpression(
               runtime,
               scope,
-              expression->value()
+              expression->value
             );
           }
           break;
 
         case parser::expression::Assign::Operator::LogicalOr:
           {
-            const auto old_value = EvaluateExpression(runtime, scope, variable);
+            const auto old_value = EvaluateExpression(
+              runtime,
+              scope,
+              expression->variable
+            );
 
             if (value::ToBoolean(old_value))
             {
@@ -288,14 +292,18 @@ namespace snek::interpreter
             new_value = EvaluateExpression(
               runtime,
               scope,
-              expression->value()
+              expression->value
             );
           }
           break;
 
         case parser::expression::Assign::Operator::NullCoalescing:
           {
-            const auto old_value = EvaluateExpression(runtime, scope, variable);
+            const auto old_value = EvaluateExpression(
+              runtime,
+              scope,
+              expression->variable
+            );
 
             if (old_value)
             {
@@ -304,7 +312,7 @@ namespace snek::interpreter
             new_value = EvaluateExpression(
               runtime,
               scope,
-              expression->value()
+              expression->value
             );
           }
           break;
@@ -312,17 +320,17 @@ namespace snek::interpreter
         default:
           new_value = value::CallMethod(
             runtime,
-            EvaluateExpression(runtime, scope, variable),
-            Assign::ToString(*op),
-            { EvaluateExpression(runtime, scope, expression->value()) },
-            expression->position()
+            EvaluateExpression(runtime, scope, expression->variable),
+            Assign::ToString(*expression->op),
+            { EvaluateExpression(runtime, scope, expression->value) },
+            expression->position
           );
           break;
       }
     } else {
-      new_value = EvaluateExpression(runtime, scope, expression->value());
+      new_value = EvaluateExpression(runtime, scope, expression->value);
     }
-    AssignTo(runtime, scope, variable, new_value);
+    AssignTo(runtime, scope, expression->variable, new_value);
 
     return new_value;
   }
@@ -335,33 +343,32 @@ namespace snek::interpreter
     bool tail_call
   )
   {
-    const auto left = EvaluateExpression(runtime, scope, expression->left());
-    const auto& op = expression->op();
+    const auto left = EvaluateExpression(runtime, scope, expression->left);
 
-    switch (op)
+    switch (expression->op)
     {
       case Binary::Operator::LogicalAnd:
         return value::ToBoolean(left)
-          ? EvaluateExpression(runtime, scope, expression->right())
+          ? EvaluateExpression(runtime, scope, expression->right)
           : left;
 
       case Binary::Operator::LogicalOr:
         return value::ToBoolean(left)
           ? left
-          : EvaluateExpression(runtime, scope, expression->right());
+          : EvaluateExpression(runtime, scope, expression->right);
 
       case Binary::Operator::NullCoalescing:
         return left
           ? left
-          : EvaluateExpression(runtime, scope, expression->right());
+          : EvaluateExpression(runtime, scope, expression->right);
 
       default:
         return value::CallMethod(
           runtime,
           left,
-          Binary::ToString(op),
-          { EvaluateExpression(runtime, scope, expression->right()) },
-          expression->position(),
+          Binary::ToString(expression->op),
+          { EvaluateExpression(runtime, scope, expression->right) },
+          expression->position,
           tail_call
         );
     }
@@ -384,7 +391,7 @@ namespace snek::interpreter
       const auto value = EvaluateExpression(
         runtime,
         scope,
-        As<Spread>(expression)->expression()
+        As<Spread>(expression)->expression
       );
 
       if (value::IsList(value))
@@ -419,10 +426,10 @@ namespace snek::interpreter
     const auto value = EvaluateExpression(
       runtime,
       scope,
-      expression->expression()
+      expression->expression
     );
 
-    if (!value && expression->conditional())
+    if (!value && expression->conditional)
     {
       return value;
     }
@@ -430,8 +437,8 @@ namespace snek::interpreter
     {
       std::vector<value::ptr> arguments;
 
-      arguments.reserve(expression->arguments().size());
-      for (const auto& argument : expression->arguments())
+      arguments.reserve(expression->arguments.size());
+      for (const auto& argument : expression->arguments)
       {
         EvaluateArgument(runtime, scope, argument, arguments);
       }
@@ -441,7 +448,7 @@ namespace snek::interpreter
         std::static_pointer_cast<value::Function>(value),
         arguments,
         tail_call,
-        expression->position()
+        expression->position
       );
     }
 
@@ -459,20 +466,19 @@ namespace snek::interpreter
     bool tail_call
   )
   {
-    const auto& variable = expression->variable();
-    auto value = EvaluateExpression(runtime, scope, variable);
+    auto value = EvaluateExpression(runtime, scope, expression->variable);
     const auto new_value = value::CallMethod(
       runtime,
       value,
       U"-",
       { runtime.MakeInt(1) },
-      expression->position(),
+      expression->position,
       tail_call
     );
 
-    AssignTo(runtime, scope, variable, new_value);
+    AssignTo(runtime, scope, expression->variable, new_value);
 
-    return expression->pre() ? new_value : value;
+    return expression->pre ? new_value : value;
   }
 
   static value::ptr
@@ -482,20 +488,19 @@ namespace snek::interpreter
     const Function* expression
   )
   {
-    const auto& body = expression->body();
     type::ptr return_type;
 
-    if (const auto unresolved_return_type = expression->return_type())
+    if (expression->return_type)
     {
-      return_type = ResolveType(runtime, scope, unresolved_return_type);
+      return_type = ResolveType(runtime, scope, expression->return_type);
     } else {
-      return_type = ResolveStatement(runtime, scope, body);
+      return_type = ResolveStatement(runtime, scope, expression->body);
     }
 
     return value::Function::MakeScripted(
-      ResolveParameterList(runtime, scope, expression->parameters()),
+      ResolveParameterList(runtime, scope, expression->parameters),
       return_type,
-      body,
+      expression->body,
       scope
     );
   }
@@ -507,19 +512,21 @@ namespace snek::interpreter
     const Id* expression
   )
   {
-    const auto& id = expression->identifier();
-
     if (scope)
     {
       value::ptr slot;
 
-      if (scope->FindVariable(id, slot))
+      if (scope->FindVariable(expression->identifier, slot))
       {
         return slot;
       }
     }
 
-    throw runtime.MakeError(U"Unknown variable: `" + id + U"'.");
+    throw runtime.MakeError(
+      U"Unknown variable: `" +
+      expression->identifier +
+      U"'."
+    );
   }
 
   static value::ptr
@@ -530,20 +537,19 @@ namespace snek::interpreter
     bool tail_call
   )
   {
-    const auto& variable = expression->variable();
-    auto value = EvaluateExpression(runtime, scope, variable);
+    auto value = EvaluateExpression(runtime, scope, expression->variable);
     const auto new_value = value::CallMethod(
       runtime,
       value,
       U"+",
       { runtime.MakeInt(1) },
-      expression->position(),
+      expression->position,
       tail_call
     );
 
-    AssignTo(runtime, scope, variable, new_value);
+    AssignTo(runtime, scope, expression->variable, new_value);
 
-    return expression->pre() ? new_value : value;
+    return expression->pre ? new_value : value;
   }
 
   static value::ptr
@@ -553,14 +559,13 @@ namespace snek::interpreter
     const List* expression
   )
   {
-    const auto& elements = expression->elements();
-    const auto size = elements.size();
+    const auto size = expression->elements.size();
     std::vector<value::ptr> list;
 
     list.reserve(size);
     for (std::size_t i = 0; i < size; ++i)
     {
-      EvaluateElement(runtime, scope, elements[i], list);
+      EvaluateElement(runtime, scope, expression->elements[i], list);
     }
 
     return value::List::Make(list);
@@ -576,10 +581,10 @@ namespace snek::interpreter
     const auto value = EvaluateExpression(
       runtime,
       scope,
-      expression->expression()
+      expression->expression
     );
 
-    if (!value && expression->conditional())
+    if (!value && expression->conditional)
     {
       return value;
     }
@@ -587,7 +592,7 @@ namespace snek::interpreter
     if (const auto property = value::GetProperty(
       runtime,
       value,
-      expression->name()
+      expression->name
     ))
     {
       return *property;
@@ -596,7 +601,7 @@ namespace snek::interpreter
     throw runtime.MakeError(
       value::ToString(value::KindOf(value)) +
       U" has no property `" +
-      expression->name() +
+      expression->name +
       U"'."
     );
   }
@@ -610,7 +615,7 @@ namespace snek::interpreter
   {
     std::unordered_map<std::u32string, value::ptr> record;
 
-    for (const auto& field : expression->fields())
+    for (const auto& field : expression->fields)
     {
       EvaluateField(runtime, scope, field, record);
     }
@@ -629,10 +634,10 @@ namespace snek::interpreter
     const auto value = EvaluateExpression(
       runtime,
       scope,
-      expression->expression()
+      expression->expression
     );
 
-    if (!value && expression->conditional())
+    if (!value && expression->conditional)
     {
       return value;
     }
@@ -641,8 +646,8 @@ namespace snek::interpreter
       runtime,
       value,
       U"[]",
-      { EvaluateExpression(runtime, scope, expression->index()) },
-      expression->position(),
+      { EvaluateExpression(runtime, scope, expression->index) },
+      expression->position,
       tail_call
     );
   }
@@ -660,10 +665,10 @@ namespace snek::interpreter
       value::ToBoolean(EvaluateExpression(
         runtime,
         scope,
-        expression->condition()
+        expression->condition
       ))
-        ? expression->then_expression()
-        : expression->else_expression()
+        ? expression->then_expression
+        : expression->else_expression
     );
   }
 
@@ -696,14 +701,13 @@ namespace snek::interpreter
     bool tail_call
   )
   {
-    const auto op = expression->op();
     const auto operand = EvaluateExpression(
       runtime,
       scope,
-      expression->operand()
+      expression->operand
     );
 
-    if (op == Unary::Operator::Not)
+    if (expression->op == Unary::Operator::Not)
     {
       return runtime.MakeBoolean(!value::ToBoolean(operand));
     }
@@ -711,9 +715,9 @@ namespace snek::interpreter
     return value::CallMethod(
       runtime,
       operand,
-      GetMethodName(op),
+      GetMethodName(expression->op),
       {},
-      expression->position(),
+      expression->position,
       tail_call
     );
   }
@@ -745,7 +749,7 @@ namespace snek::interpreter
         );
 
       case Kind::Boolean:
-        return runtime.MakeBoolean(As<Boolean>(expression)->value());
+        return runtime.MakeBoolean(As<Boolean>(expression)->value);
 
       case Kind::Call:
         return EvaluateCall(runtime, scope, As<Call>(expression), tail_call);
@@ -759,9 +763,7 @@ namespace snek::interpreter
         );
 
       case Kind::Float:
-        return std::make_shared<value::Float>(
-          As<Float>(expression)->value()
-        );
+        return std::make_shared<value::Float>(As<Float>(expression)->value);
 
       case Kind::Function:
         return EvaluateFunction(runtime, scope, As<Function>(expression));
@@ -778,7 +780,7 @@ namespace snek::interpreter
         );
 
       case Kind::Int:
-        return runtime.MakeInt(As<Int>(expression)->value());
+        return runtime.MakeInt(As<Int>(expression)->value);
 
       case Kind::List:
         return EvaluateList(runtime, scope, As<List>(expression));
@@ -796,7 +798,7 @@ namespace snek::interpreter
         throw runtime.MakeError(U"Unexpected spread expression.");
 
       case Kind::String:
-        return value::String::Make(As<String>(expression)->value());
+        return value::String::Make(As<String>(expression)->value);
 
       case Kind::Subscript:
         return EvaluateSubscript(

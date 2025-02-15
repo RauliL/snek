@@ -363,12 +363,12 @@ namespace snek::interpreter::prototype
     if (value::IsFloat(arguments[0]))
     {
       return std::make_shared<value::Float>(
-        -static_cast<const value::Float*>(arguments[0].get())->value()
+        -static_cast<const value::Float*>(arguments[0].get())->value
       );
     }
 
     return runtime.MakeInt(
-      -static_cast<const value::Int*>(arguments[0].get())->value()
+      -static_cast<const value::Int*>(arguments[0].get())->value
     );
   }
 

@@ -110,7 +110,7 @@ namespace snek::parser
     {
       return m_token_queue.empty()
         ? m_input->position()
-        : m_token_queue.front().position();
+        : m_token_queue.front().position;
     }
 
     Token ReadToken();

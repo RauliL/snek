@@ -33,18 +33,18 @@ namespace snek::interpreter::value
   Number::int_type
   Float::ToInt() const
   {
-    auto value = m_value;
+    auto v = value;
 
-    if (value > 0.0)
+    if (v > 0.0)
     {
-      value = std::floor(value);
+      v = std::floor(value);
     }
-    if (value < 0.0)
+    if (v < 0.0)
     {
-      value = std::ceil(value);
+      v = std::ceil(value);
     }
 
-    return static_cast<int_type>(value);
+    return static_cast<int_type>(v);
   }
 
   bool
@@ -53,10 +53,10 @@ namespace snek::interpreter::value
     switch (that.kind())
     {
       case Kind::Int:
-        return m_value == static_cast<const Int*>(&that)->value();
+        return value == static_cast<const Int*>(&that)->value;
 
       case Kind::Float:
-        return m_value == static_cast<const Float*>(&that)->m_value;
+        return value == static_cast<const Float*>(&that)->value;
 
       default:
         return false;
@@ -66,6 +66,6 @@ namespace snek::interpreter::value
   std::u32string
   Float::ToString() const
   {
-    return parser::utils::DoubleToString(m_value);
+    return parser::utils::DoubleToString(value);
   }
 }

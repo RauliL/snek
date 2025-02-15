@@ -39,14 +39,14 @@ namespace snek::parser::type
 
     types.push_back(first_type);
     types.push_back(Parse(lexer));
-    while (lexer.PeekReadToken(token.kind()))
+    while (lexer.PeekReadToken(token.kind))
     {
       types.push_back(Parse(lexer));
     }
 
     return std::make_shared<Multiple>(
-      token.position(),
-      token.kind() == Token::Kind::BitwiseAnd
+      token.position,
+      token.kind == Token::Kind::BitwiseAnd
         ? Multiple::MultipleKind::Intersection
         : Multiple::MultipleKind::Union,
       types
@@ -127,7 +127,7 @@ namespace snek::parser::type
       [&]() -> void
       {
         const auto name = lexer.PeekToken(Token::Kind::String)
-          ? *lexer.ReadToken().text()
+          ? *lexer.ReadToken().text
           : lexer.ReadId();
 
         lexer.ReadToken(Token::Kind::Colon);
@@ -169,49 +169,49 @@ namespace snek::parser::type
     const auto token = lexer.ReadToken();
     ptr type;
 
-    switch (token.kind())
+    switch (token.kind)
     {
       case Token::Kind::Eof:
         throw SyntaxError{
-          token.position(),
+          token.position,
           U"Unexpected end of input; Missing type."
         };
 
       case Token::Kind::Id:
-        type = std::make_shared<Named>(token.position(), *token.text());
+        type = std::make_shared<Named>(token.position, *token.text);
         break;
 
       case Token::Kind::KeywordNull:
-        type = std::make_shared<Null>(token.position());
+        type = std::make_shared<Null>(token.position);
         break;
 
       case Token::Kind::KeywordFalse:
       case Token::Kind::KeywordTrue:
         type = std::make_shared<Boolean>(
-          token.position(),
-          token.kind() == Token::Kind::KeywordTrue
+          token.position,
+          token.kind == Token::Kind::KeywordTrue
         );
         break;
 
       case Token::Kind::String:
-        type = std::make_shared<String>(token.position(), *token.text());
+        type = std::make_shared<String>(token.position, *token.text);
         break;
 
       case Token::Kind::LeftParen:
-        type = ParseFunction(lexer, token.position());
+        type = ParseFunction(lexer, token.position);
         break;
 
       case Token::Kind::LeftBrace:
-        type = ParseRecord(lexer, token.position());
+        type = ParseRecord(lexer, token.position);
         break;
 
       case Token::Kind::LeftBracket:
-        type = ParseTuple(lexer, token.position());
+        type = ParseTuple(lexer, token.position);
         break;
 
       default:
         throw SyntaxError{
-          token.position(),
+          token.position,
           U"Unexpected " + token.ToString() + U"; Missing type."
         };
     }
@@ -221,7 +221,7 @@ namespace snek::parser::type
       if (lexer.PeekReadToken(Token::Kind::LeftBracket))
       {
         lexer.ReadToken(Token::Kind::RightBracket);
-        type = std::make_shared<List>(type->position(), type);
+        type = std::make_shared<List>(type->position, type);
       }
       else if (
         lexer.PeekToken(Token::Kind::BitwiseAnd) ||
@@ -241,17 +241,18 @@ namespace snek::parser::type
   Function::ToString() const
   {
     std::u32string result(1, U'(');
+    const auto size = parameters.size();
 
-    for (std::size_t i = 0; i < m_parameters.size(); ++i)
+    for (std::size_t i = 0; i < size; ++i)
     {
       if (i > 0)
       {
         result.append(U", ");
       }
-      result.append(m_parameters[i].ToString());
+      result.append(parameters[i].ToString());
     }
     result.append(U") => ");
-    result.append(m_return_type ? m_return_type->ToString() : U"any");
+    result.append(return_type ? return_type->ToString() : U"any");
 
     return result;
   }
@@ -260,19 +261,19 @@ namespace snek::parser::type
   Multiple::ToString() const
   {
     const char32_t* separator =
-      m_multiple_kind == MultipleKind::Intersection
+      multiple_kind == MultipleKind::Intersection
       ? U" & "
-      : m_multiple_kind == MultipleKind::Union
+      : multiple_kind == MultipleKind::Union
       ? U" | "
       : U", ";
     std::u32string result;
     bool first = true;
 
-    if (m_multiple_kind == MultipleKind::Tuple)
+    if (multiple_kind == MultipleKind::Tuple)
     {
       result.append(1, U'[');
     }
-    for (const auto& type : m_types)
+    for (const auto& type : types)
     {
       if (first)
       {
@@ -282,7 +283,7 @@ namespace snek::parser::type
       }
       result.append(type->ToString());
     }
-    if (m_multiple_kind == MultipleKind::Tuple)
+    if (multiple_kind == MultipleKind::Tuple)
     {
       result.append(1, U']');
     }
@@ -296,7 +297,7 @@ namespace snek::parser::type
     bool first = true;
     std::u32string result(1, U'{');
 
-    for (const auto& field : m_fields)
+    for (const auto& field : fields)
     {
       if (first)
       {
@@ -321,6 +322,6 @@ namespace snek::parser::type
   std::u32string
   String::ToString() const
   {
-    return utils::ToJsonString(m_value);
+    return utils::ToJsonString(value);
   }
 }

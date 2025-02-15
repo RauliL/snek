@@ -106,7 +106,7 @@ namespace snek::interpreter::type
   {
     if (value::IsBoolean(value))
     {
-      return As<value::Boolean>(value)->value() == m_value;
+      return As<value::Boolean>(value)->value == m_value;
     }
 
     return false;

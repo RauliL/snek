@@ -278,10 +278,10 @@ namespace snek::parser
   {
     const auto token = ReadToken();
 
-    if (token.kind() != expected)
+    if (token.kind != expected)
     {
       throw SyntaxError{
-        token.position(),
+        token.position,
         U"Unexpected " +
         token.ToString() +
         U"; Missing " +
@@ -294,7 +294,7 @@ namespace snek::parser
   void
   Lexer::UnreadToken(const Token& token)
   {
-    if (token.kind() != Token::Kind::Eof)
+    if (token.kind != Token::Kind::Eof)
     {
       m_token_queue.push_front(token);
     }
@@ -325,7 +325,7 @@ namespace snek::parser
 
     UnreadToken(token);
 
-    return token.kind() == expected;
+    return token.kind == expected;
   }
 
   bool
@@ -337,7 +337,7 @@ namespace snek::parser
     m_token_queue.push_front(token);
     m_token_queue.push_front(skip);
 
-    return token.kind() == expected;
+    return token.kind == expected;
   }
 
   bool
@@ -345,7 +345,7 @@ namespace snek::parser
   {
     const auto token = ReadToken();
 
-    if (token.kind() != expected)
+    if (token.kind != expected)
     {
       UnreadToken(token);
 
@@ -360,17 +360,17 @@ namespace snek::parser
   {
     const auto token = ReadToken();
 
-    if (token.kind() != Token::Kind::Id)
+    if (token.kind != Token::Kind::Id)
     {
       throw SyntaxError{
-        token.position(),
+        token.position,
         U"Unexpected " +
-        Token::ToString(token.kind()) +
+        Token::ToString(token.kind) +
         U"; Missing identifier."
       };
     }
 
-    return *token.text();
+    return *token.text;
   }
 
   std::u32string
@@ -378,17 +378,17 @@ namespace snek::parser
   {
     const auto token = ReadToken();
 
-    if (token.kind() != Token::Kind::String)
+    if (token.kind != Token::Kind::String)
     {
       throw SyntaxError{
-        token.position(),
+        token.position,
         U"Unexpected " +
-        Token::ToString(token.kind()) +
+        Token::ToString(token.kind) +
         U"; Missing string."
       };
     }
 
-    return *token.text();
+    return *token.text;
   }
 
   void

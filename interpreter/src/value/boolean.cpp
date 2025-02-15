@@ -32,7 +32,7 @@ namespace snek::interpreter::value
   {
     return (
       that.kind() == Kind::Boolean &&
-      static_cast<const Boolean*>(&that)->m_value == m_value
+      static_cast<const Boolean*>(&that)->value == value
     );
   }
 }

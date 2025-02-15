@@ -41,9 +41,9 @@ PrintToken(const Token& token)
 {
   using peelo::unicode::encoding::utf8::encode;
 
-  if (const auto position = token.position())
+  if (token.position)
   {
-    std::cout << encode(position->ToString()) << ": ";
+    std::cout << encode(token.position->ToString()) << ": ";
   }
   std::cout << encode(token.ToString()) << std::endl;
 }

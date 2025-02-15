@@ -52,14 +52,14 @@ namespace snek::interpreter
     type::Record::container_type& resolved_fields
   )
   {
-    const auto key_type = ResolveExpression(runtime, scope, field->key());
+    const auto key_type = ResolveExpression(runtime, scope, field->key);
 
     if (key_type && key_type->kind() == type::Kind::String)
     {
       const auto value_type = ResolveExpression(
         runtime,
         scope,
-        field->value()
+        field->value
       );
 
       if (!value_type)
@@ -82,9 +82,9 @@ namespace snek::interpreter
     type::Record::container_type& resolved_fields
   )
   {
-    resolved_fields[field->name()] = std::make_shared<type::Function>(
-      ResolveParameterList(runtime, scope, field->parameters()),
-      ResolveType(runtime, scope, field->return_type())
+    resolved_fields[field->name] = std::make_shared<type::Function>(
+      ResolveParameterList(runtime, scope, field->parameters),
+      ResolveType(runtime, scope, field->return_type)
     );
 
     return true;
@@ -98,13 +98,13 @@ namespace snek::interpreter
     type::Record::container_type& resolved_fields
   )
   {
-    const auto type = ResolveExpression(runtime, scope, field->value());
+    const auto type = ResolveExpression(runtime, scope, field->value);
 
     if (!type)
     {
       return false;
     }
-    resolved_fields[field->name()] = type;
+    resolved_fields[field->name] = type;
 
     return true;
   }
@@ -121,8 +121,8 @@ namespace snek::interpreter
       runtime,
       scope,
       std::make_shared<parser::expression::Id>(
-        field->position(),
-        field->name()
+        field->position,
+        field->name
       )
     );
 
@@ -146,7 +146,7 @@ namespace snek::interpreter
     type::Record::container_type& resolved_fields
   )
   {
-    const auto type = ResolveExpression(runtime, scope, field->expression());
+    const auto type = ResolveExpression(runtime, scope, field->expression);
 
     if (type && type->kind() == type::Kind::Record)
     {

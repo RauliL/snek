@@ -49,30 +49,19 @@ namespace snek::parser::element
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
 
+    const Kind kind;
+    const expression::ptr expression;
+
     explicit Base(
       const std::optional<Position>& position,
-      Kind kind,
-      const expression::ptr& expression
+      Kind kind_,
+      const expression::ptr& expression_
     )
       : Node(position)
-      , m_kind(kind)
-      , m_expression(expression) {}
-
-    inline Kind kind() const
-    {
-      return m_kind;
-    };
-
-    inline const expression::ptr& expression() const
-    {
-      return m_expression;
-    }
+      , kind(kind_)
+      , expression(expression_) {}
 
     std::u32string ToString() const override;
-
-  private:
-    const Kind m_kind;
-    const expression::ptr m_expression;
   };
 
   using ptr = std::shared_ptr<Base>;

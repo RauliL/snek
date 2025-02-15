@@ -43,7 +43,7 @@ namespace snek::interpreter::prototype
   )
   {
     const auto size = list->GetSize();
-    auto index = static_cast<const value::Int*>(index_value.get())->value();
+    auto index = static_cast<const value::Int*>(index_value.get())->value;
 
     if (index < 0)
     {
@@ -475,7 +475,7 @@ namespace snek::interpreter::prototype
   Repeat(Runtime&, const std::vector<value::ptr>& arguments)
   {
     const auto count = static_cast<std::size_t>(
-      As<value::Int>(arguments[1])->value()
+      As<value::Int>(arguments[1])->value
     );
 
     if (count == 1)
