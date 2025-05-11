@@ -23,47 +23,18 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <algorithm>
+#pragma once
 
-#include "snek/interpreter/runtime.hpp"
-#include "snek/parser/utils.hpp"
+#include "snek/interpreter/type.hpp"
 
-namespace snek::interpreter::type
+namespace snek::interpreter::type::utils
 {
-  ptr
-  MakeOptional(const ptr& type)
+  template<class T>
+  inline const T* As(const ptr& type)
   {
-    return std::make_shared<Union>(std::vector<ptr>{
-      type,
-      std::make_shared<Builtin>(BuiltinKind::Void)
-    });
+    return static_cast<const T*>(type.get());
   }
 
-  ptr
-  Reify(const Runtime& runtime, const std::vector<ptr>& types)
-  {
-    const auto size = types.size();
-
-    if (size == 0)
-    {
-      return runtime.void_type();
-    }
-    else if (size == 1)
-    {
-      return types[0];
-    } else {
-      std::vector<ptr> result;
-
-      result.reserve(types.size());
-      for (std::size_t i = 0; i < size; ++i)
-      {
-        const auto& type = types[i];
-
-        result.push_back(type ? type : runtime.any_type());
-      }
-
-      // TODO: Get rid of duplicates with equality comparison.
-      return std::make_shared<Union>(types);
-    }
-  }
+  std::u32string
+  Join(const Multiple::container_type& types, const char32_t* separator);
 }

@@ -23,47 +23,29 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <algorithm>
+#include "snek/interpreter/parameter.hpp"
 
-#include "snek/interpreter/runtime.hpp"
-#include "snek/parser/utils.hpp"
+#include "./utils.hpp"
 
-namespace snek::interpreter::type
+namespace snek::interpreter::type::utils
 {
-  ptr
-  MakeOptional(const ptr& type)
+  std::u32string
+  Join(const Multiple::container_type& types, const char32_t* separator)
   {
-    return std::make_shared<Union>(std::vector<ptr>{
-      type,
-      std::make_shared<Builtin>(BuiltinKind::Void)
-    });
-  }
+    std::u32string result;
+    bool first = true;
 
-  ptr
-  Reify(const Runtime& runtime, const std::vector<ptr>& types)
-  {
-    const auto size = types.size();
-
-    if (size == 0)
+    for (const auto& type : types)
     {
-      return runtime.void_type();
-    }
-    else if (size == 1)
-    {
-      return types[0];
-    } else {
-      std::vector<ptr> result;
-
-      result.reserve(types.size());
-      for (std::size_t i = 0; i < size; ++i)
+      if (first)
       {
-        const auto& type = types[i];
-
-        result.push_back(type ? type : runtime.any_type());
+        first = false;
+      } else {
+        result.append(separator);
       }
-
-      // TODO: Get rid of duplicates with equality comparison.
-      return std::make_shared<Union>(types);
+      result.append(type->ToString());
     }
+
+    return result;
   }
 }

@@ -49,6 +49,16 @@ add_library(
   ./src/runtime.cpp
   ./src/scope.cpp
   ./src/type.cpp
+  ./src/type/boolean.cpp
+  ./src/type/builtin.cpp
+  ./src/type/function.cpp
+  ./src/type/intersection.cpp
+  ./src/type/list.cpp
+  ./src/type/record.cpp
+  ./src/type/string.cpp
+  ./src/type/tuple.cpp
+  ./src/type/union.cpp
+  ./src/type/utils.cpp
   ./src/value.cpp
   ./src/value/boolean.cpp
   ./src/value/float.cpp

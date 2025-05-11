@@ -23,47 +23,69 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <algorithm>
-
 #include "snek/interpreter/runtime.hpp"
-#include "snek/parser/utils.hpp"
+
+#include "./utils.hpp"
 
 namespace snek::interpreter::type
 {
-  ptr
-  MakeOptional(const ptr& type)
+  bool
+  Union::Accepts(const Runtime& runtime, const value::ptr& value) const
   {
-    return std::make_shared<Union>(std::vector<ptr>{
-      type,
-      std::make_shared<Builtin>(BuiltinKind::Void)
-    });
+    for (const auto& type : types())
+    {
+      if (type->Accepts(runtime, value))
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
-  ptr
-  Reify(const Runtime& runtime, const std::vector<ptr>& types)
+  bool
+  Union::Accepts(const ptr& that) const
   {
-    const auto size = types.size();
-
-    if (size == 0)
+    if (!that || this == that.get())
     {
-      return runtime.void_type();
+      return true;
     }
-    else if (size == 1)
+    else if (that->kind() == Kind::Union)
     {
-      return types[0];
-    } else {
-      std::vector<ptr> result;
+      const auto union_ = utils::As<Union>(that);
+      const auto& this_types = types();
+      const auto& that_types = union_->types();
+      const auto this_size = this_types.size();
+      const auto that_size = that_types.size();
 
-      result.reserve(types.size());
-      for (std::size_t i = 0; i < size; ++i)
+      for (std::size_t i = 0; i < this_size; ++i)
       {
-        const auto& type = types[i];
-
-        result.push_back(type ? type : runtime.any_type());
+        for (std::size_t j = 0; j < that_size; ++j)
+        {
+          if (this_types[i]->Accepts(that_types[j]))
+          {
+            return true;
+          }
+        }
       }
 
-      // TODO: Get rid of duplicates with equality comparison.
-      return std::make_shared<Union>(types);
+      return false;
+    } else {
+      for (const auto& type : types())
+      {
+        if (type->Accepts(that))
+        {
+          return true;
+        }
+      }
+
+      return false;
     }
+  }
+
+  std::u32string
+  Union::ToString() const
+  {
+    return utils::Join(types(), U" | ");
   }
 }
