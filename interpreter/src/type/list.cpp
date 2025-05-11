@@ -23,47 +23,66 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <algorithm>
-
 #include "snek/interpreter/runtime.hpp"
-#include "snek/parser/utils.hpp"
+
+#include "./utils.hpp"
 
 namespace snek::interpreter::type
 {
-  ptr
-  MakeOptional(const ptr& type)
+  bool
+  List::Accepts(const Runtime& runtime, const value::ptr& value) const
   {
-    return std::make_shared<Union>(std::vector<ptr>{
-      type,
-      std::make_shared<Builtin>(BuiltinKind::Void)
-    });
-  }
-
-  ptr
-  Reify(const Runtime& runtime, const std::vector<ptr>& types)
-  {
-    const auto size = types.size();
-
-    if (size == 0)
+    if (value::IsList(value))
     {
-      return runtime.void_type();
-    }
-    else if (size == 1)
-    {
-      return types[0];
-    } else {
-      std::vector<ptr> result;
+      const auto list = static_cast<value::List*>(value.get());
+      const auto size = list->GetSize();
 
-      result.reserve(types.size());
       for (std::size_t i = 0; i < size; ++i)
       {
-        const auto& type = types[i];
-
-        result.push_back(type ? type : runtime.any_type());
+        if (!m_element_type->Accepts(runtime, list->At(i)))
+        {
+          return false;
+        }
       }
 
-      // TODO: Get rid of duplicates with equality comparison.
-      return std::make_shared<Union>(types);
+      return true;
     }
+
+    return false;
+  }
+
+  bool
+  List::Accepts(const ptr& that) const
+  {
+    if (!that || this == that.get())
+    {
+      return true;
+    }
+    else if (that->kind() == Kind::List)
+    {
+      return m_element_type->Accepts(utils::As<List>(that)->m_element_type);
+    }
+    else if (that->kind() == Kind::Tuple)
+    {
+      const auto tuple = utils::As<Tuple>(that);
+      const auto& types = tuple->types();
+      const auto size = types.size();
+
+      for (std::size_t i = 0; i < size; ++i)
+      {
+        if (!m_element_type->Accepts(types[i]))
+        {
+          return false;
+        }
+      }
+
+      return true;
+    }
+    else if (that->kind() == Kind::Builtin)
+    {
+      return utils::As<Builtin>(that)->builtin_kind() == BuiltinKind::List;
+    }
+
+    return false;
   }
 }

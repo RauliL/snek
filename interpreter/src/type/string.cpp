@@ -23,47 +23,48 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <algorithm>
-
 #include "snek/interpreter/runtime.hpp"
 #include "snek/parser/utils.hpp"
 
+#include "./utils.hpp"
+
 namespace snek::interpreter::type
 {
-  ptr
-  MakeOptional(const ptr& type)
+  bool
+  String::Accepts(const Runtime&, const value::ptr& value) const
   {
-    return std::make_shared<Union>(std::vector<ptr>{
-      type,
-      std::make_shared<Builtin>(BuiltinKind::Void)
-    });
+    if (value::IsString(value))
+    {
+      return !m_value.compare(
+        static_cast<const value::String*>(value.get())->ToString()
+      );
+    }
+
+    return false;
   }
 
-  ptr
-  Reify(const Runtime& runtime, const std::vector<ptr>& types)
+  bool
+  String::Accepts(const ptr& that) const
   {
-    const auto size = types.size();
-
-    if (size == 0)
+    if (!that || this == that.get())
     {
-      return runtime.void_type();
+      return true;
     }
-    else if (size == 1)
+    else if (that->kind() == Kind::String)
     {
-      return types[0];
-    } else {
-      std::vector<ptr> result;
-
-      result.reserve(types.size());
-      for (std::size_t i = 0; i < size; ++i)
-      {
-        const auto& type = types[i];
-
-        result.push_back(type ? type : runtime.any_type());
-      }
-
-      // TODO: Get rid of duplicates with equality comparison.
-      return std::make_shared<Union>(types);
+      return !m_value.compare(utils::As<String>(that)->m_value);
     }
+    else if (that->kind() == Kind::Builtin)
+    {
+      return utils::As<Builtin>(that)->builtin_kind() == BuiltinKind::String;
+    }
+
+    return false;
+  }
+
+  std::u32string
+  String::ToString() const
+  {
+    return parser::utils::ToJsonString(m_value);
   }
 }
