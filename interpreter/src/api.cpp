@@ -23,6 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <cstdlib>
 #include <iostream>
 
 #include <peelo/unicode/encoding/utf8.hpp>
@@ -43,6 +44,38 @@ namespace snek::interpreter::api
       std::make_shared<Scope>(runtime.root_scope()),
       static_cast<const value::String*>(arguments[0].get())->ToString()
     );
+  }
+
+  /**
+   * exit(code: Int = 0) => null
+   *
+   * Exits the program with the given exit code.
+   */
+   static value::ptr
+   Exit(Runtime&, const std::vector<value::ptr>& arguments)
+   {
+     std::exit(static_cast<const value::Int*>(arguments[0].get())->value);
+
+     return nullptr;
+   }
+
+   /**
+    * panic(message: String) => null
+    *
+    * Prints the given message to standard error stream and exits the program
+    * with erroneous exit code.
+    */
+  static value::ptr
+  Panic(Runtime&, const std::vector<value::ptr>& arguments)
+  {
+    using peelo::unicode::encoding::utf8::encode;
+
+    std::cerr << encode(static_cast<const value::String*>(
+      arguments[0].get()
+    )->ToString()) << std::endl;
+    std::exit(EXIT_FAILURE);
+
+    return nullptr;
   }
 
   /**
@@ -86,6 +119,33 @@ namespace snek::interpreter::api
         { { U"source", runtime->string_type() } },
         runtime->any_type(),
         Eval
+      ),
+      true
+    };
+    variables[U"exit"] =
+    {
+      value::Function::MakeNative(
+        {
+          {
+            U"code",
+            runtime->int_type(),
+            std::make_shared<parser::expression::Int>(
+              std::nullopt,
+              EXIT_SUCCESS
+            )
+          },
+        },
+        runtime->void_type(),
+        Exit
+      ),
+      true
+    };
+    variables[U"panic"] =
+    {
+      value::Function::MakeNative(
+        { { U"message", runtime->string_type() } },
+        runtime->void_type(),
+        Panic
       ),
       true
     };
