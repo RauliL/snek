@@ -76,10 +76,7 @@ namespace snek::interpreter
     {
       return;
     }
-    if (statement->value)
-    {
-      values.push_back(statement->value);
-    }
+    values.push_back(statement->value ? statement->value : nullptr);
   }
 
   static void
@@ -129,9 +126,19 @@ namespace snek::interpreter
     FindReturnValues(statement, return_values);
     for (const auto& value : return_values)
     {
-      types.push_back(
-        value ? ResolveExpression(runtime, scope, value) : runtime.void_type()
-      );
+      type::ptr type;
+
+      if (value)
+      {
+        type = ResolveExpression(runtime, scope, value);
+        if (!type)
+        {
+          type = runtime.any_type();
+        }
+      } else {
+        type = runtime.void_type();
+      }
+      types.push_back(type);
     }
 
     return type::Reify(runtime, types);
