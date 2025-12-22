@@ -14,11 +14,11 @@ syn match snekComment "#.*$" contains=snekTodo
 " Syntax: Reserved keywords
 syn keyword snekBoolean false true
 syn keyword snekSpecial null
-syn keyword snekStatement break continue pass return type
+syn keyword snekStatement break continue pass return
 syn keyword snekConditional else if
 syn keyword snekRepeat while
 syn keyword snekInclude as export from import
-syn keyword snekVariable let const
+syn keyword snekVariable let const type
 
 " Syntax: String literals
 syn match snekStringEscape "\\["'\\/btnfr]" contained
@@ -33,7 +33,7 @@ hi def link snekStatement Statement
 hi def link snekConditional Conditional
 hi def link snekRepeat Repeat
 hi def link snekInclude Include
-hi def link snekVariable Identifier
+hi def link snekVariable Define
 hi def link snekStringEscape Special
 hi def link snekComment Comment
 hi def link snekTodo Todo
