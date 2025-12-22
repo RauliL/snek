@@ -26,6 +26,7 @@
 #include <functional>
 
 #include "snek/parser/error.hpp"
+#include "snek/parser/field.hpp"
 #include "snek/parser/import.hpp"
 #include "snek/parser/statement.hpp"
 #include "snek/parser/type.hpp"
@@ -83,17 +84,49 @@ namespace snek::parser::statement
   ParseDeclareVar(Lexer& lexer, bool exported = false)
   {
     const auto token = lexer.ReadToken();
-    const auto variable = expression::ParseTernary(lexer);
+    expression::ptr variable;
     expression::ptr value;
 
-    if (!variable->IsAssignable())
+    if (lexer.PeekToken(Token::Kind::Id))
     {
-      throw SyntaxError{
-        variable->position,
-        U"Cannot assign to " +
-        variable->ToString() +
-        U"."
-      };
+      variable = std::make_shared<expression::Id>(
+        token.position,
+        *lexer.ReadToken().text
+      );
+      // Record expression with block syntax.
+      if (lexer.PeekReadToken(Token::Kind::Colon))
+      {
+        std::vector<field::ptr> fields;
+
+        // TODO: Support for single line record with ";".
+        lexer.ReadToken(Token::Kind::NewLine);
+        ParseBlockLike(
+          lexer,
+          [&]() -> void
+          {
+            fields.push_back(field::Parse(lexer));
+          }
+        );
+
+        return std::make_shared<DeclareVar>(
+          token.position,
+          exported,
+          token.kind == Token::Kind::KeywordConst,
+          variable,
+          std::make_shared<expression::Record>(variable->position, fields)
+        );
+      }
+    } else {
+      variable = expression::ParseTernary(lexer);
+      if (!variable->IsAssignable())
+      {
+        throw SyntaxError{
+          variable->position,
+          U"Cannot assign to " +
+          variable->ToString() +
+          U"."
+        };
+      }
     }
     if (lexer.PeekReadToken(Token::Kind::Assign))
     {

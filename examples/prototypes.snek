@@ -8,28 +8,27 @@ type Cat:
 
 # This will act as prototype for cats. These properties (or in this case
 # methods) will be inherited by all cats.
-const CatPrototype = {
+const CatPrototype:
     meow(this: Cat):
-        print("meow!"),
+        print("meow!")
 
     feed(this: Cat) => {
         ...this,
         mood: this.mood + 1,
         hungry: this.hungry - 1,
-    },
+    }
 
     play(this: Cat) => {
         ...this,
         mood: this.mood + 1,
         energy: this.energy - 1,
-    },
+    }
 
     sleep(this: Cat) => {
         ...this,
         hungry: this.hungry + 1,
         energy: this.energy + 1,
-    },
-}
+    }
 
 # This will build a new cat. A special property [[Prototype]] will define the
 # prototype used by the resulting cat.
