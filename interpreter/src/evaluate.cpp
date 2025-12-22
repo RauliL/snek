@@ -63,6 +63,8 @@ namespace snek::interpreter
     const parser::statement::ptr& body
   )
   {
+    // TODO: Create new fake scope and populate it with parameters and local
+    // variables.
     const auto actual_return_type = ResolveStatement(runtime, scope, body);
     type::ptr resolved_return_type;
 
