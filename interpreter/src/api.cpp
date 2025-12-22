@@ -68,16 +68,11 @@ namespace snek::interpreter::api
     * with erroneous exit code.
     */
   static value::ptr
-  Panic(Runtime&, const std::vector<value::ptr>& arguments)
+  Panic(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    using peelo::unicode::encoding::utf8::encode;
-
-    std::cerr << encode(static_cast<const value::String*>(
+    throw runtime.MakeError(static_cast<const value::String*>(
       arguments[0].get()
-    )->ToString()) << std::endl;
-    std::exit(EXIT_FAILURE);
-
-    return nullptr;
+    )->ToString());
   }
 
   /**
