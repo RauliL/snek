@@ -34,9 +34,31 @@ namespace snek::interpreter
     const parser::Parameter& parameter
   )
   {
+    const auto type = ResolveType(runtime, scope, parameter.type);
+
+    if (parameter.default_value)
+    {
+      const auto default_value_type = ResolveExpression(
+        runtime,
+        scope,
+        parameter.default_value
+      );
+
+      if (!type->Accepts(default_value_type))
+      {
+        throw runtime.MakeError(
+          U"Parameter default value type "
+          + default_value_type->ToString()
+          + U" does not match parameter type "
+          + type->ToString()
+          + U"."
+        );
+      }
+    }
+
     return {
       parameter.name,
-      ResolveType(runtime, scope, parameter.type),
+      type,
       parameter.default_value,
       parameter.rest,
       parameter.position
