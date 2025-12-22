@@ -1,0 +1,5 @@
+CompileFlags:
+  Add:
+    - "--include-path=./cli/include"
+    - "--include-path=./interpreter/include"
+    - "--include-path=./parser/include"
