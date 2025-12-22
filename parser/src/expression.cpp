@@ -248,6 +248,16 @@ namespace snek::parser::expression
     ;
   }
 
+  ptr
+  ParseFunction(Lexer& lexer)
+  {
+    return ParseFunctionRest(
+      lexer.position(),
+      Parameter::ParseList(lexer, true),
+      lexer)
+    ;
+  }
+
   static ptr
   ParseParenthesized(const std::optional<Position>& position, Lexer& lexer)
   {

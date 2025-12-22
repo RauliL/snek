@@ -1,9 +1,11 @@
 #!/usr/bin/env snek
 
-const fib = (n: Int) -> Int:
+const fib(n: Int) -> Int:
     if n < 2:
         return n
     else:
         return fib(n - 1) + fib(n - 2)
 
 print(fib(20))
+
+# vim: set syntax=snek:

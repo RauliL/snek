@@ -93,8 +93,19 @@ namespace snek::parser::statement
         token.position,
         *lexer.ReadToken().text
       );
+      // Shorthand function declaration.
+      if (lexer.PeekToken(Token::Kind::LeftParen))
+      {
+        return std::make_shared<DeclareVar>(
+          token.position,
+          exported,
+          token.kind == Token::Kind::KeywordConst,
+          variable,
+          expression::ParseFunction(lexer)
+        );
+      }
       // Record expression with block syntax.
-      if (lexer.PeekReadToken(Token::Kind::Colon))
+      else if (lexer.PeekReadToken(Token::Kind::Colon))
       {
         std::vector<field::ptr> fields;
 

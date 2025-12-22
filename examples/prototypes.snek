@@ -32,7 +32,7 @@ const CatPrototype:
 
 # This will build a new cat. A special property [[Prototype]] will define the
 # prototype used by the resulting cat.
-const newCat = () -> Cat => {
+const newCat() -> Cat => {
     "[[Prototype]]": CatPrototype,
     mood: 0,
     hungry: 0,
