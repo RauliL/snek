@@ -19,6 +19,7 @@ syn keyword snekConditional else if
 syn keyword snekRepeat while
 syn keyword snekInclude as export from import
 syn keyword snekVariable let const type
+syn keyword snekType Boolean Float Function Int List Number Object Record String
 
 " Syntax: String literals
 syn match snekStringEscape "\\["'\\/btnfr]" contained
@@ -34,6 +35,7 @@ hi def link snekConditional Conditional
 hi def link snekRepeat Repeat
 hi def link snekInclude Include
 hi def link snekVariable Define
+hi def link snekType Type
 hi def link snekStringEscape Special
 hi def link snekComment Comment
 hi def link snekTodo Todo
