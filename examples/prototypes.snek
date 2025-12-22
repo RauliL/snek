@@ -1,11 +1,10 @@
 #!/usr/bin/env snek
 
 # This type definition will define what properties a cat has.
-type Cat = {
-    mood: Int,
-    hungry: Int,
-    energy: Int,
-}
+type Cat:
+    mood: Int
+    hungry: Int
+    energy: Int
 
 # This will act as prototype for cats. These properties (or in this case
 # methods) will be inherited by all cats.
@@ -42,3 +41,5 @@ const newCat = () -> Cat => {
 }
 
 newCat().feed().play().sleep().meow()
+
+# vim: set syntax=snek:

@@ -126,9 +126,7 @@ namespace snek::parser::type
       lexer,
       [&]() -> void
       {
-        const auto name = lexer.PeekToken(Token::Kind::String)
-          ? *lexer.ReadToken().text
-          : lexer.ReadId();
+        const auto name = lexer.ReadRecordKey();
 
         lexer.ReadToken(Token::Kind::Colon);
         fields[name] = Parse(lexer);

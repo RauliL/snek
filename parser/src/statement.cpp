@@ -23,6 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <functional>
+
 #include "snek/parser/error.hpp"
 #include "snek/parser/import.hpp"
 #include "snek/parser/statement.hpp"
@@ -38,6 +40,20 @@ namespace snek::parser::statement
     {
       lexer.PeekReadToken(Token::Kind::NewLine);
     }
+  }
+
+  static void
+  ParseBlockLike(Lexer& lexer, const std::function<void()>& callback)
+  {
+    lexer.ReadToken(Token::Kind::Indent);
+    do
+    {
+      if (!lexer.PeekReadToken(Token::Kind::NewLine))
+      {
+        callback();
+      }
+    }
+    while (!lexer.PeekReadToken(Token::Kind::Dedent));
   }
 
   static ptr
@@ -98,15 +114,31 @@ namespace snek::parser::statement
   {
     const auto position = lexer.ReadToken().position;
     const auto name = lexer.ReadId();
+    type::ptr type;
 
-    lexer.ReadToken(Token::Kind::Assign);
+    if (lexer.PeekReadToken(Token::Kind::Colon))
+    {
+      type::Record::container_type fields;
 
-    return std::make_shared<DeclareType>(
-      position,
-      exported,
-      name,
-      type::Parse(lexer)
-    );
+      // TODO: Support for single line type with ";".
+      lexer.ReadToken(Token::Kind::NewLine);
+      ParseBlockLike(
+        lexer,
+        [&]() -> void
+        {
+          const auto name = lexer.ReadRecordKey();
+
+          lexer.ReadToken(Token::Kind::Colon);
+          fields[name] = type::Parse(lexer);
+        }
+      );
+      type = std::make_shared<type::Record>(position, fields);
+    } else {
+      lexer.ReadToken(Token::Kind::Assign);
+      type = type::Parse(lexer);
+    }
+
+    return std::make_shared<DeclareType>(position, exported, name, type);
   }
 
   static ptr
@@ -226,15 +258,13 @@ namespace snek::parser::statement
       const auto position = lexer.position();
       statement::Block::container_type statements;
 
-      lexer.ReadToken(Token::Kind::Indent);
-      do
-      {
-        if (!lexer.PeekReadToken(Token::Kind::NewLine))
+      ParseBlockLike(
+        lexer,
+        [&]() -> void
         {
           statements.push_back(Parse(lexer, false));
         }
-      }
-      while (!lexer.PeekReadToken(Token::Kind::Dedent));
+      );
 
       return std::make_shared<Block>(position, statements);
     }

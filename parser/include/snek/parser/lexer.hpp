@@ -131,6 +131,8 @@ namespace snek::parser
 
     std::u32string ReadString();
 
+    std::u32string ReadRecordKey();
+
   private:
     void LexLogicalLine();
 
