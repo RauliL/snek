@@ -1,5 +1,9 @@
-export const hello = ():
+#!/usr/bin/env snek
+
+export const hello():
     print("Hello, World!")
 
 if __name__ == "__main__":
     hello()
+
+# vim: set syntax=snek:

@@ -104,6 +104,8 @@ namespace snek::parser::expression
 
   ptr ParseTernary(Lexer& lexer);
 
+  ptr ParseFunction(Lexer& lexer);
+
   class Assign final : public Base
   {
   public:

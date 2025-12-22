@@ -391,6 +391,12 @@ namespace snek::parser
     return *token.text;
   }
 
+  std::u32string
+  Lexer::ReadRecordKey()
+  {
+    return PeekToken(Token::Kind::String) ? *ReadToken().text : ReadId();
+  }
+
   void
   Lexer::LexLogicalLine()
   {
