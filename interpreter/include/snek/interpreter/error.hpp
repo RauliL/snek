@@ -39,4 +39,13 @@ namespace snek::interpreter
     /** The error message. */
     std::u32string message;
   };
+
+  /**
+   * Representation of an interpreter exit.
+   */
+   struct Exit final
+   {
+     /** The exit code. */
+     int code;
+   };
 }

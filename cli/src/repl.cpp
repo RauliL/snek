@@ -39,6 +39,7 @@
 namespace snek::cli
 {
   using interpreter::Error;
+  using interpreter::Exit;
   using interpreter::Runtime;
   using interpreter::Scope;
 
@@ -159,6 +160,10 @@ namespace snek::cli
       catch (const Error& e)
       {
         utils::PrintStackTrace(std::cout, e);
+      }
+      catch (const Exit& e)
+      {
+        std::exit(e.code);
       }
       source.clear();
     }

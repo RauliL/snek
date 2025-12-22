@@ -40,6 +40,7 @@
 #include "snek/interpreter/runtime.hpp"
 
 using snek::interpreter::Error;
+using snek::interpreter::Exit;
 using snek::interpreter::Runtime;
 using snek::interpreter::Scope;
 
@@ -160,6 +161,10 @@ RunScript(
   {
     snek::cli::utils::PrintStackTrace(std::cerr, e);
     std::exit(EXIT_FAILURE);
+  }
+  catch (const Exit& e)
+  {
+    std::exit(e.code);
   }
 }
 

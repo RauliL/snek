@@ -54,11 +54,12 @@ namespace snek::interpreter::api
    static value::ptr
    Exit(Runtime&, const std::vector<value::ptr>& arguments)
    {
-     std::exit(static_cast<int>(
-       static_cast<const value::Int*>(arguments[0].get())->value)
-     );
-
-     return nullptr;
+     throw interpreter::Exit
+     {
+       static_cast<int>(
+         static_cast<const value::Int*>(arguments[0].get())->value
+       )
+     };
    }
 
    /**
