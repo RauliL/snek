@@ -1,5 +1,16 @@
 project(SnekCli)
 
+include(FetchContent)
+
+FetchContent_Declare(
+  Linenoise
+  GIT_REPOSITORY
+    https://github.com/yhirose/cpp-linenoise.git
+  GIT_TAG
+    5d2183e931eff05bc0d419a5eb84040a1d0af2c1
+)
+FetchContent_MakeAvailable(Linenoise)
+
 add_executable(
   SnekCli
   ./src/main.cpp
@@ -11,10 +22,14 @@ target_include_directories(
   SnekCli
   PUBLIC
     $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
 )
 target_link_libraries(
   SnekCli
-  SnekInterpreter
+  PUBLIC
+    SnekInterpreter
+  PRIVATE
+    linenoise
 )
 target_compile_features(
   SnekCli

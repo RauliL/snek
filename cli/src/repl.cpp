@@ -25,9 +25,8 @@
  */
 #include <stack>
 
+#include <linenoise.hpp>
 #include <peelo/unicode/encoding/utf8.hpp>
-
-#include "linenoise.hpp"
 
 #include "snek/cli/utils.hpp"
 #include "snek/interpreter/runtime.hpp"
