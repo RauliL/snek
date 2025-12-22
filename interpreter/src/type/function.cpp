@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "snek/interpreter/runtime.hpp"
+#include "snek/parser/utils.hpp"
 
 #include "./utils.hpp"
 
@@ -110,19 +111,22 @@ namespace snek::interpreter::type
   std::u32string
   Function::ToString() const
   {
-    std::u32string result(1, U'(');
-
-    for (std::size_t i = 0; i < m_parameters.size(); ++i)
-    {
-      if (i > 0)
+    auto result = parser::utils::Join<
+      Parameter,
+      std::vector<Parameter>::const_iterator
+    >(
+      std::begin(m_parameters),
+      std::end(m_parameters),
+      [](const auto& parameter)
       {
-        result.append(U", ");
-      }
-      result.append(m_parameters[i].ToString());
-    }
+        return parameter.ToString();
+      },
+      U'(',
+      U')'
+    );
 
     return result
-      .append(U") => ")
+      .append(U" => ")
       .append(m_return_type ? m_return_type->ToString() : U"any");
   }
 }

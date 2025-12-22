@@ -104,3 +104,57 @@ TEST_CASE("ToJsonString()")
   REQUIRE(!ToJsonString(U"\"\\/").compare(U"\"\\\"\\\\\\/\""));
   REQUIRE(!ToJsonString(U"\u007f").compare(U"\"\\u007f\""));
 }
+
+TEST_CASE("Join()")
+{
+  const std::vector<std::u32string> chars { U"a", U"b" };
+
+  REQUIRE(
+    !Join<std::u32string, std::vector<std::u32string>::const_iterator>(
+      std::begin(chars),
+      std::end(chars),
+      [](const auto& c)
+      {
+        return c;
+      }
+    ).compare(U"a, b")
+  );
+  REQUIRE(
+    !Join<std::u32string, std::vector<std::u32string>::const_iterator>(
+      std::begin(chars),
+      std::end(chars),
+      [](const auto& c)
+      {
+        return c;
+      },
+      U'(',
+      U')'
+    ).compare(U"(a, b)")
+  );
+  REQUIRE(
+    !Join<std::u32string, std::vector<std::u32string>::const_iterator>(
+      std::begin(chars),
+      std::end(chars),
+      [](const auto& c)
+      {
+        return c;
+      },
+      std::nullopt,
+      std::nullopt,
+      U"-"
+    ).compare(U"a-b")
+  );
+  REQUIRE(
+    !Join<std::u32string, std::vector<std::u32string>::const_iterator>(
+      std::begin(chars),
+      std::end(chars),
+      [](const auto& c)
+      {
+        return c;
+      },
+      U'(',
+      U')',
+      U"-"
+    ).compare(U"(a-b)")
+  );
+}

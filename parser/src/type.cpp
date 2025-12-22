@@ -238,18 +238,21 @@ namespace snek::parser::type
   std::u32string
   Function::ToString() const
   {
-    std::u32string result(1, U'(');
-    const auto size = parameters.size();
-
-    for (std::size_t i = 0; i < size; ++i)
-    {
-      if (i > 0)
+    auto result = utils::Join<
+      Parameter,
+      std::vector<Parameter>::const_iterator
+    >(
+      std::begin(parameters),
+      std::end(parameters),
+      [](const auto& parameter)
       {
-        result.append(U", ");
-      }
-      result.append(parameters[i].ToString());
-    }
-    result.append(U") => ");
+        return parameter.ToString();
+      },
+      U'(',
+      U')'
+    );
+
+    result.append(U" => ");
     result.append(return_type ? return_type->ToString() : U"any");
 
     return result;
@@ -264,57 +267,43 @@ namespace snek::parser::type
       : multiple_kind == MultipleKind::Union
       ? U" | "
       : U", ";
-    std::u32string result;
-    bool first = true;
 
-    if (multiple_kind == MultipleKind::Tuple)
-    {
-      result.append(1, U'[');
-    }
-    for (const auto& type : types)
-    {
-      if (first)
+    return utils::Join<ptr, std::vector<ptr>::const_iterator>(
+      std::begin(types),
+      std::end(types),
+      [](const auto& type)
       {
-        first = false;
-      } else {
-        result.append(separator);
-      }
-      result.append(type->ToString());
-    }
-    if (multiple_kind == MultipleKind::Tuple)
-    {
-      result.append(1, U']');
-    }
-
-    return result;
+        return type->ToString();
+      },
+      multiple_kind == MultipleKind::Tuple
+        ? std::make_optional(U'[')
+        : std::nullopt,
+      multiple_kind == MultipleKind::Tuple
+        ? std::make_optional(U']')
+        : std::nullopt,
+      separator
+    );
   }
 
   std::u32string
   Record::ToString() const
   {
-    bool first = true;
-    std::u32string result(1, U'{');
-
-    for (const auto& field : fields)
-    {
-      if (first)
+    return utils::Join<value_type, container_type::const_iterator>(
+      std::begin(fields),
+      std::end(fields),
+      [](const auto& field)
       {
-        first = false;
-      } else {
-        result.append(U", ");
-      }
-      if (utils::IsId(field.first))
-      {
-        result.append(field.first);
-      } else {
-        result.append(utils::ToJsonString(field.first));
-      }
-      result.append(U"; ");
-      result.append(field.second->ToString());
-    }
-    result.append(1, U'}');
-
-    return result;
+        return (
+          utils::IsId(field.first)
+            ? field.first
+            : utils::ToJsonString(field.first)
+        )
+          + U": "
+          + field.second->ToString();
+      },
+      U'{',
+      U'}'
+    );
   }
 
   std::u32string

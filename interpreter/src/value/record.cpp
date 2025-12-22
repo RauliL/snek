@@ -119,49 +119,46 @@ namespace snek::interpreter::value
   std::u32string
   Record::ToString() const
   {
-    std::u32string result;
-    bool first = true;
+    const auto property_names = GetOwnPropertyNames();
 
-    for (const auto& field_name : GetOwnPropertyNames())
-    {
-      if (first)
+    return parser::utils::Join<
+      std::u32string,
+      std::vector<std::u32string>::const_iterator
+    >(
+      std::begin(property_names),
+      std::end(property_names),
+      [this](const auto& field_name)
       {
-        first = false;
-      } else {
-        result.append(U", ");
+        return field_name
+          + U": "
+          + value::ToString(*GetOwnProperty(field_name));
       }
-      result
-        .append(field_name)
-        .append(U": ")
-        .append(value::ToString(*GetOwnProperty(field_name)));
-    }
-
-    return result;
+    );
   }
 
   std::u32string
   Record::ToSource() const
   {
-    std::u32string result(1, '{');
-    bool first = true;
+    const auto property_names = GetOwnPropertyNames();
 
-    for (const auto& field_name : GetOwnPropertyNames())
-    {
-      if (first)
+    return parser::utils::Join<
+      std::u32string,
+      std::vector<std::u32string>::const_iterator
+    >(
+      std::begin(property_names),
+      std::end(property_names),
+      [this](const auto& field_name)
       {
-        first = false;
-      } else {
-        result.append(U", ");
-      }
-      result
-        .append(
+        return (
           parser::utils::IsId(field_name)
             ? field_name
-            : parser::utils::ToJsonString(field_name))
-        .append(U": ")
-        .append(value::ToSource(*GetOwnProperty(field_name)));
-    }
-
-    return result.append(1, U'}');
+            : parser::utils::ToJsonString(field_name)
+        )
+          + U": "
+          + value::ToSource(*GetOwnProperty(field_name));
+      },
+      U'{',
+      U'}'
+    );
   }
 }

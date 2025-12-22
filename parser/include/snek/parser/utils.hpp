@@ -28,6 +28,8 @@
 #include <algorithm>
 #include <cctype>
 #include <cstdint>
+#include <functional>
+#include <optional>
 #include <string>
 
 #include <peelo/unicode/ctype/isspace.hpp>
@@ -65,4 +67,40 @@ namespace snek::parser::utils
   std::u32string DoubleToString(double value);
 
   std::u32string ToJsonString(const std::u32string& input);
+
+  template<class T, class Iterator>
+  std::u32string
+  Join(
+    Iterator begin,
+    const Iterator end,
+    const std::function<std::u32string(const T&)>& formatter,
+    const std::optional<char32_t>& start_delimiter = std::nullopt,
+    const std::optional<char32_t>& end_delimiter = std::nullopt,
+    const std::u32string& separator = U", "
+  )
+  {
+    std::u32string result;
+    bool first = true;
+
+    if (start_delimiter)
+    {
+      result.append(1, *start_delimiter);
+    }
+    while (begin != end)
+    {
+      if (first)
+      {
+        first = false;
+      } else {
+        result.append(separator);
+      }
+      result.append(formatter(*begin++));
+    }
+    if (end_delimiter)
+    {
+      result.append(1, *end_delimiter);
+    }
+
+    return result;
+  }
 }

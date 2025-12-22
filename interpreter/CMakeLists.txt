@@ -58,7 +58,6 @@ add_library(
   ./src/type/string.cpp
   ./src/type/tuple.cpp
   ./src/type/union.cpp
-  ./src/type/utils.cpp
   ./src/value.cpp
   ./src/value/boolean.cpp
   ./src/value/float.cpp

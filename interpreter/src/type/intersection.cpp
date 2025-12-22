@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "snek/interpreter/runtime.hpp"
+#include "snek/parser/utils.hpp"
 
 #include "./utils.hpp"
 
@@ -93,6 +94,18 @@ namespace snek::interpreter::type
   std::u32string
   Intersection::ToString() const
   {
-    return utils::Join(types(), U" & ");
+    const auto& t = types();
+
+    return parser::utils::Join<ptr, container_type::const_iterator>(
+      std::begin(t),
+      std::end(t),
+      [](const auto& type)
+      {
+        return type->ToString();
+      },
+      std::nullopt,
+      std::nullopt,
+      U" & "
+    );
   }
 }

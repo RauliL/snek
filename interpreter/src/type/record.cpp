@@ -90,28 +90,21 @@ namespace snek::interpreter::type
   std::u32string
   Record::ToString() const
   {
-    bool first = true;
-    std::u32string result(1, U'{');
-
-    for (const auto& field : m_fields)
-    {
-      if (first)
+    return parser::utils::Join<value_type, container_type::const_iterator>(
+      std::begin(m_fields),
+      std::end(m_fields),
+      [](const auto& field)
       {
-        first = false;
-      } else {
-        result.append(U", ");
-      }
-      if (parser::utils::IsId(field.first))
-      {
-        result.append(field.first);
-      } else {
-        result.append(parser::utils::ToJsonString(field.first));
-      }
-      result.append(U": ");
-      result.append(field.second->ToString());
-    }
-    result.append(1, U'}');
-
-    return result;
+        return (
+          parser::utils::IsId(field.first)
+            ? field.first
+            : parser::utils::ToJsonString(field.first)
+        )
+          + U": "
+          + field.second->ToString();
+      },
+      U'{',
+      U'}'
+    );
   }
 }

@@ -34,7 +34,4 @@ namespace snek::interpreter::type::utils
   {
     return static_cast<const T*>(type.get());
   }
-
-  std::u32string
-  Join(const Multiple::container_type& types, const char32_t* separator);
 }
