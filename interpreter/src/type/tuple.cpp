@@ -24,6 +24,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include "snek/interpreter/runtime.hpp"
+#include "snek/parser/utils.hpp"
 
 #include "./utils.hpp"
 
@@ -111,6 +112,17 @@ namespace snek::interpreter::type
   std::u32string
   Tuple::ToString() const
   {
-    return U"[" + utils::Join(types(), U", ") + U"]";
+    const auto& t = types();
+
+    return parser::utils::Join<ptr, container_type::const_iterator>(
+      std::begin(t),
+      std::end(t),
+      [](const auto& type)
+      {
+        return type->ToString();
+      },
+      U'[',
+      U']'
+    );
   }
 }

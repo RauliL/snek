@@ -208,6 +208,7 @@ namespace snek::parser::type
     using key_type = std::u32string;
     using mapped_type = ptr;
     using container_type = std::unordered_map<key_type, mapped_type>;
+    using value_type = container_type::value_type;
 
     const container_type fields;
 

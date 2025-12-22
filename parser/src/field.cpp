@@ -128,18 +128,19 @@ namespace snek::parser::field
   Function::ToString() const
   {
     std::u32string result(name);
-    const auto size = parameters.size();
 
-    result.append(1, U'(');
-    for (std::size_t i = 0; i < size; ++i)
-    {
-      if (i > 0)
-      {
-        result.append(U", ");
-      }
-      result.append(parameters[i].ToString());
-    }
-    result.append(1, U')');
+    result.append(
+      utils::Join<Parameter, std::vector<Parameter>::const_iterator>(
+        std::begin(parameters),
+        std::end(parameters),
+        [](const Parameter& parameter)
+        {
+          return parameter.ToString();
+        },
+        U'(',
+        U')'
+      )
+    );
     if (return_type)
     {
       result.append(U" -> ").append(return_type->ToString());

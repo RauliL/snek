@@ -876,23 +876,24 @@ namespace snek::parser::expression
   Call::ToString() const
   {
     auto result = expression->ToString();
-    const auto size = arguments.size();
 
     if (conditional)
     {
       result.append(U"?.");
     }
-    result.append(1, U'(');
-    for (std::size_t i = 0; i < size; ++i)
-    {
-      if (i > 0)
-      {
-        result.append(U", ");
-      }
-      result.append(arguments[i]->ToString());
-    }
 
-    return result.append(1, U')');
+    return result.append(
+      utils::Join<ptr, std::vector<ptr>::const_iterator>(
+        std::begin(arguments),
+        std::end(arguments),
+        [](const auto& argument)
+        {
+          return argument->ToString();
+        },
+        U'(',
+        U')'
+      )
+    );
   }
 
   std::u32string
@@ -906,20 +907,20 @@ namespace snek::parser::expression
   std::u32string
   Function::ToString() const
   {
-    std::u32string result(1, U'(');
-    bool first = true;
-
-    for (const auto& parameter : parameters)
-    {
-      if (first)
+    auto result = utils::Join<
+      Parameter,
+      std::vector<Parameter>::const_iterator
+    >(
+      std::begin(parameters),
+      std::end(parameters),
+      [](const auto& parameter)
       {
-        first = false;
-      } else {
-        result.append(U", ");
-      }
-      result.append(parameter.ToString());
-    }
-    result.append(1, U')');
+        return parameter.ToString();
+      },
+      U'(',
+      U')'
+    );
+
     if (return_type)
     {
       result
@@ -953,21 +954,19 @@ namespace snek::parser::expression
   std::u32string
   List::ToString() const
   {
-    std::u32string result(1, U'[');
-    bool first = true;
-
-    for (const auto& element : elements)
-    {
-      if (first)
+    return utils::Join<
+      element::ptr,
+      std::vector<element::ptr>::const_iterator
+    >(
+      std::begin(elements),
+      std::end(elements),
+      [](const auto& element)
       {
-        first = false;
-      } else {
-        result.append(U", ");
-      }
-      result.append(element->ToString());
-    }
-
-    return result.append(1, U']');
+        return element->ToString();
+      },
+      U'[',
+      U']'
+    );
   }
 
   std::u32string
@@ -1011,23 +1010,16 @@ namespace snek::parser::expression
   std::u32string
   Record::ToString() const
   {
-    std::u32string result;
-    bool first = true;
-
-    result.append(1, U'{');
-    for (const auto& field : fields)
-    {
-      if (first)
+    return utils::Join<field::ptr, std::vector<field::ptr>::const_iterator>(
+      std::begin(fields),
+      std::end(fields),
+      [](const auto& field)
       {
-        first = false;
-      } else {
-        result.append(U", ");
-      }
-      result.append(field->ToString());
-    }
-    result.append(1, U'}');
-
-    return result;
+        return field->ToString();
+      },
+      U'{',
+      U'}'
+    );
   }
 
   std::u32string

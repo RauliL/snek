@@ -28,6 +28,7 @@
 #include "snek/interpreter/execute.hpp"
 #include "snek/interpreter/jump.hpp"
 #include "snek/interpreter/value.hpp"
+#include "snek/parser/utils.hpp"
 
 namespace snek::interpreter::value
 {
@@ -374,20 +375,23 @@ namespace snek::interpreter::value
   std::u32string
   Function::ToString() const
   {
-    bool first = true;
-    std::u32string result(1, U'(');
+    const auto p = parameters();
 
-    for (const auto& parameter : parameters())
-    {
-      if (first)
+    auto result = parser::utils::Join<
+      Parameter,
+      std::vector<Parameter>::const_iterator
+    >(
+      std::begin(p),
+      std::end(p),
+      [](const auto& parameter)
       {
-        first = false;
-      } else {
-        result.append(U", ");
-      }
-      result.append(parameter.ToString());
-    }
-    result.append(U") => ");
+        return parameter.ToString();
+      },
+      U'(',
+      U')'
+    );
+
+    result.append(U" => ");
     if (const auto rtype = return_type())
     {
       result.append(rtype->ToString());

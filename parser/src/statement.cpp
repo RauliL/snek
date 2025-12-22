@@ -423,6 +423,7 @@ namespace snek::parser::statement
     {
       result.append(U"export ");
     }
+
     return result
       .append(U"type ")
       .append(name)
@@ -469,16 +470,17 @@ namespace snek::parser::statement
   Import::ToString() const
   {
     std::u32string result(U"import ");
-    const auto size = specifiers.size();
 
-    for (std::size_t i = 0; i < size; ++i)
-    {
-      if (i > 0)
-      {
-        result.append(U", ");
-      }
-      result.append(specifiers[i]->ToString());
-    }
+    result.append(
+      utils::Join<import::ptr, std::vector<import::ptr>::const_iterator>(
+        std::begin(specifiers),
+        std::end(specifiers),
+        [](const auto& specifier)
+        {
+          return specifier->ToString();
+        }
+      )
+    );
 
     return result.append(U" from ").append(utils::ToJsonString(path));
   }
