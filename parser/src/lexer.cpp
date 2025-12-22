@@ -844,6 +844,7 @@ namespace snek::parser
     // Is it a decimal number?
     if (m_input->PeekRead(U'.'))
     {
+      // TODO: Fix lexing stuff like `5.round()`.
       if (!m_input->Eof() && std::isdigit(m_input->Peek()))
       {
         kind = Token::Kind::Float;
