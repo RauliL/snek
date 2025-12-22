@@ -54,7 +54,7 @@ namespace snek::interpreter::type
     } else {
       std::vector<ptr> result;
 
-      result.reserve(types.size());
+      result.reserve(size);
       for (std::size_t i = 0; i < size; ++i)
       {
         const auto& type = types[i];
