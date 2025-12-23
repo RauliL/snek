@@ -23,28 +23,55 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <cstdlib>
-#include <iostream>
+ #include <cstdlib>
+ #include <iostream>
 
-#include "snek/parser/statement.hpp"
+ #include <peelo/unicode/encoding/utf8.hpp>
 
-#include "./utils.hpp"
+ #include "snek/interpreter/resolve.hpp"
+ #include "snek/parser/statement.hpp"
 
-int
-main(int argc, char** argv)
-{
-  if (argc != 2)
-  {
-    std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
-    std::exit(EXIT_FAILURE);
-  }
-  LexFile(
-    argv[1],
-    [](auto& lexer)
-    {
-      PrintNode(statement::Parse(lexer, true));
-    }
-  );
+ #include "./utils.hpp"
 
-  return EXIT_SUCCESS;
-}
+ int
+ main(int argc, char** argv)
+ {
+   using peelo::unicode::encoding::utf8::encode;
+
+   snek::interpreter::Runtime runtime;
+   bool first = true;
+
+   if (argc != 2)
+   {
+     std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
+     std::exit(EXIT_FAILURE);
+   }
+   LexFile(
+     argv[1],
+     [&runtime, &first](auto& lexer)
+     {
+       const auto statement = statement::Parse(lexer, true);
+       const auto type = snek::interpreter::ResolveStatement(
+         runtime,
+         runtime.root_scope(),
+         statement
+       );
+
+       if (first)
+       {
+         first = false;
+       } else {
+         std::cout << std::endl;
+       }
+       PrintNode(statement);
+       if (type)
+       {
+         std::cout << encode(type->ToString()) << std::endl;
+       } else {
+         std::cout << "UNABLE TO RESOLVE" << std::endl;
+       }
+     }
+   );
+
+   return EXIT_SUCCESS;
+ }

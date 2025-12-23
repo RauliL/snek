@@ -27,7 +27,13 @@
 #include <fstream>
 #include <iostream>
 
-std::string
+#include <peelo/unicode/encoding/utf8.hpp>
+
+#include "snek/parser/error.hpp"
+
+#include "./utils.hpp"
+
+static std::string
 ReadFile(const char* filename)
 {
   std::ifstream ifs(filename);
@@ -45,4 +51,57 @@ ReadFile(const char* filename)
   ifs.close();
 
   return source;
+}
+
+void
+LexFile(
+  const char* filename,
+  const std::function<void(Lexer&)>& callback
+)
+{
+  using peelo::unicode::encoding::utf8::decode;
+  using peelo::unicode::encoding::utf8::encode;
+
+  Lexer lexer(ReadFile(filename), decode(filename));
+
+  try
+  {
+    while (!lexer.PeekToken(Token::Kind::Eof))
+    {
+      callback(lexer);
+    }
+  }
+  catch (const SyntaxError& e)
+  {
+    std::cerr << encode(e.ToString()) << std::endl;
+    std::exit(EXIT_FAILURE);
+  }
+}
+
+void
+PrintToken(const Token& token)
+{
+  using peelo::unicode::encoding::utf8::encode;
+
+  if (token.position)
+  {
+    std::cout << encode(token.position->ToString()) << ": ";
+  }
+  std::cout << encode(token.ToString()) << std::endl;
+}
+
+void
+PrintNode(const std::shared_ptr<Node>& node)
+{
+  using peelo::unicode::encoding::utf8::encode;
+
+  if (!node)
+  {
+    return;
+  }
+  if (node->position)
+  {
+    std::cout << encode(node->position->ToString()) << ": ";
+  }
+  std::cout << encode(node->ToString()) << std::endl;
 }

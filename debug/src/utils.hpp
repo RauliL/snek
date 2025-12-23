@@ -23,28 +23,22 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <cstdlib>
-#include <iostream>
+#pragma once
 
-#include "snek/parser/statement.hpp"
+#include <functional>
 
-#include "./utils.hpp"
+#include "snek/parser/lexer.hpp"
 
-int
-main(int argc, char** argv)
-{
-  if (argc != 2)
-  {
-    std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
-    std::exit(EXIT_FAILURE);
-  }
-  LexFile(
-    argv[1],
-    [](auto& lexer)
-    {
-      PrintNode(statement::Parse(lexer, true));
-    }
-  );
+using namespace snek::parser;
 
-  return EXIT_SUCCESS;
-}
+void
+LexFile(
+  const char* filename,
+  const std::function<void(Lexer&)>& callback
+);
+
+void
+PrintToken(const Token& token);
+
+void
+PrintNode(const std::shared_ptr<Node>& node);

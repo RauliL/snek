@@ -12,10 +12,21 @@ add_executable(
   ./src/parser.cpp
   ./src/utils.cpp
 )
+add_executable(
+  snek-resolve-debugger
+  ./src/resolve.cpp
+  ./src/utils.cpp
+)
 
-foreach(Executable snek-lexer-debugger snek-parser-debugger)
+foreach(
+  Executable
+    snek-lexer-debugger
+    snek-parser-debugger
+    snek-resolve-debugger
+)
   target_link_libraries(
     ${Executable}
+    SnekInterpreter
     SnekParser
   )
   target_compile_features(
@@ -25,4 +36,3 @@ foreach(Executable snek-lexer-debugger snek-parser-debugger)
   )
   enable_all_warnings(${Executable})
 endforeach()
-

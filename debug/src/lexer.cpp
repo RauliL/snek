@@ -24,52 +24,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 #include <cstdlib>
-#include <fstream>
 #include <iostream>
 
-#include <peelo/unicode/encoding/utf8.hpp>
-
-#include "snek/parser/error.hpp"
-#include "snek/parser/lexer.hpp"
-
-using namespace snek::parser;
-
-std::string ReadFile(const char*);
-
-static void
-PrintToken(const Token& token)
-{
-  using peelo::unicode::encoding::utf8::encode;
-
-  if (token.position)
-  {
-    std::cout << encode(token.position->ToString()) << ": ";
-  }
-  std::cout << encode(token.ToString()) << std::endl;
-}
-
-static void
-ProcessFile(const char* filename)
-{
-  using peelo::unicode::encoding::utf8::decode;
-  using peelo::unicode::encoding::utf8::encode;
-
-  const auto source = ReadFile(filename);
-  Lexer lexer(source, decode(filename));
-
-  try
-  {
-    while (!lexer.PeekToken(Token::Kind::Eof))
-    {
-      PrintToken(lexer.ReadToken());
-    }
-  }
-  catch (const SyntaxError& e)
-  {
-    std::cerr << encode(e.ToString()) << std::endl;
-    std::exit(EXIT_FAILURE);
-  }
-}
+#include "./utils.hpp"
 
 int
 main(int argc, char** argv)
@@ -79,7 +36,13 @@ main(int argc, char** argv)
     std::cerr << "Usage: " << argv[0] << " <filename>" << std::endl;
     std::exit(EXIT_FAILURE);
   }
-  ProcessFile(argv[1]);
+  LexFile(
+    argv[1],
+    [](auto& lexer)
+    {
+      PrintToken(lexer.ReadToken());
+    }
+  );
 
   return EXIT_SUCCESS;
 }
