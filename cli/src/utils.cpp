@@ -29,6 +29,12 @@
 
 namespace snek::cli::utils
 {
+  bool
+  StartsWith(const std::u32string& s, const std::u32string& prefix)
+  {
+    return s.length() >= prefix.length() && !s.compare(0, prefix.size(), prefix);
+  }
+
   void
   PrintStackTrace(std::ostream& os, const Error& e)
   {

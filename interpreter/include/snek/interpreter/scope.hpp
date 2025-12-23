@@ -63,6 +63,18 @@ namespace snek::interpreter
     explicit Scope(const ptr& parent = nullptr)
       : m_parent(parent) {}
 
+    inline const ptr&
+    parent() const
+    {
+      return m_parent;
+    }
+
+    variable_container_type
+    GetAllVariables() const;
+
+    type_container_type
+    GetAllTypes() const;
+
     std::vector<std::pair<std::u32string, value::ptr>>
     GetExportedVariables() const;
 

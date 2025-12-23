@@ -33,6 +33,9 @@ namespace snek::cli::utils
 {
   using snek::interpreter::Error;
 
+  bool
+  StartsWith(const std::u32string& s, const std::u32string& prefix);
+
   void
   PrintStackTrace(std::ostream& os, const Error& e);
 }

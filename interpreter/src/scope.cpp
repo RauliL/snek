@@ -63,6 +63,48 @@ namespace snek::interpreter
     return scope;
   }
 
+  Scope::variable_container_type
+  Scope::GetAllVariables() const
+  {
+    variable_container_type mapping;
+
+    for (auto scope = this; scope; scope = scope->m_parent.get())
+    {
+      for (const auto& variable : scope->m_variables)
+      {
+        const auto it = mapping.find(variable.first);
+
+        if (it == mapping.end())
+        {
+          mapping.emplace(variable.first, variable.second);
+        }
+      }
+    }
+
+    return mapping;
+  }
+
+  Scope::type_container_type
+  Scope::GetAllTypes() const
+  {
+    type_container_type mapping;
+
+    for (auto scope = this; scope; scope = scope->m_parent.get())
+    {
+      for (const auto& type : scope->m_types)
+      {
+        const auto it = mapping.find(type.first);
+
+        if (it == mapping.end())
+        {
+          mapping.emplace(type.first, type.second);
+        }
+      }
+    }
+
+    return mapping;
+  }
+
   std::vector<std::pair<std::u32string, value::ptr>>
   Scope::GetExportedVariables() const
   {

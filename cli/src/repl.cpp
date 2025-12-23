@@ -113,12 +113,36 @@ namespace snek::cli
   void
   RunRepl(Runtime& runtime, const Scope::ptr& scope)
   {
+    using peelo::unicode::encoding::utf8::decode;
     using peelo::unicode::encoding::utf8::encode;
 
     char prompt[BUFSIZ];
     std::stack<char> open_braces;
     int line = 1;
     std::string source;
+
+    linenoise::SetCompletionCallback(
+      [scope](const char* input, std::vector<std::string>& completions)
+      {
+
+        const auto decoded_input = decode(input);
+
+        for (const auto& variable : scope->GetAllVariables())
+        {
+          if (utils::StartsWith(variable.first, decoded_input))
+          {
+            completions.push_back(encode(variable.first));
+          }
+        }
+        for (const auto& type : scope->GetAllTypes())
+        {
+          if (utils::StartsWith(type.first, decoded_input))
+          {
+            completions.push_back(encode(type.first));
+          }
+        }
+      }
+    );
 
     for (;;)
     {
