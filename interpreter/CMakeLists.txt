@@ -46,6 +46,7 @@ add_library(
   ./src/resolve/expression.cpp
   ./src/resolve/statement.cpp
   ./src/resolve/type.cpp
+  ./src/resolve/value.cpp
   ./src/runtime.cpp
   ./src/scope.cpp
   ./src/type.cpp

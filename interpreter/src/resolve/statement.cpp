@@ -25,6 +25,8 @@
  */
 #include "snek/interpreter/resolve.hpp"
 
+#include "./utils.hpp"
+
 namespace snek::interpreter
 {
   using namespace snek::parser::statement;
@@ -126,19 +128,11 @@ namespace snek::interpreter
     FindReturnValues(statement, return_values);
     for (const auto& value : return_values)
     {
-      type::ptr type;
-
-      if (value)
-      {
-        type = ResolveExpression(runtime, scope, value);
-        if (!type)
-        {
-          type = runtime.any_type();
-        }
-      } else {
-        type = runtime.void_type();
-      }
-      types.push_back(type);
+      types.push_back(
+        value
+          ? utils::TypeOrAny(runtime, ResolveExpression(runtime, scope, value))
+          : runtime.void_type()
+      );
     }
 
     return type::Reify(runtime, types);

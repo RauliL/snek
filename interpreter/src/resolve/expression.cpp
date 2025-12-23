@@ -78,6 +78,8 @@ namespace snek::interpreter
           }
         );
 
+      // TODO: Try to find the operator method, and use it's return type when
+      // possible.
       default:
         return nullptr;
     }
@@ -177,6 +179,23 @@ namespace snek::interpreter
     resolved_elements.push_back(type);
 
     return true;
+  }
+
+  static type::ptr
+  ResolveId(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const Id* expression
+  )
+  {
+    value::ptr slot;
+
+    if (scope->FindVariable(expression->identifier, slot, true))
+    {
+      return ResolveValue(runtime, slot);
+    }
+
+    return nullptr;
   }
 
   static type::ptr
@@ -317,7 +336,7 @@ namespace snek::interpreter
         return ResolveFunction(runtime, scope, As<Function>(expression));
 
       case Kind::Id:
-        return nullptr;
+        return ResolveId(runtime, scope, As<Id>(expression));
 
       // TODO: Maybe return number instead.
       case Kind::Increment:

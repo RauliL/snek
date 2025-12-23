@@ -26,60 +26,12 @@
 #pragma once
 
 #include "snek/interpreter/runtime.hpp"
-#include "snek/interpreter/type.hpp"
-#include "snek/parser/expression.hpp"
-#include "snek/parser/parameter.hpp"
-#include "snek/parser/statement.hpp"
-#include "snek/parser/type.hpp"
 
-namespace snek::interpreter
+namespace snek::interpreter::utils
 {
-  type::ptr
-  ResolveType(
-    const Runtime& runtime,
-    const Scope::ptr& scope,
-    const parser::type::ptr& type
-  );
-
-  Parameter
-  ResolveParameter(
-    const Runtime& runtime,
-    const Scope::ptr& scope,
-    const parser::Parameter& parameter
-  );
-
-  std::vector<Parameter>
-  ResolveParameterList(
-    const Runtime& runtime,
-    const Scope::ptr& scope,
-    const std::vector<parser::Parameter>& parameters
-  );
-
-  type::ptr
-  ResolveExpression(
-    const Runtime& runtime,
-    const Scope::ptr& scope,
-    const parser::expression::ptr& expression
-  );
-
-  type::ptr
-  ResolveStatement(
-    const Runtime& runtime,
-    const Scope::ptr& scope,
-    const parser::statement::ptr& statement
-  );
-
-  bool
-  ResolveField(
-    const Runtime& runtime,
-    const Scope::ptr& scope,
-    const parser::field::ptr& field,
-    type::Record::container_type& resolved_fields
-  );
-
-  type::ptr
-  ResolveValue(
-    const Runtime& runtime,
-    const value::ptr& value
-  );
+  inline type::ptr
+  TypeOrAny(const Runtime& runtime, const type::ptr& type)
+  {
+    return type ? type : runtime.any_type();
+  }
 }
