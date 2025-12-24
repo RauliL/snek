@@ -96,34 +96,54 @@ namespace snek::interpreter
   type::ptr
   ResolveValue(const Runtime& runtime, const ptr& value)
   {
-    // TODO: Cache value types just like done with properties previously.
+    type::ptr type;
+
+#if defined(SNEK_ENABLE_TYPE_CACHE)
+    if (value->m_cached_type)
+    {
+      return value->m_cached_type;
+    }
+#endif
+
     switch (KindOf(value))
     {
       case Kind::Boolean:
-        return runtime.boolean_type();
+        type = runtime.boolean_type();
+        break;
 
       case Kind::Float:
-        return runtime.float_type();
+        type = runtime.float_type();
+        break;
 
       case Kind::Function:
-        return ResolveFunction(runtime, As<Function>(value));
+        type = ResolveFunction(runtime, As<Function>(value));
+        break;
 
       case Kind::Int:
-        return runtime.int_type();
+        type = runtime.int_type();
+        break;
 
       case Kind::List:
-        return ResolveList(runtime, As<List>(value));
+        type = ResolveList(runtime, As<List>(value));
+        break;
 
       case Kind::Null:
-        return runtime.void_type();
+        type = runtime.void_type();
+        break;
 
       case Kind::Record:
-        return ResolveRecord(runtime, As<Record>(value));
+        type = ResolveRecord(runtime, As<Record>(value));
+        break;
 
       case Kind::String:
-        return ResolveString(runtime, As<String>(value));
+        type = ResolveString(runtime, As<String>(value));
+        break;
     }
 
-    return nullptr;
+#if defined(SNEK_ENABLE_TYPE_CACHE)
+    value->m_cached_type = type;
+#endif
+
+    return type;
   }
 }

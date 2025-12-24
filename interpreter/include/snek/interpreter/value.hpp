@@ -36,6 +36,8 @@ namespace snek::interpreter
 {
   class Runtime;
   class Scope;
+
+  type::ptr ResolveValue(const Runtime&, const std::shared_ptr<value::Base>&);
 }
 
 namespace snek::interpreter::value
@@ -81,6 +83,15 @@ namespace snek::interpreter::value
       const Runtime&,
       const std::shared_ptr<Base>&,
       const std::u32string&
+    );
+#endif
+
+#if defined(SNEK_ENABLE_TYPE_CACHE)
+  private:
+    type::ptr m_cached_type;
+    friend  type::ptr snek::interpreter::ResolveValue(
+      const Runtime&,
+      const std::shared_ptr<Base>&
     );
 #endif
   };

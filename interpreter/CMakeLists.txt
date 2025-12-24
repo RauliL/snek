@@ -15,6 +15,11 @@ option(
   "Whether value properties should be cached or not."
   ON
 )
+option(
+  SNEK_ENABLE_TYPE_CACHE
+  "Whether value types should be cached or not."
+  ON
+)
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/include/snek/interpreter/config.hpp.in
