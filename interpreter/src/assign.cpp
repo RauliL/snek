@@ -171,21 +171,20 @@ namespace snek::interpreter
       else if (kind == parser::field::Kind::Spread)
       {
         std::unordered_map<std::u32string, value::ptr> result;
-        const value::Record* r;
 
         if (i + 1 < size)
         {
           throw runtime.MakeError(U"Variable after `...' variable.");
         }
-        r = static_cast<const value::Record*>(value.get());
-        for (const auto& f : r->GetOwnPropertyNames())
-        {
-          if (used_keys.find(f) != std::end(used_keys))
+        static_cast<const value::Record*>(value.get())->ForEach(
+          [&result, used_keys](const auto& key, const auto& value)
           {
-            continue;
+            if (used_keys.find(key) == std::end(used_keys))
+            {
+              result[key] = value;
+            }
           }
-          result[f] = *r->GetOwnProperty(f);
-        }
+        );
         Process(
           runtime,
           static_cast<const parser::field::Spread*>(field.get())->expression,

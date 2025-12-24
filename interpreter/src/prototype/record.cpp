@@ -46,16 +46,17 @@ namespace snek::interpreter::prototype
   static value::ptr
   Entries(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    const auto record = As<value::Record>(arguments[0]);
     std::vector<value::ptr> result;
 
-    for (const auto& field : record->GetOwnPropertyNames())
-    {
-      result.push_back(value::List::Make({
-        value::String::Make(field),
-        *record->GetOwnProperty(field)
-      }));
-    }
+    As<value::Record>(arguments[0])->ForEach(
+      [&result](const auto& key, const auto& value)
+      {
+        result.push_back(value::List::Make({
+          value::String::Make(key),
+          value
+        }));
+      }
+    );
 
     return value::List::Make(result);
   }
@@ -68,13 +69,14 @@ namespace snek::interpreter::prototype
   static value::ptr
   Keys(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    const auto record = As<value::Record>(arguments[0]);
     std::vector<value::ptr> result;
 
-    for (const auto& field : record->GetOwnPropertyNames())
-    {
-      result.push_back(value::String::Make(field));
-    }
+    As<value::Record>(arguments[0])->ForEach(
+      [&result](const auto& key, const auto&)
+      {
+        result.push_back(value::String::Make(key));
+      }
+    );
 
     return value::List::Make(result);
   }
@@ -87,13 +89,14 @@ namespace snek::interpreter::prototype
   static value::ptr
   Values(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    const auto record = As<value::Record>(arguments[0]);
     std::vector<value::ptr> result;
 
-    for (const auto& field : record->GetOwnPropertyNames())
-    {
-      result.push_back(*record->GetOwnProperty(field));
-    }
+    As<value::Record>(arguments[0])->ForEach(
+      [&result](const auto&, const auto& value)
+      {
+        result.push_back(value);
+      }
+    );
 
     return value::List::Make(result);
   }

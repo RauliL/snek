@@ -66,31 +66,29 @@ namespace snek::interpreter::prototype
   static value::ptr
   Filter(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    const auto list = As<value::List>(arguments[0]);
     const auto callback = std::static_pointer_cast<value::Function>(
       arguments[1]
     );
-    const auto size = list->GetSize();
     std::vector<value::ptr> result;
 
-    for (std::size_t i = 0; i < size; ++i)
-    {
-      const auto element = list->At(i);
-
-      if (value::ToBoolean(
-        value::Function::Call(
-          runtime,
-          callback,
-          {
-            element,
-            runtime.MakeInt(static_cast<std::int64_t>(i)),
-          }
-        )
-      ))
+    As<value::List>(arguments[0])->ForEach(
+      [&runtime, callback, &result](const auto& element, auto index)
       {
-        result.push_back(element);
+        if (value::ToBoolean(
+          value::Function::Call(
+            runtime,
+            callback,
+            {
+              element,
+              runtime.MakeInt(static_cast<std::int64_t>(index)),
+            }
+          )
+        ))
+        {
+          result.push_back(element);
+        }
       }
-    }
+    );
 
     return value::List::Make(result);
   }
@@ -104,23 +102,23 @@ namespace snek::interpreter::prototype
   static value::ptr
   ForEach(Runtime& runtime, const std::vector<value::ptr>& arguments)
   {
-    const auto list = As<value::List>(arguments[0]);
     const auto callback = std::static_pointer_cast<value::Function>(
       arguments[1]
     );
-    const auto size = list->GetSize();
 
-    for (std::size_t i = 0; i < size; ++i)
-    {
-      value::Function::Call(
-        runtime,
-        callback,
-        {
-          list->At(i),
-          runtime.MakeInt(static_cast<std::int64_t>(i)),
-        }
-      );
-    }
+    As<value::List>(arguments[0])->ForEach(
+      [&runtime, callback](const auto& element, auto index)
+      {
+        value::Function::Call(
+          runtime,
+          callback,
+          {
+            element,
+            runtime.MakeInt(static_cast<std::int64_t>(index)),
+          }
+        );
+      }
+    );
 
     return nullptr;
   }
@@ -185,20 +183,20 @@ namespace snek::interpreter::prototype
   static value::ptr
   Join(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    const auto list = As<value::List>(arguments[0]);
     const auto separator = As<value::String>(arguments[1])->ToString();
-    const auto size = list->GetSize();
     std::u32string result;
 
-    // TODO: Add support for overloading `toString`.
-    for (std::size_t i = 0; i < size; ++i)
-    {
-      if (i > 0)
+    As<value::List>(arguments[0])->ForEach(
+      [separator, &result](const auto& element, auto index)
       {
-        result.append(separator);
+        // TODO: Add support for overloading `toString`.
+        if (index > 0)
+        {
+          result.append(separator);
+        }
+        result.append(value::ToString(element));
       }
-      result.append(value::ToString(list->At(i)));
-    }
+    );
 
     return value::String::Make(result);
   }

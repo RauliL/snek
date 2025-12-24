@@ -391,6 +391,14 @@ namespace snek::interpreter::value
 
     virtual value_type At(size_type index) const = 0;
 
+    void
+    ForEach(
+      const std::function<void(
+        const value_type&,
+        size_type
+      )>& callback
+    ) const;
+
     bool Equals(const Base& that) const override;
 
     std::u32string ToString() const override;
@@ -429,6 +437,14 @@ namespace snek::interpreter::value
     }
 
     virtual std::vector<key_type> GetOwnPropertyNames() const = 0;
+
+    void
+    ForEach(
+      const std::function<void(
+        const key_type&,
+        const mapped_type&
+      )>& callback
+    ) const;
 
     bool Equals(const Base& that) const override;
 

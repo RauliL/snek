@@ -87,19 +87,18 @@ namespace snek::interpreter::api
   {
     using peelo::unicode::encoding::utf8::encode;
 
-    const auto list = static_cast<const value::List*>(arguments[0].get());
-    const auto size = list->GetSize();
     std::u32string string;
 
-    for (std::size_t i = 0; i < size; ++i)
-    {
-      if (i > 0)
+    static_cast<const value::List*>(arguments[0].get())->ForEach(
+      [&string](const auto& value, auto index)
       {
-        string.append(1, U' ');
+        if (index > 0)
+        {
+          string.append(1, U' ');
+        }
+        string.append(value::ToString(value));
       }
-      string.append(value::ToString(list->At(i)));
-    }
-
+    );
     std::cout << encode(string) << std::endl;
 
     return nullptr;

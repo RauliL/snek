@@ -75,14 +75,13 @@ namespace snek::interpreter
   {
     type::Record::container_type fields;
 
-    for (const auto& field : record->GetOwnPropertyNames())
-    {
-      // TODO: Special handling for "[[Prototype]]".
-      fields[field] = utils::TypeOrAny(
-        runtime,
-        ResolveValue(runtime, *record->GetOwnProperty(field))
-      );
-    }
+    record->ForEach(
+      [runtime, &fields](const auto& key, const auto& value)
+      {
+        // TODO: Special handling for "[[Prototype]]".
+        fields[key] = utils::TypeOrAny(runtime, ResolveValue(runtime, value));
+      }
+    );
 
     return std::make_shared<type::Record>(fields);
   }

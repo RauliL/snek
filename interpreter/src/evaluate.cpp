@@ -206,17 +206,17 @@ namespace snek::interpreter
   )
   {
     const auto value = EvaluateExpression(runtime, scope, field->expression);
-    const value::Record* r;
 
     if (value::KindOf(value) != value::Kind::Record)
     {
       throw runtime.MakeError(U"Spread element must be a record.");
     }
-    r = static_cast<const value::Record*>(value.get());
-    for (const auto& f : r->GetOwnPropertyNames())
-    {
-      record[f] = *r->GetOwnProperty(f);
-    }
+    static_cast<const value::Record*>(value.get())->ForEach(
+      [&record](const auto& key, const auto& value)
+      {
+        record[key] = value;
+      }
+    );
   }
 
   static void
@@ -428,13 +428,12 @@ namespace snek::interpreter
 
       if (value::IsList(value))
       {
-        const auto list = As<value::List>(value);
-        const auto size = list->GetSize();
-
-        for (std::size_t i = 0; i < size; ++i)
-        {
-          arguments.push_back(list->At(i));
-        }
+        As<value::List>(value)->ForEach(
+          [&arguments](const auto& value, auto)
+          {
+            arguments.push_back(value);
+          }
+        );
       } else {
         throw runtime.MakeError(
           U"Cannot spread " +

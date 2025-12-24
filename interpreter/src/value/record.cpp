@@ -82,6 +82,20 @@ namespace snek::interpreter::value
     return std::make_shared<MapRecord>(fields);
   }
 
+  void
+  Record::ForEach(
+    const std::function<void(
+      const key_type&,
+      const mapped_type&
+    )>& callback
+  ) const
+  {
+    for (const auto& field : GetOwnPropertyNames())
+    {
+      callback(field, *GetOwnProperty(field));
+    }
+  }
+
   bool
   Record::Equals(const Base& that) const
   {

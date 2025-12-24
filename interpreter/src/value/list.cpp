@@ -63,6 +63,19 @@ namespace snek::interpreter::value
     return std::make_shared<VectorList>(elements);
   }
 
+  void
+  List::ForEach(
+    const std::function<void(const value_type&, size_type)>& callback
+  ) const
+  {
+    const auto size = GetSize();
+
+    for (size_type i = 0; i < size; ++i)
+    {
+      callback(At(i), i);
+    }
+  }
+
   bool
   List::Equals(const Base& that) const
   {
