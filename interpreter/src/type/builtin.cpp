@@ -30,42 +30,6 @@
 namespace snek::interpreter::type
 {
   bool
-  Builtin::Accepts(const Runtime&, const value::ptr& value) const
-  {
-    switch (m_kind)
-    {
-      case BuiltinKind::Boolean:
-        return value::IsBoolean(value);
-
-      case BuiltinKind::Float:
-        return value::IsNumber(value);
-
-      case BuiltinKind::Function:
-        return value::IsFunction(value);
-
-      case BuiltinKind::Int:
-        return value::IsInt(value);
-
-      case BuiltinKind::List:
-        return value::IsList(value);
-
-      case BuiltinKind::Number:
-        return value::IsNumber(value);
-
-      case BuiltinKind::Record:
-        return value::IsRecord(value);
-
-      case BuiltinKind::String:
-        return value::IsString(value);
-
-      case BuiltinKind::Void:
-        return value::IsNull(value);
-    }
-
-    return false;
-  }
-
-  bool
   Builtin::Accepts(const ptr& that) const
   {
     if (!that || this == that.get())

@@ -30,28 +30,6 @@
 namespace snek::interpreter::type
 {
   bool
-  List::Accepts(const Runtime& runtime, const value::ptr& value) const
-  {
-    if (value::IsList(value))
-    {
-      const auto list = static_cast<value::List*>(value.get());
-      const auto size = list->GetSize();
-
-      for (std::size_t i = 0; i < size; ++i)
-      {
-        if (!m_element_type->Accepts(runtime, list->At(i)))
-        {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    return false;
-  }
-
-  bool
   List::Accepts(const ptr& that) const
   {
     if (!that || this == that.get())

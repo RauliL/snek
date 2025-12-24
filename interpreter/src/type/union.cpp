@@ -31,20 +31,6 @@
 namespace snek::interpreter::type
 {
   bool
-  Union::Accepts(const Runtime& runtime, const value::ptr& value) const
-  {
-    for (const auto& type : types())
-    {
-      if (type->Accepts(runtime, value))
-      {
-        return true;
-      }
-    }
-
-    return false;
-  }
-
-  bool
   Union::Accepts(const ptr& that) const
   {
     if (!that || this == that.get())

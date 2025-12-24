@@ -93,14 +93,9 @@ namespace snek::interpreter::type
 
     virtual Kind kind() const = 0;
 
-    virtual bool Accepts(
-      const Runtime& runtime,
-      const value::ptr& value
-    ) const = 0;
+    bool Accepts(const Runtime& runtime, const value::ptr& value) const;
 
-    virtual bool Accepts(
-      const std::shared_ptr<Base>& that
-    ) const = 0;
+    virtual bool Accepts(const std::shared_ptr<Base>& that) const = 0;
 
     virtual std::u32string ToString() const = 0;
   };
@@ -147,11 +142,6 @@ namespace snek::interpreter::type
       return Kind::Any;
     }
 
-    inline bool Accepts(const Runtime&, const value::ptr&) const override
-    {
-      return true;
-    }
-
     inline bool Accepts(const ptr&) const override
     {
       return true;
@@ -175,11 +165,6 @@ namespace snek::interpreter::type
     {
       return Kind::Boolean;
     }
-
-    bool Accepts(
-      const Runtime& runtime,
-      const value::ptr& value
-    ) const override;
 
     bool Accepts(const ptr& that) const override;
 
@@ -207,11 +192,6 @@ namespace snek::interpreter::type
     {
       return m_kind;
     }
-
-    bool Accepts(
-      const Runtime& runtime,
-      const value::ptr& value
-    ) const override;
 
     bool Accepts(const ptr& that) const override;
 
@@ -246,11 +226,6 @@ namespace snek::interpreter::type
       return m_return_type;
     }
 
-    bool Accepts(
-      const Runtime& runtime,
-      const value::ptr& value
-    ) const override;
-
     bool Accepts(const ptr& that) const override;
 
     std::u32string ToString() const override;
@@ -270,11 +245,6 @@ namespace snek::interpreter::type
     {
       return Kind::Intersection;
     }
-
-    bool Accepts(
-      const Runtime& runtime,
-      const value::ptr& value
-    ) const override;
 
     bool Accepts(const ptr& that) const override;
 
@@ -296,11 +266,6 @@ namespace snek::interpreter::type
     {
       return m_element_type;
     }
-
-    bool Accepts(
-      const Runtime& runtime,
-      const value::ptr& value
-    ) const override;
 
     bool Accepts(const ptr& that) const override;
 
@@ -334,11 +299,6 @@ namespace snek::interpreter::type
       return m_fields;
     }
 
-    bool Accepts(
-      const Runtime& runtime,
-      const value::ptr& value
-    ) const override;
-
     bool Accepts(const ptr& that) const override;
 
     std::u32string ToString() const override;
@@ -366,11 +326,6 @@ namespace snek::interpreter::type
       return m_value;
     }
 
-    bool Accepts(
-      const Runtime& runtime,
-      const value::ptr& value
-    ) const override;
-
     bool Accepts(const ptr& that) const override;
 
     std::u32string ToString() const override;
@@ -390,11 +345,6 @@ namespace snek::interpreter::type
       return Kind::Tuple;
     }
 
-    bool Accepts(
-      const Runtime& runtime,
-      const value::ptr& value
-    ) const override;
-
     bool Accepts(const ptr& that) const override;
 
     std::u32string ToString() const override;
@@ -410,11 +360,6 @@ namespace snek::interpreter::type
     {
       return Kind::Union;
     }
-
-    bool Accepts(
-      const Runtime& runtime,
-      const value::ptr& value
-    ) const override;
 
     bool Accepts(const ptr& that) const override;
 

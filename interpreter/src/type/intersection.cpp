@@ -31,20 +31,6 @@
 namespace snek::interpreter::type
 {
   bool
-  Intersection::Accepts(const Runtime& runtime, const value::ptr& value) const
-  {
-    for (const auto& type : types())
-    {
-      if (!type->Accepts(runtime, value))
-      {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  bool
   Intersection::Accepts(const ptr& that) const
   {
     if (!that || this == that.get())

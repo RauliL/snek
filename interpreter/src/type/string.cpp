@@ -31,19 +31,6 @@
 namespace snek::interpreter::type
 {
   bool
-  String::Accepts(const Runtime&, const value::ptr& value) const
-  {
-    if (value::IsString(value))
-    {
-      return !m_value.compare(
-        static_cast<const value::String*>(value.get())->ToString()
-      );
-    }
-
-    return false;
-  }
-
-  bool
   String::Accepts(const ptr& that) const
   {
     if (!that || this == that.get())

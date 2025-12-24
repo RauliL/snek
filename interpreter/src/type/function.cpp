@@ -65,24 +65,6 @@ namespace snek::interpreter::type
   }
 
   bool
-  Function::Accepts(const Runtime&, const value::ptr& value) const
-  {
-    if (value::IsFunction(value))
-    {
-      const auto function = static_cast<value::Function*>(value.get());
-
-      return TestFunctions(
-        m_parameters,
-        function->parameters(),
-        m_return_type,
-        function->return_type()
-      );
-    }
-
-    return false;
-  }
-
-  bool
   Function::Accepts(const ptr& that) const
   {
     if (!that || this == that.get())

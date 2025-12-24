@@ -30,17 +30,6 @@
 namespace snek::interpreter::type
 {
   bool
-  Boolean::Accepts(const Runtime&, const value::ptr& value) const
-  {
-    if (value::IsBoolean(value))
-    {
-      return static_cast<value::Boolean*>(value.get())->value == m_value;
-    }
-
-    return false;
-  }
-
-  bool
   Boolean::Accepts(const ptr& that) const
   {
     if (!that || this == that.get())

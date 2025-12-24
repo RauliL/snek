@@ -25,7 +25,7 @@
  */
 #include <algorithm>
 
-#include "snek/interpreter/runtime.hpp"
+#include "snek/interpreter/resolve.hpp"
 #include "snek/parser/utils.hpp"
 
 namespace snek::interpreter::type
@@ -65,5 +65,11 @@ namespace snek::interpreter::type
       // TODO: Get rid of duplicates with equality comparison.
       return std::make_shared<Union>(types);
     }
+  }
+
+  bool
+  Base::Accepts(const Runtime& runtime, const value::ptr& value) const
+  {
+    return Accepts(ResolveValue(runtime, value));
   }
 }

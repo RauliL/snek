@@ -31,33 +31,6 @@
 namespace snek::interpreter::type
 {
   bool
-  Tuple::Accepts(const Runtime& runtime, const value::ptr& value) const
-  {
-    if (value::IsList(value))
-    {
-      const auto& subtypes = types();
-      const auto list = static_cast<const value::List*>(value.get());
-      const auto size = list->GetSize();
-
-      if (subtypes.size() != size)
-      {
-        return false;
-      }
-      for (std::size_t i = 0; i < size; ++i)
-      {
-        if (!subtypes[i]->Accepts(runtime, list->At(i)))
-        {
-          return false;
-        }
-      }
-
-      return true;
-    }
-
-    return false;
-  }
-
-  bool
   Tuple::Accepts(const ptr& that) const
   {
     if (!that || this == that.get())

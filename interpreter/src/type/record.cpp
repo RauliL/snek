@@ -31,29 +31,6 @@
 namespace snek::interpreter::type
 {
   bool
-  Record::Accepts(const Runtime& runtime, const value::ptr& value) const
-  {
-    if (!value::IsRecord(value))
-    {
-      return false;
-    }
-    for (const auto& field : m_fields)
-    {
-      if (const auto property = value::GetProperty(runtime, value, field.first))
-      {
-        if (!field.second->Accepts(runtime, *property))
-        {
-          return false;
-        }
-      } else {
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  bool
   Record::Accepts(const ptr& that) const
   {
     if (!that || this == that.get())
