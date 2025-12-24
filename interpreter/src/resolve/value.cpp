@@ -88,7 +88,7 @@ namespace snek::interpreter
   }
 
   static inline type::ptr
-  ResolveString(const Runtime& runtime, const String* string)
+  ResolveString(const Runtime&, const String* string)
   {
     return std::make_shared<type::String>(string->ToString());
   }
