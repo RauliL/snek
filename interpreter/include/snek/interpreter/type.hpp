@@ -38,14 +38,6 @@ namespace snek::interpreter
   class Runtime;
 }
 
-namespace snek::interpreter::value
-{
-  class Base;
-  enum class Kind;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
 namespace snek::interpreter::type
 {
   /**
@@ -92,8 +84,6 @@ namespace snek::interpreter::type
     explicit Base() {}
 
     virtual Kind kind() const = 0;
-
-    bool Accepts(const Runtime& runtime, const value::ptr& value) const;
 
     virtual bool Accepts(const std::shared_ptr<Base>& that) const = 0;
 

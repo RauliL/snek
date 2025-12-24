@@ -66,10 +66,4 @@ namespace snek::interpreter::type
       return std::make_shared<Union>(types);
     }
   }
-
-  bool
-  Base::Accepts(const Runtime& runtime, const value::ptr& value) const
-  {
-    return Accepts(ResolveValue(runtime, value));
-  }
 }

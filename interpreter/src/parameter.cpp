@@ -23,15 +23,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/interpreter/parameter.hpp"
-#include "snek/interpreter/type.hpp"
+#include "snek/interpreter/resolve.hpp"
 
 namespace snek::interpreter
 {
   bool
   Parameter::Accepts(const Runtime& runtime, const value::ptr& value) const
   {
-    return type ? type->Accepts(runtime, value) : true;
+    return type ? type->Accepts(ResolveValue(runtime, value)) : true;
   }
 
   bool
