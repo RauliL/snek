@@ -46,19 +46,14 @@ namespace snek::interpreter::prototype
   static value::ptr
   Entries(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    std::vector<value::ptr> result;
-
-    As<value::Record>(arguments[0])->ForEach(
-      [&result](const auto& key, const auto& value)
-      {
-        result.push_back(value::List::Make({
-          value::String::Make(key),
-          value
-        }));
-      }
+    return value::List::Make(
+      As<value::Record>(arguments[0])->Map<value::ptr>(
+        [](const auto& key, const auto& value)
+        {
+          return value::List::Make({ value::String::Make(key), value });
+        }
+      )
     );
-
-    return value::List::Make(result);
   }
 
   /**
@@ -69,16 +64,14 @@ namespace snek::interpreter::prototype
   static value::ptr
   Keys(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    std::vector<value::ptr> result;
-
-    As<value::Record>(arguments[0])->ForEach(
-      [&result](const auto& key, const auto&)
-      {
-        result.push_back(value::String::Make(key));
-      }
+    return value::List::Make(
+      As<value::Record>(arguments[0])->Map<value::ptr>(
+        [](const auto& key, const auto&)
+        {
+          return value::String::Make(key);
+        }
+      )
     );
-
-    return value::List::Make(result);
   }
 
   /**
@@ -89,16 +82,14 @@ namespace snek::interpreter::prototype
   static value::ptr
   Values(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    std::vector<value::ptr> result;
-
-    As<value::Record>(arguments[0])->ForEach(
-      [&result](const auto&, const auto& value)
-      {
-        result.push_back(value);
-      }
+    return value::List::Make(
+      As<value::Record>(arguments[0])->Map<value::ptr>(
+        [](const auto&, const auto& value)
+        {
+          return value;
+        }
+      )
     );
-
-    return value::List::Make(result);
   }
 
   namespace

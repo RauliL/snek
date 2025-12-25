@@ -399,6 +399,27 @@ namespace snek::interpreter::value
       )>& callback
     ) const;
 
+    template<class T>
+    std::vector<T>
+    Map(
+      const std::function<T(
+        const value_type&,
+        size_type
+      )>& callback
+    ) const
+    {
+      std::vector<T> result;
+
+      ForEach(
+        [&result, callback](const auto& element, size_type index)
+        {
+          result.push_back(callback(element, index));
+        }
+      );
+
+      return result;
+    }
+
     bool Equals(const Base& that) const override;
 
     std::u32string ToString() const override;
@@ -445,6 +466,27 @@ namespace snek::interpreter::value
         const mapped_type&
       )>& callback
     ) const;
+
+    template<class T>
+    std::vector<T>
+    Map(
+      const std::function<T(
+        const key_type&,
+        const mapped_type&
+      )>& callback
+    ) const
+    {
+      std::vector<T> result;
+
+      ForEach(
+        [&](const key_type& key, const mapped_type& value)
+        {
+          result.push_back(callback(key, value));
+        }
+      );
+
+      return result;
+    }
 
     bool Equals(const Base& that) const override;
 

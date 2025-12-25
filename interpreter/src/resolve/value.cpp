@@ -50,24 +50,16 @@ namespace snek::interpreter
   static type::ptr
   ResolveList(const Runtime& runtime, const List* list)
   {
-    const auto size = list->GetSize();
-
-    if (size > 0)
-    {
-      std::vector<type::ptr> types;
-
-      types.reserve(size);
-      for (std::size_t i = 0; i < size; ++i)
+    const auto types = list->Map<type::ptr>(
+      [runtime](const auto& element, auto)
       {
-        types.push_back(
-          utils::TypeOrAny(runtime, ResolveValue(runtime, list->At(i)))
-        );
+        return utils::TypeOrAny(runtime, ResolveValue(runtime, element));
       }
+    );
 
-      return std::make_shared<type::Tuple>(types);
-    }
-
-    return runtime.list_type();
+    return types.empty()
+      ? runtime.list_type()
+      : std::make_shared<type::Tuple>(types);
   }
 
   static type::ptr
