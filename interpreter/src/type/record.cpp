@@ -52,9 +52,9 @@ namespace snek::interpreter::type
         {
           return false;
         }
-
-        return true;
       }
+
+      return true;
     }
     else if (that->kind() == Kind::Builtin)
     {
