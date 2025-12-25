@@ -25,6 +25,7 @@
  */
 #pragma once
 
+#include <algorithm>
 #include <functional>
 
 #include "snek/interpreter/config.hpp"
@@ -37,11 +38,32 @@ namespace snek::interpreter
   class Runtime;
   class Scope;
 
-  type::ptr ResolveValue(const Runtime&, const std::shared_ptr<value::Base>&);
+  type::ptr
+  ResolveValue(const Runtime&, const std::shared_ptr<value::Base>&);
 }
 
 namespace snek::interpreter::value
 {
+  class Base;
+  class Boolean;
+  class Float;
+  class Function;
+  class Int;
+  class List;
+  class Number;
+  class Record;
+  class String;
+
+  using ptr = std::shared_ptr<Base>;
+  using boolean_ptr = std::shared_ptr<Boolean>;
+  using float_ptr = std::shared_ptr<Float>;
+  using function_ptr = std::shared_ptr<Function>;
+  using int_ptr = std::shared_ptr<Int>;
+  using list_ptr = std::shared_ptr<List>;
+  using number_ptr = std::shared_ptr<Number>;
+  using record_ptr = std::shared_ptr<Record>;
+  using string_ptr = std::shared_ptr<String>;
+
   enum class Kind
   {
     Boolean,
@@ -60,26 +82,27 @@ namespace snek::interpreter::value
     DISALLOW_COPY_AND_ASSIGN(Base);
 
   #if defined(SNEK_ENABLE_PROPERTY_CACHE)
-    using property_cache_type = std::unordered_map<
-      std::u32string,
-      std::shared_ptr<Base>
-    >;
+    using property_cache_type = std::unordered_map<std::u32string, ptr>;
   #endif
 
     explicit Base() {}
 
-    virtual Kind kind() const = 0;
+    virtual Kind
+    kind() const = 0;
 
-    virtual bool Equals(const Base& that) const = 0;
+    virtual bool
+    Equals(const Base& that) const = 0;
 
-    virtual std::u32string ToString() const = 0;
+    virtual std::u32string
+    ToString() const = 0;
 
-    virtual std::u32string ToSource() const = 0;
+    virtual std::u32string
+    ToSource() const = 0;
 
 #if defined(SNEK_ENABLE_PROPERTY_CACHE)
   private:
     mutable property_cache_type m_property_cache;
-    friend std::optional<std::shared_ptr<Base>> GetProperty(
+    friend std::optional<ptr> GetProperty(
       const Runtime&,
       const std::shared_ptr<Base>&,
       const std::u32string&
@@ -96,56 +119,64 @@ namespace snek::interpreter::value
 #endif
   };
 
-  using ptr = std::shared_ptr<Base>;
-
-  inline Kind KindOf(const ptr& value)
+  inline Kind
+  KindOf(const ptr& value)
   {
     return value ? value->kind() : Kind::Null;
   }
 
-  inline bool IsBoolean(const ptr& value)
+  inline bool
+  IsBoolean(const ptr& value)
   {
     return KindOf(value) == Kind::Boolean;
   }
 
-  inline bool IsFloat(const ptr& value)
+  inline bool
+  IsFloat(const ptr& value)
   {
     return KindOf(value) == Kind::Float;
   }
 
-  inline bool IsFunction(const ptr& value)
+  inline bool
+  IsFunction(const ptr& value)
   {
     return KindOf(value) == Kind::Function;
   }
 
-  inline bool IsInt(const ptr& value)
+  inline bool
+  IsInt(const ptr& value)
   {
     return KindOf(value) == Kind::Int;
   }
 
-  inline bool IsList(const ptr& value)
+  inline bool
+  IsList(const ptr& value)
   {
     return KindOf(value) == Kind::List;
   }
 
-  inline bool IsNull(const ptr& value)
+  inline bool
+  IsNull(const ptr& value)
   {
     return !value;
   }
 
-  inline bool IsNumber(const ptr& value)
+  inline bool
+  IsNumber(const ptr& value)
   {
     const auto kind = KindOf(value);
 
     return kind == Kind::Float || kind == Kind::Int;
   }
 
-  inline bool IsRecord(const ptr& value)
+  inline bool
+  IsRecord(const ptr& value)
   {
     return KindOf(value) == Kind::Record;
   }
 
-  inline bool IsString(const ptr& value)
+  inline bool
+  IsString(const ptr& value)
   {
     return KindOf(value) == Kind::String;
   }
@@ -173,7 +204,8 @@ namespace snek::interpreter::value
     bool tail_call = false
   );
 
-  inline bool Equals(const ptr& a, const ptr& b)
+  inline bool
+  Equals(const ptr& a, const ptr& b)
   {
     if (!a)
     {
@@ -187,16 +219,20 @@ namespace snek::interpreter::value
     return a->Equals(*b);
   }
 
-  bool ToBoolean(const ptr& value);
+  bool
+  ToBoolean(const ptr& value);
 
-  inline std::u32string ToString(const ptr& value)
+  inline std::u32string
+  ToString(const ptr& value)
   {
     return value ? value->ToString() : U"";
   }
 
-  std::u32string ToString(Kind kind);
+  std::u32string
+  ToString(Kind kind);
 
-  inline std::u32string ToSource(const ptr& value)
+  inline std::u32string
+  ToSource(const ptr& value)
   {
     return value ? value->ToSource() : U"null";
   }
@@ -210,11 +246,14 @@ namespace snek::interpreter::value
     explicit Number()
       : Base() {}
 
-    virtual int_type ToInt() const = 0;
+    virtual int_type
+    ToInt() const = 0;
 
-    virtual float_type ToFloat() const = 0;
+    virtual float_type
+    ToFloat() const = 0;
 
-    inline std::u32string ToSource() const override
+    inline std::u32string
+    ToSource() const override
     {
       return ToString();
     }
@@ -285,14 +324,14 @@ namespace snek::interpreter::value
 
     explicit Function() {}
 
-    static std::shared_ptr<Function>
+    static function_ptr
     MakeNative(
       const std::vector<Parameter>& parameters,
       const type::ptr& return_type,
       const callback_type& callback
     );
 
-    static std::shared_ptr<Function>
+    static function_ptr
     MakeScripted(
       const std::vector<Parameter>& parameters,
       const type::ptr& return_type,
@@ -300,35 +339,38 @@ namespace snek::interpreter::value
       const std::shared_ptr<Scope>& enclosing_scope
     );
 
-    static std::shared_ptr<Function>
-    Bind(
-      const ptr& this_value,
-      const std::shared_ptr<Function>& function
-    );
+    static function_ptr
+    Bind(const ptr& this_value, const function_ptr& function);
 
     static ptr
     Call(
       Runtime& runtime,
-      const std::shared_ptr<value::Function>& function,
+      const function_ptr& function,
       const std::vector<ptr>& arguments,
       bool tail_call = false,
       const std::optional<Position>& position = std::nullopt
     );
 
-    inline Kind kind() const override
+    inline Kind
+    kind() const override
     {
       return Kind::Function;
     }
 
-    virtual const std::vector<Parameter>& parameters() const = 0;
+    virtual const std::vector<Parameter>&
+    parameters() const = 0;
 
-    virtual const type::ptr& return_type() const = 0;
+    virtual const type::ptr&
+    return_type() const = 0;
 
-    bool Equals(const Base& that) const override;
+    bool
+    Equals(const Base& that) const override;
 
-    std::u32string ToString() const override;
+    std::u32string
+    ToString() const override;
 
-    inline std::u32string ToSource() const override
+    inline std::u32string
+    ToSource() const override
     {
       return ToString();
     }
@@ -351,62 +393,65 @@ namespace snek::interpreter::value
     explicit Int(value_type value_)
       : value(value_) {}
 
-    inline Kind kind() const override
+    inline Kind
+    kind() const override
     {
       return Kind::Int;
     }
 
-    inline int_type ToInt() const override
+    inline int_type
+    ToInt() const override
     {
       return value;
     }
 
-    inline float_type ToFloat() const override
+    inline float_type
+    ToFloat() const override
     {
       return static_cast<float_type>(value);
     }
 
-    bool Equals(const Base& that) const override;
+    bool
+    Equals(const Base& that) const override;
 
-    std::u32string ToString() const override;
+    std::u32string
+    ToString() const override;
   };
 
   class List : public Base
   {
   public:
     using value_type = ptr;
-    using size_type = std::size_t;
+    using container_type = std::vector<value_type>;
+    using size_type = container_type::size_type;
+    using for_each_callback_type = std::function<void(
+      const value_type&,
+      size_type
+    )>;
 
-    static std::shared_ptr<List>
-    Make(const std::vector<ptr>& elements);
+    static list_ptr
+    Make(const container_type& elements);
 
     explicit List() {}
 
-    inline Kind kind() const override
+    inline Kind
+    kind() const override
     {
       return Kind::List;
     }
 
-    virtual size_type GetSize() const = 0;
+    virtual size_type
+    GetSize() const = 0;
 
-    virtual value_type At(size_type index) const = 0;
+    virtual value_type
+    At(size_type index) const = 0;
 
     void
-    ForEach(
-      const std::function<void(
-        const value_type&,
-        size_type
-      )>& callback
-    ) const;
+    ForEach(const for_each_callback_type& callback) const;
 
     template<class T>
     std::vector<T>
-    Map(
-      const std::function<T(
-        const value_type&,
-        size_type
-      )>& callback
-    ) const
+    Map(const std::function<T(const value_type&, size_type)>& callback) const
     {
       std::vector<T> result;
 
@@ -420,13 +465,17 @@ namespace snek::interpreter::value
       return result;
     }
 
-    bool Equals(const Base& that) const override;
+    bool
+    Equals(const Base& that) const override;
 
-    std::u32string ToString() const override;
+    std::u32string
+    ToString() const override;
 
-    std::u32string ToSource() const override;
+    std::u32string
+    ToSource() const override;
 
-    virtual std::vector<ptr> ToVector() const;
+    virtual container_type
+    ToVector() const;
   };
 
   class Record : public Base
@@ -434,38 +483,47 @@ namespace snek::interpreter::value
   public:
     using key_type = std::u32string;
     using mapped_type = ptr;
-    using value_type = std::pair<key_type, mapped_type>;
-    using size_type = std::size_t;
+    using container_type = std::unordered_map<key_type, mapped_type>;
+    using value_type = container_type::value_type;
+    using size_type = container_type::size_type;
+    using for_each_callback_type = std::function<void(
+      const key_type&,
+      const mapped_type&
+    )>;
 
-    static ptr Make(const std::unordered_map<key_type, mapped_type>& fields);
+    static record_ptr
+    Make(const container_type& fields);
+
+    static record_ptr
+    Merge(const record_ptr& first, const record_ptr& second);
 
     explicit Record() {}
 
-    inline Kind kind() const override
+    inline Kind
+    kind() const override
     {
       return Kind::Record;
     }
 
-    virtual size_type GetSize() const = 0;
+    virtual size_type
+    GetSize() const = 0;
 
-    virtual std::optional<ptr> GetOwnProperty(const key_type& name) const = 0;
+    virtual std::optional<ptr>
+    GetOwnProperty(const key_type& name) const = 0;
 
-    inline bool HasOwnProperty(const key_type& name) const
+    inline bool
+    HasOwnProperty(const key_type& name) const
     {
       const auto fields = GetOwnPropertyNames();
 
       return std::find(fields.begin(), fields.end(), name) != fields.end();
     }
 
-    virtual std::vector<key_type> GetOwnPropertyNames() const = 0;
+    virtual std::vector<key_type>
+    GetOwnPropertyNames() const = 0;
 
     void
-    ForEach(
-      const std::function<void(
-        const key_type&,
-        const mapped_type&
-      )>& callback
-    ) const;
+    ForEach(const for_each_callback_type& callback) const;
 
     template<class T>
     std::vector<T>
@@ -488,11 +546,14 @@ namespace snek::interpreter::value
       return result;
     }
 
-    bool Equals(const Base& that) const override;
+    bool
+    Equals(const Base& that) const override;
 
-    std::u32string ToString() const override;
+    std::u32string
+    ToString() const override;
 
-    std::u32string ToSource() const override;
+    std::u32string
+    ToSource() const override;
   };
 
   class String : public Base
@@ -501,20 +562,25 @@ namespace snek::interpreter::value
     using value_type = char32_t;
     using size_type = std::size_t;
 
-    static ptr
+    static string_ptr
     Make(const std::u32string& text);
 
-    inline Kind kind() const override
+    inline Kind
+    kind() const override
     {
       return Kind::String;
     }
 
-    virtual size_type GetLength() const = 0;
+    virtual size_type
+    GetLength() const = 0;
 
-    virtual value_type At(size_type index) const = 0;
+    virtual value_type
+    At(size_type index) const = 0;
 
-    bool Equals(const Base& that) const override;
+    bool
+    Equals(const Base& that) const override;
 
-    std::u32string ToSource() const override;
+    std::u32string
+    ToSource() const override;
   };
 }

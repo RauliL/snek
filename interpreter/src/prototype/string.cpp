@@ -252,7 +252,7 @@ namespace snek::interpreter::prototype
     class ReverseString final : public value::String
     {
     public:
-      explicit ReverseString(const std::shared_ptr<String>& string)
+      explicit ReverseString(const value::string_ptr& string)
         : m_string(string) {}
 
       inline size_type GetLength() const override
@@ -280,7 +280,7 @@ namespace snek::interpreter::prototype
       }
 
     private:
-      const std::shared_ptr<String> m_string;
+      const value::string_ptr m_string;
     };
   }
 
@@ -325,18 +325,20 @@ namespace snek::interpreter::prototype
     {
     public:
       explicit ConcatString(
-        const std::shared_ptr<String>& left,
-        const std::shared_ptr<String>& right
+        const value::string_ptr& left,
+        const value::string_ptr& right
       )
         : m_left(left)
         , m_right(right) {}
 
-      inline size_type GetLength() const override
+      inline size_type
+      GetLength() const override
       {
         return m_left->GetLength() + m_right->GetLength();
       }
 
-      inline value_type At(size_type index) const override
+      inline value_type
+      At(size_type index) const override
       {
         const auto left_size = m_left->GetLength();
 
@@ -348,14 +350,15 @@ namespace snek::interpreter::prototype
         }
       }
 
-      inline std::u32string ToString() const override
+      inline std::u32string
+      ToString() const override
       {
         return m_left->ToString().append(m_right->ToString());
       }
 
     private:
-      const std::shared_ptr<String> m_left;
-      const std::shared_ptr<String> m_right;
+      const value::string_ptr m_left;
+      const value::string_ptr m_right;
     };
   }
 
@@ -378,20 +381,19 @@ namespace snek::interpreter::prototype
     class RepeatString final : public value::String
     {
     public:
-      explicit RepeatString(
-        const std::shared_ptr<String>& string,
-        size_type count
-      )
+      explicit RepeatString(const value::string_ptr& string, size_type count)
         : m_string(string)
         , m_count(count)
         , m_length(string->GetLength()) {}
 
-      inline size_type GetLength() const override
+      inline size_type
+      GetLength() const override
       {
         return m_count * m_length;
       }
 
-      inline value_type At(size_type index) const override
+      inline value_type
+      At(size_type index) const override
       {
         while (index >= m_length)
         {
@@ -401,7 +403,8 @@ namespace snek::interpreter::prototype
         return m_string->At(index);
       }
 
-      inline std::u32string ToString() const override
+      inline std::u32string
+      ToString() const override
       {
         const auto string = m_string->ToString();
         std::u32string result;
@@ -416,7 +419,7 @@ namespace snek::interpreter::prototype
       }
 
     private:
-      const std::shared_ptr<String> m_string;
+      const value::string_ptr m_string;
       const size_type m_count;
       const size_type m_length;
     };

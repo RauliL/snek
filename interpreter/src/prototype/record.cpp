@@ -23,6 +23,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <memory>
 #include <unordered_set>
 
 #include "snek/interpreter/error.hpp"
@@ -92,77 +93,6 @@ namespace snek::interpreter::prototype
     );
   }
 
-  namespace
-  {
-    class ConcatRecord final : public value::Record
-    {
-    public:
-      using name_container_type = std::unordered_set<key_type>;
-
-      explicit ConcatRecord(
-        const std::shared_ptr<Record>& left,
-        const std::shared_ptr<Record>& right
-      )
-        : m_left(left)
-        , m_left_names(FromVector(left->GetOwnPropertyNames()))
-        , m_right(right)
-        , m_right_names(FromVector(right->GetOwnPropertyNames()))
-        , m_all_names(Merge(m_left_names, m_right_names)) {}
-
-      inline size_type
-      GetSize() const override
-      {
-        return m_all_names.size();
-      }
-
-      inline std::vector<key_type>
-      GetOwnPropertyNames() const override
-      {
-        return m_all_names;
-      }
-
-      std::optional<mapped_type>
-      GetOwnProperty(const std::u32string& name) const override
-      {
-        if (m_right_names.find(name) != std::end(m_right_names))
-        {
-          return m_right->GetOwnProperty(name);
-        }
-        else if (m_left_names.find(name) != std::end(m_left_names))
-        {
-          return m_left->GetOwnProperty(name);
-        }
-
-        return nullptr;
-      }
-
-    private:
-      static inline name_container_type
-      FromVector(const std::vector<key_type>& keys)
-      {
-        return name_container_type(std::begin(keys), std::end(keys));
-      }
-
-      static inline std::vector<key_type>
-      Merge(const name_container_type& left, const name_container_type& right)
-      {
-        name_container_type result;
-
-        result.insert(std::begin(left), std::end(left));
-        result.insert(std::begin(right), std::end(right));
-
-        return std::vector<key_type>(std::begin(result), std::end(result));
-      }
-
-    private:
-      const std::shared_ptr<Record> m_left;
-      const name_container_type m_left_names;
-      const std::shared_ptr<Record> m_right;
-      const name_container_type m_right_names;
-      const std::vector<key_type> m_all_names;
-    };
-  }
-
   /**
    * Record#+(this: Record, other: Record) => Record
    *
@@ -171,7 +101,7 @@ namespace snek::interpreter::prototype
   static value::ptr
   Concat(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<ConcatRecord>(
+    return value::Record::Merge(
       std::static_pointer_cast<value::Record>(arguments[0]),
       std::static_pointer_cast<value::Record>(arguments[1])
     );
@@ -183,7 +113,7 @@ namespace snek::interpreter::prototype
     {
     public:
       explicit RemoveRecord(
-        const std::shared_ptr<Record>& record,
+        const value::record_ptr& record,
         const key_type& removed_name
       )
         : m_record(record)
@@ -221,7 +151,7 @@ namespace snek::interpreter::prototype
       }
 
     private:
-      const std::shared_ptr<Record> m_record;
+      const value::record_ptr m_record;
       const key_type m_removed_name;
     };
   }

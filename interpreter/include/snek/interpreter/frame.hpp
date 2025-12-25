@@ -32,9 +32,10 @@ namespace snek::interpreter
   struct Frame final
   {
     std::optional<Position> position;
-    std::shared_ptr<value::Function> function;
-    std::vector<value::ptr> arguments;
+    value::function_ptr function;
+    value::List::container_type arguments;
 
-    std::u32string ToString() const;
+    std::u32string
+    ToString() const;
   };
 }

@@ -226,7 +226,7 @@ namespace snek::interpreter::value
     public:
       explicit BoundFunction(
         const ptr& this_value,
-        const std::shared_ptr<Function>& function
+        const function_ptr& function
       )
         : Function()
         , m_this_value(this_value)
@@ -273,12 +273,12 @@ namespace snek::interpreter::value
 
     private:
       const ptr m_this_value;
-      const std::shared_ptr<Function> m_function;
+      const function_ptr m_function;
       const std::vector<Parameter> m_parameters;
     };
   }
 
-  std::shared_ptr<Function>
+  function_ptr
   Function::MakeNative(
     const std::vector<Parameter>& parameters,
     const type::ptr& return_type,
@@ -292,7 +292,7 @@ namespace snek::interpreter::value
     );
   }
 
-  std::shared_ptr<Function>
+  function_ptr
   Function::MakeScripted(
     const std::vector<Parameter>& parameters,
     const type::ptr& return_type,
@@ -308,11 +308,8 @@ namespace snek::interpreter::value
     );
   }
 
-  std::shared_ptr<Function>
-  Function::Bind(
-    const ptr& this_value,
-    const std::shared_ptr<Function>& function
-  )
+  function_ptr
+  Function::Bind(const ptr& this_value, const function_ptr& function)
   {
     return std::make_shared<BoundFunction>(this_value, function);
   }
@@ -320,7 +317,7 @@ namespace snek::interpreter::value
   ptr
   Function::Call(
     Runtime& runtime,
-    const std::shared_ptr<Function>& function,
+    const function_ptr& function,
     const std::vector<ptr>& arguments,
     bool tail_call,
     const std::optional<Position>& position

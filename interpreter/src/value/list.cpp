@@ -32,22 +32,23 @@ namespace snek::interpreter::value
     class VectorList final : public List
     {
     public:
-      using container_type = std::vector<value_type>;
-
       explicit VectorList(const container_type& elements)
         : m_elements(elements) {}
 
-      inline size_type GetSize() const override
+      inline size_type
+      GetSize() const override
       {
         return m_elements.size();
       }
 
-      inline value_type At(size_type index) const override
+      inline value_type
+      At(size_type index) const override
       {
         return m_elements[index];
       }
 
-      inline std::vector<ptr> ToVector() const override
+      inline container_type
+      ToVector() const override
       {
         return m_elements;
       }
@@ -57,8 +58,8 @@ namespace snek::interpreter::value
     };
   }
 
-  std::shared_ptr<List>
-  List::Make(const std::vector<value_type>& elements)
+  list_ptr
+  List::Make(const container_type& elements)
   {
     return std::make_shared<VectorList>(elements);
   }
@@ -142,7 +143,7 @@ namespace snek::interpreter::value
     return result.append(1, U']');
   }
 
-  std::vector<ptr>
+  List::container_type
   List::ToVector() const
   {
     const auto size = GetSize();

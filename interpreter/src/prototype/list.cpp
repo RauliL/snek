@@ -327,7 +327,7 @@ namespace snek::interpreter::prototype
     class ReverseList final : public value::List
     {
     public:
-      explicit ReverseList(const std::shared_ptr<List>& list)
+      explicit ReverseList(const value::list_ptr& list)
         : m_list(list) {}
 
       inline size_type GetSize() const override
@@ -341,7 +341,7 @@ namespace snek::interpreter::prototype
       }
 
     private:
-      const std::shared_ptr<List> m_list;
+      const value::list_ptr m_list;
     };
   }
 
@@ -389,18 +389,20 @@ namespace snek::interpreter::prototype
     {
     public:
       explicit ConcatList(
-        const std::shared_ptr<List>& left,
-        const std::shared_ptr<List>& right
+        const value::list_ptr& left,
+        const value::list_ptr& right
       )
         : m_left(left)
         , m_right(right) {}
 
-      inline size_type GetSize() const override
+      inline size_type
+      GetSize() const override
       {
         return m_left->GetSize() + m_right->GetSize();
       }
 
-      value_type At(size_type index) const override
+      value_type
+      At(size_type index) const override
       {
         const auto left_size = m_left->GetSize();
 
@@ -413,8 +415,8 @@ namespace snek::interpreter::prototype
       }
 
     private:
-      const std::shared_ptr<List> m_left;
-      const std::shared_ptr<List> m_right;
+      const value::list_ptr m_left;
+      const value::list_ptr m_right;
     };
   }
 
@@ -437,17 +439,19 @@ namespace snek::interpreter::prototype
     class RepeatList final : public value::List
     {
     public:
-      explicit RepeatList(const std::shared_ptr<List>& list, size_type count)
+      explicit RepeatList(const value::list_ptr& list, size_type count)
         : m_list(list)
         , m_count(count)
         , m_size(list->GetSize()) {}
 
-      inline size_type GetSize() const override
+      inline size_type
+      GetSize() const override
       {
         return m_count * m_size;
       }
 
-      inline value_type At(size_type index) const override
+      inline value_type
+      At(size_type index) const override
       {
         while (index >= m_size)
         {
@@ -458,7 +462,7 @@ namespace snek::interpreter::prototype
       }
 
     private:
-      const std::shared_ptr<List> m_list;
+      const value::list_ptr m_list;
       const size_type m_count;
       const size_type m_size;
     };

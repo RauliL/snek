@@ -23,6 +23,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+#include <unordered_set>
+
 #include "snek/interpreter/value.hpp"
 #include "snek/parser/utils.hpp"
 
@@ -33,8 +35,6 @@ namespace snek::interpreter::value
     class MapRecord final : public Record
     {
     public:
-      using container_type = std::unordered_map<key_type, mapped_type>;
-
       explicit MapRecord(const container_type& fields)
         : m_fields(fields) {}
 
@@ -74,12 +74,71 @@ namespace snek::interpreter::value
     private:
       const container_type m_fields;
     };
+
+    class MergeRecord final : public Record
+    {
+    public:
+      explicit MergeRecord(const record_ptr& first, const record_ptr& second)
+        : m_first(first)
+        , m_second(second)
+        , m_own_property_names(MakeOwnPropertyNames(first, second)) {}
+
+      inline size_type
+      GetSize() const override
+      {
+        return GetOwnPropertyNames().size();
+      }
+
+      std::optional<ptr>
+      GetOwnProperty(const key_type& name) const override
+      {
+        if (const auto value = m_second->GetOwnProperty(name))
+        {
+          return value;
+        }
+
+        return m_first->GetOwnProperty(name);
+      }
+
+      std::vector<key_type>
+      GetOwnPropertyNames() const override
+      {
+        return m_own_property_names;
+      }
+
+    private:
+      static std::vector<key_type>
+      MakeOwnPropertyNames(const record_ptr& first, const record_ptr& second)
+      {
+        const auto first_keys = first->GetOwnPropertyNames();
+        const auto second_keys = second->GetOwnPropertyNames();
+        std::unordered_set<key_type> result(
+          std::begin(first_keys),
+          std::end(first_keys)
+        );
+
+        result.insert(std::begin(second_keys), std::end(second_keys));
+
+        return std::vector<key_type>(std::begin(result), std::end(result));
+      }
+
+    private:
+      const record_ptr m_first;
+      const record_ptr m_second;
+      const std::vector<key_type> m_own_property_names;
+    };
   }
 
-  ptr
-  Record::Make(const std::unordered_map<key_type, mapped_type>& fields)
+  record_ptr
+  Record::Make(const container_type& fields)
   {
     return std::make_shared<MapRecord>(fields);
+  }
+
+  record_ptr
+  Record::Merge(const record_ptr& first, const record_ptr& second)
+  {
+    return std::make_shared<MergeRecord>(first, second);
   }
 
   void

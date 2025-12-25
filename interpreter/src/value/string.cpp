@@ -36,17 +36,20 @@ namespace snek::interpreter::value
       explicit StringWrapper(const std::u32string& text)
         : m_text(text) {}
 
-      inline size_type GetLength() const override
+      inline size_type
+      GetLength() const override
       {
         return m_text.length();
       }
 
-      inline value_type At(size_type index) const override
+      inline value_type
+      At(size_type index) const override
       {
         return m_text[index];
       }
 
-      inline std::u32string ToString() const override
+      inline std::u32string
+      ToString() const override
       {
         return m_text;
       }
@@ -56,7 +59,7 @@ namespace snek::interpreter::value
     };
   }
 
-  ptr
+  string_ptr
   String::Make(const std::u32string& text)
   {
     return std::make_shared<StringWrapper>(text);
