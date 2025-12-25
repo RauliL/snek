@@ -1,18 +1,50 @@
-name: Build
+name: Build and test
 
 on: [push]
 
 jobs:
-  build:
+  build-and-test:
+
+    name: ${{ matrix.toolchain }}
     runs-on: ${{ matrix.os }}
+
     strategy:
       matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
+        toolchain:
+          - linux-gcc
+          - macos-clang
+          - windows-msvc
+
+        configuration:
+          - Debug
+
+        include:
+          - toolchain: linux-gcc
+            os: ubuntu-latest
+            compiler: gcc
+
+          - toolchain: macos-clang
+            os: macos-latest
+            compiler: clang
+
+          - toolchain: windows-msvc
+            os: windows-latest
+            compiler: msvc
+
     steps:
-      - uses: actions/checkout@v4
-      - name: Build
-        uses: ashutoshvarma/action-cmake-build@master
-        with:
-          build-dir: ${{ runner.workspace }}/build
-          build-type: Release
-          run-test: true
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure (${{ matrix.configuration }})
+        run: cmake -S . -Bbuild -DCMAKE_BUILD_TYPE=${{ matrix.configuration }}
+        env:
+          CMAKE_POLICY_VERSION_MINIMUM: 3.5
+
+      - name: Build with ${{ matrix.compiler }}
+        run: cmake --build build --config ${{ matrix.configuration }}
+
+      - name: Test
+        working-directory: build
+        env:
+          CTEST_OUTPUT_ON_FAILURE: 1
+        run: ctest -C ${{ matrix.configuration }}
