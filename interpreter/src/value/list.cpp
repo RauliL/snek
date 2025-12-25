@@ -29,10 +29,10 @@ namespace snek::interpreter::value
 {
   namespace
   {
-    class VectorList final : public List
+    class VectorWrapper final : public List
     {
     public:
-      explicit VectorList(const container_type& elements)
+      explicit VectorWrapper(const container_type& elements)
         : m_elements(elements) {}
 
       inline size_type
@@ -56,12 +56,49 @@ namespace snek::interpreter::value
     private:
       const container_type m_elements;
     };
+
+    class ConcatList final : public List
+    {
+    public:
+      explicit ConcatList(const list_ptr& left, const list_ptr& right)
+        : m_left(left)
+        , m_right(right) {}
+
+      inline size_type
+      GetSize() const override
+      {
+        return m_left->GetSize() + m_right->GetSize();
+      }
+
+      value_type
+      At(size_type index) const override
+      {
+        const auto left_size = m_left->GetSize();
+
+        if (index < left_size)
+        {
+          return m_left->At(index);
+        } else {
+          return m_right->At(index - left_size);
+        }
+      }
+
+    private:
+      const list_ptr m_left;
+      const list_ptr m_right;
+    };
   }
 
   list_ptr
   List::Make(const container_type& elements)
   {
-    return std::make_shared<VectorList>(elements);
+    return std::make_shared<VectorWrapper>(elements);
+  }
+
+  list_ptr
+  List::Concat(const list_ptr& left, const list_ptr& right)
+  {
+    return std::make_shared<ConcatList>(left, right);
   }
 
   void

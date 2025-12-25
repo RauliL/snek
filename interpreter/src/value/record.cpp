@@ -78,10 +78,10 @@ namespace snek::interpreter::value
     class MergeRecord final : public Record
     {
     public:
-      explicit MergeRecord(const record_ptr& first, const record_ptr& second)
-        : m_first(first)
-        , m_second(second)
-        , m_own_property_names(MakeOwnPropertyNames(first, second)) {}
+      explicit MergeRecord(const record_ptr& left, const record_ptr& right)
+        : m_left(left)
+        , m_right(right)
+        , m_own_property_names(MakeOwnPropertyNames(left, right)) {}
 
       inline size_type
       GetSize() const override
@@ -92,12 +92,12 @@ namespace snek::interpreter::value
       std::optional<ptr>
       GetOwnProperty(const key_type& name) const override
       {
-        if (const auto value = m_second->GetOwnProperty(name))
+        if (const auto value = m_right->GetOwnProperty(name))
         {
           return value;
         }
 
-        return m_first->GetOwnProperty(name);
+        return m_left->GetOwnProperty(name);
       }
 
       std::vector<key_type>
@@ -108,23 +108,23 @@ namespace snek::interpreter::value
 
     private:
       static std::vector<key_type>
-      MakeOwnPropertyNames(const record_ptr& first, const record_ptr& second)
+      MakeOwnPropertyNames(const record_ptr& left, const record_ptr& right)
       {
-        const auto first_keys = first->GetOwnPropertyNames();
-        const auto second_keys = second->GetOwnPropertyNames();
+        const auto left_keys = left->GetOwnPropertyNames();
+        const auto right_keys = right->GetOwnPropertyNames();
         std::unordered_set<key_type> result(
-          std::begin(first_keys),
-          std::end(first_keys)
+          std::begin(left_keys),
+          std::end(left_keys)
         );
 
-        result.insert(std::begin(second_keys), std::end(second_keys));
+        result.insert(std::begin(right_keys), std::end(right_keys));
 
         return std::vector<key_type>(std::begin(result), std::end(result));
       }
 
     private:
-      const record_ptr m_first;
-      const record_ptr m_second;
+      const record_ptr m_left;
+      const record_ptr m_right;
       const std::vector<key_type> m_own_property_names;
     };
   }
@@ -136,9 +136,9 @@ namespace snek::interpreter::value
   }
 
   record_ptr
-  Record::Merge(const record_ptr& first, const record_ptr& second)
+  Record::Merge(const record_ptr& left, const record_ptr& right)
   {
-    return std::make_shared<MergeRecord>(first, second);
+    return std::make_shared<MergeRecord>(left, right);
   }
 
   void

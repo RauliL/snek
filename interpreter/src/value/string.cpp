@@ -57,12 +57,55 @@ namespace snek::interpreter::value
     private:
       const std::u32string m_text;
     };
+
+    class ConcatString final : public String
+    {
+    public:
+      explicit ConcatString(const string_ptr& left, const string_ptr& right)
+        : m_left(left)
+        , m_right(right) {}
+
+      inline size_type
+      GetLength() const override
+      {
+        return m_left->GetLength() + m_right->GetLength();
+      }
+
+      inline value_type
+      At(size_type index) const override
+      {
+        const auto left_size = m_left->GetLength();
+
+        if (index < left_size)
+        {
+          return m_left->At(index);
+        } else {
+          return m_right->At(index - left_size);
+        }
+      }
+
+      inline std::u32string
+      ToString() const override
+      {
+        return m_left->ToString().append(m_right->ToString());
+      }
+
+    private:
+      const string_ptr m_left;
+      const string_ptr m_right;
+    };
   }
 
   string_ptr
   String::Make(const std::u32string& text)
   {
     return std::make_shared<StringWrapper>(text);
+  }
+
+  string_ptr
+  String::Concat(const string_ptr& left, const string_ptr& right)
+  {
+    return std::make_shared<ConcatString>(left, right);
   }
 
   bool

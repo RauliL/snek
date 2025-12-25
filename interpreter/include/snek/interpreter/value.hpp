@@ -432,6 +432,9 @@ namespace snek::interpreter::value
     static list_ptr
     Make(const container_type& elements);
 
+    static list_ptr
+    Concat(const list_ptr& left, const list_ptr& right);
+
     explicit List() {}
 
     inline Kind
@@ -495,7 +498,7 @@ namespace snek::interpreter::value
     Make(const container_type& fields);
 
     static record_ptr
-    Merge(const record_ptr& first, const record_ptr& second);
+    Merge(const record_ptr& left, const record_ptr& right);
 
     explicit Record() {}
 
@@ -564,6 +567,9 @@ namespace snek::interpreter::value
 
     static string_ptr
     Make(const std::u32string& text);
+
+    static string_ptr
+    Concat(const string_ptr& left, const string_ptr& right);
 
     inline Kind
     kind() const override

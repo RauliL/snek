@@ -319,49 +319,6 @@ namespace snek::interpreter::prototype
     return Convert(AsString(arguments[0]), peelo::unicode::ctype::toupper);
   }
 
-  namespace
-  {
-    class ConcatString final : public value::String
-    {
-    public:
-      explicit ConcatString(
-        const value::string_ptr& left,
-        const value::string_ptr& right
-      )
-        : m_left(left)
-        , m_right(right) {}
-
-      inline size_type
-      GetLength() const override
-      {
-        return m_left->GetLength() + m_right->GetLength();
-      }
-
-      inline value_type
-      At(size_type index) const override
-      {
-        const auto left_size = m_left->GetLength();
-
-        if (index < left_size)
-        {
-          return m_left->At(index);
-        } else {
-          return m_right->At(index - left_size);
-        }
-      }
-
-      inline std::u32string
-      ToString() const override
-      {
-        return m_left->ToString().append(m_right->ToString());
-      }
-
-    private:
-      const value::string_ptr m_left;
-      const value::string_ptr m_right;
-    };
-  }
-
   /**
    * String#+(this: String, other: String) => String
    *
@@ -370,7 +327,7 @@ namespace snek::interpreter::prototype
   static value::ptr
   Concatenate(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<ConcatString>(
+    return value::String::Concat(
       std::static_pointer_cast<value::String>(arguments[0]),
       std::static_pointer_cast<value::String>(arguments[1])
     );

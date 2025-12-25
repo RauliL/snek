@@ -138,7 +138,7 @@ namespace snek::interpreter::prototype
     const auto start = AsIndex(runtime, list, arguments[2]);
     const auto size = list->GetSize();
 
-    for (std::size_t i = start; i < size; ++i)
+    for (value::List::size_type i = start; i < size; ++i)
     {
       // TODO: Add support for "==" method.
       if (value::Equals(list->At(i), element))
@@ -162,7 +162,7 @@ namespace snek::interpreter::prototype
     const auto element = arguments[1];
     const auto size = list->GetSize();
 
-    for (std::size_t i = 0; i < size; ++i)
+    for (value::List::size_type i = 0; i < size; ++i)
     {
       // TODO: Add support for "==" method.
       if (value::Equals(list->At(i), element))
@@ -218,7 +218,7 @@ namespace snek::interpreter::prototype
     const auto list = As<value::List>(arguments[0]);
     const auto element = arguments[1];
     const auto size = list->GetSize();
-    std::size_t start;
+    value::List::size_type start;
 
     if (arguments[2])
     {
@@ -260,7 +260,7 @@ namespace snek::interpreter::prototype
     std::vector<value::ptr> result;
 
     result.reserve(size);
-    for (std::size_t i = 0; i < size; ++i)
+    for (value::List::size_type i = 0; i < size; ++i)
     {
       result.push_back(value::Function::Call(
         runtime,
@@ -292,7 +292,7 @@ namespace snek::interpreter::prototype
     );
     const auto size = list->GetSize();
     value::ptr result;
-    std::size_t start;
+    value::List::size_type start;
 
     if (!value::IsNull(arguments[2]))
     {
@@ -306,7 +306,7 @@ namespace snek::interpreter::prototype
     } else {
       return nullptr;
     }
-    for (std::size_t i = start; i < size; ++i)
+    for (value::List::size_type i = start; i < size; ++i)
     {
       result = value::Function::Call(
         runtime,
@@ -383,43 +383,6 @@ namespace snek::interpreter::prototype
     return list->At(AsIndex(runtime, list, arguments[1]));
   }
 
-  namespace
-  {
-    class ConcatList final : public value::List
-    {
-    public:
-      explicit ConcatList(
-        const value::list_ptr& left,
-        const value::list_ptr& right
-      )
-        : m_left(left)
-        , m_right(right) {}
-
-      inline size_type
-      GetSize() const override
-      {
-        return m_left->GetSize() + m_right->GetSize();
-      }
-
-      value_type
-      At(size_type index) const override
-      {
-        const auto left_size = m_left->GetSize();
-
-        if (index < left_size)
-        {
-          return m_left->At(index);
-        } else {
-          return m_right->At(index - left_size);
-        }
-      }
-
-    private:
-      const value::list_ptr m_left;
-      const value::list_ptr m_right;
-    };
-  }
-
   /**
    * List#+(this: List, other: List) => List
    *
@@ -428,7 +391,7 @@ namespace snek::interpreter::prototype
   static value::ptr
   Concat(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    return std::make_shared<ConcatList>(
+    return value::List::Concat(
       std::static_pointer_cast<value::List>(arguments[0]),
       std::static_pointer_cast<value::List>(arguments[1])
     );
@@ -476,7 +439,7 @@ namespace snek::interpreter::prototype
   static value::ptr
   Repeat(Runtime&, const std::vector<value::ptr>& arguments)
   {
-    const auto count = static_cast<std::size_t>(
+    const auto count = static_cast<value::List::size_type>(
       As<value::Int>(arguments[1])->value
     );
 
