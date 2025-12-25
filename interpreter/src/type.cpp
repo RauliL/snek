@@ -28,6 +28,8 @@
 #include "snek/interpreter/resolve.hpp"
 #include "snek/parser/utils.hpp"
 
+#include "./resolve/utils.hpp"
+
 namespace snek::interpreter::type
 {
   ptr
@@ -44,26 +46,24 @@ namespace snek::interpreter::type
   {
     const auto size = types.size();
 
-    if (size == 0)
+    if (size > 1)
     {
-      return runtime.void_type();
-    }
-    else if (size == 1)
-    {
-      return types[0];
-    } else {
       std::vector<ptr> result;
 
       result.reserve(size);
       for (std::size_t i = 0; i < size; ++i)
       {
-        const auto& type = types[i];
-
-        result.push_back(type ? type : runtime.any_type());
+        result.push_back(utils::TypeOrAny(runtime, types[i]));
       }
 
       // TODO: Get rid of duplicates with equality comparison.
       return std::make_shared<Union>(types);
     }
+    else if (size > 0)
+    {
+      return types[0];
+    }
+
+    return runtime.void_type();
   }
 }
