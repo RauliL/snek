@@ -7,7 +7,7 @@ FetchContent_Declare(
   GIT_REPOSITORY
     https://github.com/yhirose/cpp-linenoise.git
   GIT_TAG
-    5d2183e931eff05bc0d419a5eb84040a1d0af2c1
+    b0e8b88f53be0de26252180b1b959c6dd67ec4a9
 )
 FetchContent_MakeAvailable(Linenoise)
 
