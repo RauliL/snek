@@ -28,11 +28,9 @@
 
 namespace snek::interpreter
 {
-  using namespace parser::type;
-
   template <class T>
   static inline const T*
-  As(const ptr& type)
+  As(const parser::type_ptr& type)
   {
     return static_cast<const T*>(type.get());
   }
@@ -41,7 +39,7 @@ namespace snek::interpreter
   ResolveFunction(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Function* type
+    const parser::Type::Function* type
   )
   {
     return std::make_shared<type::Function>(
@@ -54,7 +52,7 @@ namespace snek::interpreter
   ResolveMultiple(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Multiple* type
+    const parser::Type::Multiple* type
   )
   {
     type::Multiple::container_type resolved_types;
@@ -67,13 +65,13 @@ namespace snek::interpreter
 
     switch (type->multiple_kind)
     {
-      case Multiple::MultipleKind::Intersection:
+      case parser::Type::Multiple::MultipleKind::Intersection:
         return std::make_shared<type::Intersection>(resolved_types);
 
-      case Multiple::MultipleKind::Tuple:
+      case parser::Type::Multiple::MultipleKind::Tuple:
         return std::make_shared<type::Tuple>(resolved_types);
 
-      case Multiple::MultipleKind::Union:
+      case parser::Type::Multiple::MultipleKind::Union:
         return std::make_shared<type::Union>(resolved_types);
     }
 
@@ -84,7 +82,7 @@ namespace snek::interpreter
   ResolveNamed(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Named* type
+    const parser::Type::Named* type
   )
   {
     if (!type->name.compare(U"any"))
@@ -108,7 +106,7 @@ namespace snek::interpreter
   ResolveRecord(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Record* type
+    const parser::Type::Record* type
   )
   {
     type::Record::container_type fields;
@@ -125,7 +123,7 @@ namespace snek::interpreter
   ResolveType(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::type::ptr& type
+    const parser::type_ptr& type
   )
   {
     if (!type)
@@ -135,35 +133,47 @@ namespace snek::interpreter
 
     switch (type->kind)
     {
-      case Kind::Boolean:
-        return std::make_shared<type::Boolean>(As<Boolean>(type)->value);
+      case parser::TypeKind::Boolean:
+        return std::make_shared<type::Boolean>(
+          As<parser::Type::Boolean>(type)->value
+        );
 
-      case Kind::Function:
-        return ResolveFunction(runtime, scope, As<Function>(type));
+      case parser::TypeKind::Function:
+        return ResolveFunction(
+          runtime,
+          scope,
+          As<parser::Type::Function>(type)
+        );
 
-      case Kind::List:
+      case parser::TypeKind::List:
         return std::make_shared<type::List>(
           ResolveType(
             runtime,
             scope,
-            As<List>(type)->element_type
+            As<parser::Type::List>(type)->element_type
           )
         );
 
-      case Kind::Multiple:
-        return ResolveMultiple(runtime, scope, As<Multiple>(type));
+      case parser::TypeKind::Multiple:
+        return ResolveMultiple(
+          runtime,
+          scope,
+          As<parser::Type::Multiple>(type)
+        );
 
-      case Kind::Named:
-        return ResolveNamed(runtime, scope, As<Named>(type));
+      case parser::TypeKind::Named:
+        return ResolveNamed(runtime, scope, As<parser::Type::Named>(type));
 
-      case Kind::Null:
+      case parser::TypeKind::Null:
         return runtime.void_type();
 
-      case Kind::Record:
-        return ResolveRecord(runtime, scope, As<Record>(type));
+      case parser::TypeKind::Record:
+        return ResolveRecord(runtime, scope, As<parser::Type::Record>(type));
 
-      case Kind::String:
-        return std::make_shared<type::String>(As<String>(type)->value);
+      case parser::TypeKind::String:
+        return std::make_shared<type::String>(
+          As<parser::Type::String>(type)->value
+        );
     }
 
     return nullptr;

@@ -115,17 +115,17 @@ namespace snek::parser
 
     Token ReadToken();
 
-    void ReadToken(Token::Kind expected);
+    void ReadToken(TokenKind expected);
 
     void UnreadToken(const Token& token);
 
     Token PeekToken();
 
-    bool PeekToken(Token::Kind expected);
+    bool PeekToken(TokenKind expected);
 
-    bool PeekNextButOneToken(Token::Kind expected);
+    bool PeekNextButOneToken(TokenKind expected);
 
-    bool PeekReadToken(Token::Kind expected);
+    bool PeekReadToken(TokenKind expected);
 
     std::u32string ReadId();
 

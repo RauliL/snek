@@ -29,9 +29,9 @@
 
 #include "snek/parser/signature.hpp"
 
-namespace snek::parser::expression
+namespace snek::parser
 {
-  enum class Kind
+  enum class ExpressionKind
   {
     Assign,
     Binary,
@@ -54,114 +54,97 @@ namespace snek::parser::expression
     Unary,
   };
 
-  class Base : public TypedNode<Kind>
+  class Expression : public TypedNode<ExpressionKind>
   {
   public:
-    DISALLOW_COPY_AND_ASSIGN(Base);
+    DISALLOW_COPY_AND_ASSIGN(Expression);
 
-    explicit Base(const std::optional<Position>& position, Kind kind)
+    class Assign;
+    class Binary;
+    class Boolean;
+    class Call;
+    class Decrement;
+    class Float;
+    class Function;
+    class Id;
+    class Increment;
+    class Int;
+    class List;
+    class Null;
+    class Property;
+    class Record;
+    class Spread;
+    class Subscript;
+    class String;
+    class Ternary;
+    class Unary;
+
+    explicit Expression(
+      const std::optional<Position>& position,
+      ExpressionKind kind
+    )
       : TypedNode(position, kind) {}
 
     virtual inline bool IsAssignable() const
     {
       return false;
     }
+
+    static expression_ptr Parse(Lexer& lexer);
+
+    static expression_ptr ParseTernary(Lexer& lexer);
+
+    static expression_ptr ParseFunction(Lexer& lexer);
   };
 
-  ptr Parse(Lexer& lexer);
-
-  ptr ParseTernary(Lexer& lexer);
-
-  ptr ParseFunction(Lexer& lexer);
-
-  class Assign final : public Base
+  class Expression::Assign final : public Expression
   {
   public:
-    enum class Operator
-    {
-      Add = static_cast<int>(Token::Kind::AssignAdd),
-      Sub = static_cast<int>(Token::Kind::AssignSub),
-      Mul = static_cast<int>(Token::Kind::AssignMul),
-      Div = static_cast<int>(Token::Kind::AssignDiv),
-      Mod = static_cast<int>(Token::Kind::AssignMod),
-      BitwiseAnd = static_cast<int>(Token::Kind::AssignBitwiseAnd),
-      BitwiseOr = static_cast<int>(Token::Kind::AssignBitwiseOr),
-      BitwiseXor = static_cast<int>(Token::Kind::AssignBitwiseXor),
-      LeftShift = static_cast<int>(Token::Kind::AssignLeftShift),
-      RightShift = static_cast<int>(Token::Kind::AssignRightShift),
-      LogicalAnd = static_cast<int>(Token::Kind::AssignLogicalAnd),
-      LogicalOr = static_cast<int>(Token::Kind::AssignLogicalOr),
-      NullCoalescing = static_cast<int>(Token::Kind::AssignNullCoalescing),
-    };
-
-    const ptr variable;
-    const ptr value;
-    const std::optional<Operator> op;
+    const expression_ptr variable;
+    const expression_ptr value;
+    const std::optional<AssignOp> op;
 
     explicit Assign(
       const std::optional<Position>& position,
-      const ptr& variable_,
-      const ptr& value_,
-      const std::optional<Operator>& op_ = std::nullopt
+      const expression_ptr& variable_,
+      const expression_ptr& value_,
+      const std::optional<AssignOp>& op_ = std::nullopt
     )
-      : Base(position, Kind::Assign)
+      : Expression(position, ExpressionKind::Assign)
       , variable(variable_)
       , value(value_)
       , op(op_) {}
 
-    static std::u32string ToString(Operator op);
-
     std::u32string ToString() const override;
   };
 
-  class Binary final : public Base
+  class Expression::Binary final : public Expression
   {
   public:
-    enum class Operator
-    {
-      Add = static_cast<int>(Token::Kind::Add),
-      Sub = static_cast<int>(Token::Kind::Sub),
-      Mul = static_cast<int>(Token::Kind::Mul),
-      Div = static_cast<int>(Token::Kind::Div),
-      Mod = static_cast<int>(Token::Kind::Mod),
-      BitwiseAnd = static_cast<int>(Token::Kind::BitwiseAnd),
-      BitwiseOr = static_cast<int>(Token::Kind::BitwiseOr),
-      BitwiseXor = static_cast<int>(Token::Kind::BitwiseXor),
-      Equal = static_cast<int>(Token::Kind::Equal),
-      NotEqual = static_cast<int>(Token::Kind::NotEqual),
-      LessThan = static_cast<int>(Token::Kind::LessThan),
-      GreaterThan = static_cast<int>(Token::Kind::GreaterThan),
-      LessThanEqual = static_cast<int>(Token::Kind::LessThanEqual),
-      GreaterThanEqual = static_cast<int>(Token::Kind::GreaterThanEqual),
-      LeftShift = static_cast<int>(Token::Kind::LeftShift),
-      RightShift = static_cast<int>(Token::Kind::RightShift),
-      LogicalAnd = static_cast<int>(Token::Kind::LogicalAnd),
-      LogicalOr = static_cast<int>(Token::Kind::LogicalOr),
-      NullCoalescing = static_cast<int>(Token::Kind::NullCoalescing),
-    };
+    const expression_ptr left;
+    const BinaryOp op;
+    const expression_ptr right;
 
-    const ptr left;
-    const Operator op;
-    const ptr right;
-
-    explicit Binary(const ptr& left_, Operator op_, const ptr& right_)
-      : Base(left_->position, Kind::Binary)
+    explicit Binary(
+      const expression_ptr& left_,
+      BinaryOp op_,
+      const expression_ptr& right_
+    )
+      : Expression(left_->position, ExpressionKind::Binary)
       , left(left_)
       , op(op_)
       , right(right_) {}
 
-    static std::u32string ToString(Operator op);
-
     std::u32string ToString() const override;
   };
 
-  class Boolean final : public Base
+  class Expression::Boolean final : public Expression
   {
   public:
     const bool value;
 
     explicit Boolean(const std::optional<Position>& position, bool value_)
-      : Base(position, Kind::Boolean)
+      : Expression(position, ExpressionKind::Boolean)
       , value(value_) {}
 
     inline std::u32string ToString() const override
@@ -170,20 +153,20 @@ namespace snek::parser::expression
     }
   };
 
-  class Call final : public Base
+  class Expression::Call final : public Expression
   {
   public:
-    const ptr expression;
-    const std::vector<ptr> arguments;
+    const expression_ptr expression;
+    const std::vector<expression_ptr> arguments;
     const bool conditional;
 
     explicit Call(
       const std::optional<Position>& position,
-      const ptr& expression_,
-      const std::vector<ptr>& arguments_ = {},
+      const expression_ptr& expression_,
+      const std::vector<expression_ptr>& arguments_ = {},
       bool conditional_ = false
     )
-      : Base(position, Kind::Call)
+      : Expression(position, ExpressionKind::Call)
       , expression(expression_)
       , arguments(arguments_)
       , conditional(conditional_) {}
@@ -191,48 +174,48 @@ namespace snek::parser::expression
     std::u32string ToString() const override;
   };
 
-  class Decrement final : public Base
+  class Expression::Decrement final : public Expression
   {
   public:
-    const ptr variable;
+    const expression_ptr variable;
     const bool pre;
 
     explicit Decrement(
       const std::optional<Position>& position,
-      const ptr& variable_,
+      const expression_ptr& variable_,
       bool pre_
     )
-      : Base(position, Kind::Decrement)
+      : Expression(position, ExpressionKind::Decrement)
       , variable(variable_)
       , pre(pre_) {}
 
     std::u32string ToString() const override;
   };
 
-  class Float final : public Base
+  class Expression::Float final : public Expression
   {
   public:
     const double value;
 
     explicit Float(const std::optional<Position>& position, double value_)
-      : Base(position, Kind::Float)
+      : Expression(position, ExpressionKind::Float)
       , value(value_) {}
 
     std::u32string ToString() const override;
   };
 
-  class Function final : public Base
+  class Expression::Function final : public Expression
   {
   public:
     const Signature signature;
-    const statement::ptr body;
+    const statement_ptr body;
 
     explicit Function(
       const std::optional<Position>& position,
       const Signature& signature_,
-      const statement::ptr& body_
+      const statement_ptr& body_
     )
-      : Base(position, Kind::Function)
+      : Expression(position, ExpressionKind::Function)
       , signature(signature_)
       , body(body_) {}
 
@@ -242,7 +225,7 @@ namespace snek::parser::expression
     }
   };
 
-  class Id final : public Base
+  class Expression::Id final : public Expression
   {
   public:
     const std::u32string identifier;
@@ -251,7 +234,7 @@ namespace snek::parser::expression
       const std::optional<Position>& position,
       const std::u32string& identifier_
     )
-      : Base(position, Kind::Id)
+      : Expression(position, ExpressionKind::Id)
       , identifier(identifier_) {}
 
     inline bool IsAssignable() const override
@@ -265,40 +248,40 @@ namespace snek::parser::expression
     }
   };
 
-  class Increment final : public Base
+  class Expression::Increment final : public Expression
   {
   public:
-    const ptr variable;
+    const expression_ptr variable;
     const bool pre;
 
     explicit Increment(
       const std::optional<Position>& position,
-      const ptr& variable_,
+      const expression_ptr& variable_,
       bool pre_
     )
-      : Base(position, Kind::Increment)
+      : Expression(position, ExpressionKind::Increment)
       , variable(variable_)
       , pre(pre_) {}
 
     std::u32string ToString() const override;
   };
 
-  class Int final : public Base
+  class Expression::Int final : public Expression
   {
   public:
     const std::int64_t value;
 
     explicit Int(const std::optional<Position>& position, std::int64_t value_)
-      : Base(position, Kind::Int)
+      : Expression(position, ExpressionKind::Int)
       , value(value_) {}
 
     std::u32string ToString() const override;
   };
 
-  class List final : public Base
+  class Expression::List final : public Expression
   {
   public:
-    using container_type = std::vector<element::ptr>;
+    using container_type = std::vector<element_ptr>;
 
     const container_type elements;
 
@@ -306,7 +289,7 @@ namespace snek::parser::expression
       const std::optional<Position>& position,
       const container_type& elements_
     )
-      : Base(position, Kind::List)
+      : Expression(position, ExpressionKind::List)
       , elements(elements_) {}
 
     inline bool IsAssignable() const override
@@ -317,11 +300,11 @@ namespace snek::parser::expression
     std::u32string ToString() const override;
   };
 
-  class Null final : public Base
+  class Expression::Null final : public Expression
   {
   public:
     explicit Null(const std::optional<Position>& position = std::nullopt)
-      : Base(position, Kind::Null) {}
+      : Expression(position, ExpressionKind::Null) {}
 
     inline std::u32string ToString() const override
     {
@@ -329,20 +312,20 @@ namespace snek::parser::expression
     }
   };
 
-  class Property final : public Base
+  class Expression::Property final : public Expression
   {
   public:
-    const ptr expression;
+    const expression_ptr expression;
     const std::u32string name;
     const bool conditional;
 
     explicit Property(
       const std::optional<Position>& position,
-      const ptr& expression_,
+      const expression_ptr& expression_,
       const std::u32string& name_,
       bool conditional_ = false
     )
-      : Base(position, Kind::Property)
+      : Expression(position, ExpressionKind::Property)
       , expression(expression_)
       , name(name_)
       , conditional(conditional_) {}
@@ -350,10 +333,11 @@ namespace snek::parser::expression
     std::u32string ToString() const override;
   };
 
-  class Record final : public Base
+  class Expression::Record final : public Expression
   {
   public:
-    using container_type = std::vector<field::ptr>;
+    using value_type = field_ptr;
+    using container_type = std::vector<value_type>;
 
     const container_type fields;
 
@@ -361,7 +345,7 @@ namespace snek::parser::expression
       const std::optional<Position>& position,
       const container_type& fields_
     )
-      : Base(position, Kind::Record)
+      : Expression(position, ExpressionKind::Record)
       , fields(fields_) {}
 
     bool IsAssignable() const override;
@@ -369,16 +353,16 @@ namespace snek::parser::expression
     std::u32string ToString() const override;
   };
 
-  class Spread final : public Base
+  class Expression::Spread final : public Expression
   {
   public:
-    const ptr expression;
+    const expression_ptr expression;
 
     explicit Spread(
       const std::optional<Position>& position,
-      const ptr& expression_
+      const expression_ptr& expression_
     )
-      : Base(position, Kind::Spread)
+      : Expression(position, ExpressionKind::Spread)
       , expression(expression_) {}
 
     inline std::u32string ToString() const override
@@ -387,7 +371,7 @@ namespace snek::parser::expression
     }
   };
 
-  class String final : public Base
+  class Expression::String final : public Expression
   {
   public:
     const std::u32string value;
@@ -396,26 +380,26 @@ namespace snek::parser::expression
       const std::optional<Position>& position,
       const std::u32string& value_
     )
-      : Base(position, Kind::String)
+      : Expression(position, ExpressionKind::String)
       , value(value_) {}
 
     std::u32string ToString() const override;
   };
 
-  class Ternary final : public Base
+  class Expression::Ternary final : public Expression
   {
   public:
-    const ptr condition;
-    const ptr then_expression;
-    const ptr else_expression;
+    const expression_ptr condition;
+    const expression_ptr then_expression;
+    const expression_ptr else_expression;
 
     explicit Ternary(
       const std::optional<Position>& position,
-      const ptr& condition_,
-      const ptr& then_expression_,
-      const ptr& else_expression_
+      const expression_ptr& condition_,
+      const expression_ptr& then_expression_,
+      const expression_ptr& else_expression_
     )
-      : Base(position, Kind::Ternary)
+      : Expression(position, ExpressionKind::Ternary)
       , condition(condition_)
       , then_expression(then_expression_)
       , else_expression(else_expression_) {}
@@ -423,20 +407,20 @@ namespace snek::parser::expression
     std::u32string ToString() const override;
   };
 
-  class Subscript final : public Base
+  class Expression::Subscript final : public Expression
   {
   public:
-    const ptr expression;
-    const ptr index;
+    const expression_ptr expression;
+    const expression_ptr index;
     const bool conditional;
 
     explicit Subscript(
       const std::optional<Position>& position,
-      const ptr& expression_,
-      const ptr& index_,
+      const expression_ptr& expression_,
+      const expression_ptr& index_,
       bool conditional_
     )
-      : Base(position, Kind::Subscript)
+      : Expression(position, ExpressionKind::Subscript)
       , expression(expression_)
       , index(index_)
       , conditional(conditional_) {}
@@ -444,32 +428,21 @@ namespace snek::parser::expression
     std::u32string ToString() const override;
   };
 
-  class Unary final : public Base
+  class Expression::Unary final : public Expression
   {
   public:
-    enum class Operator
-    {
-      Not = static_cast<int>(Token::Kind::Not),
-      Add = static_cast<int>(Token::Kind::Add),
-      Sub = static_cast<int>(Token::Kind::Sub),
-      BitwiseNot = static_cast<int>(Token::Kind::BitwiseNot),
-    };
 
-    static std::u32string GetMethodName(Operator op);
-
-    const Operator op;
-    const ptr operand;
+    const UnaryOp op;
+    const expression_ptr operand;
 
     explicit Unary(
       const std::optional<Position>& position,
-      Operator op_,
-      const ptr& operand_
+      UnaryOp op_,
+      const expression_ptr& operand_
     )
-      : Base(position, Kind::Unary)
+      : Expression(position, ExpressionKind::Unary)
       , op(op_)
       , operand(operand_) {}
-
-    static std::u32string ToString(Operator op);
 
     std::u32string ToString() const override;
   };

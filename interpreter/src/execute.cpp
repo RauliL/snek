@@ -33,11 +33,9 @@
 
 namespace snek::interpreter
 {
-  using namespace parser::statement;
-
   template<class T>
   static inline const T*
-  As(const ptr& statement)
+  As(const parser::statement_ptr& statement)
   {
     return static_cast<const T*>(statement.get());
   }
@@ -46,7 +44,7 @@ namespace snek::interpreter
   ExecuteBlock(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Block* statement
+    const parser::Statement::Block* statement
   )
   {
     const auto size = statement->statements.size();
@@ -63,7 +61,7 @@ namespace snek::interpreter
   ExecuteDeclareType(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const DeclareType* statement
+    const parser::Statement::DeclareType* statement
   )
   {
     scope->DeclareType(
@@ -79,7 +77,7 @@ namespace snek::interpreter
   ExecuteDeclareVar(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::statement::DeclareVar* statement
+    const parser::Statement::DeclareVar* statement
   )
   {
     const auto value = EvaluateExpression(runtime, scope, statement->value);
@@ -100,7 +98,7 @@ namespace snek::interpreter
   ExecuteIf(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const If* statement
+    const parser::Statement::If* statement
   )
   {
     const auto condition = value::ToBoolean(
@@ -124,7 +122,7 @@ namespace snek::interpreter
     const Runtime& runtime,
     const Scope::ptr& module,
     const Scope::ptr& scope,
-    const parser::import::Named* specifier
+    const parser::Import::Named* specifier
   )
   {
     value::ptr value_slot;
@@ -163,7 +161,7 @@ namespace snek::interpreter
   ImportStar(
     const Scope::ptr& module,
     const Scope::ptr& scope,
-    const parser::import::Star* specifier
+    const parser::Import::Star* specifier
   )
   {
     const auto exported_variables = module->GetExportedVariables();
@@ -204,7 +202,7 @@ namespace snek::interpreter
   ExecuteImport(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Import* statement
+    const parser::Statement::Import* statement
   )
   {
     const auto module = runtime.ImportModule(statement->path);
@@ -217,20 +215,20 @@ namespace snek::interpreter
       }
       switch (specifier->kind)
       {
-        case parser::import::Kind::Named:
+        case parser::ImportKind::Named:
           ImportNamed(
             runtime,
             module,
             scope,
-            static_cast<const parser::import::Named*>(specifier.get())
+            static_cast<const parser::Import::Named*>(specifier.get())
           );
           break;
 
-        case parser::import::Kind::Star:
+        case parser::ImportKind::Star:
           ImportStar(
             module,
             scope,
-            static_cast<const parser::import::Star*>(specifier.get())
+            static_cast<const parser::Import::Star*>(specifier.get())
           );
           break;
       }
@@ -243,7 +241,7 @@ namespace snek::interpreter
   ExecuteWhile(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const While* statement
+    const parser::Statement::While* statement
   )
   {
     value::ptr value;
@@ -264,11 +262,11 @@ namespace snek::interpreter
       }
       catch (const Jump& jump)
       {
-        if (jump.kind() == JumpKind::Break)
+        if (jump.kind() == parser::JumpKind::Break)
         {
           break;
         }
-        else if (jump.kind() == JumpKind::Continue)
+        else if (jump.kind() == parser::JumpKind::Continue)
         {
           throw jump;
         }
@@ -282,7 +280,7 @@ namespace snek::interpreter
   ExecuteJump(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::statement::Jump* statement
+    const parser::Statement::Jump* statement
   )
   {
     value::ptr value;
@@ -293,7 +291,7 @@ namespace snek::interpreter
         runtime,
         scope,
         statement->value,
-        statement->jump_kind == JumpKind::Return
+        statement->jump_kind == parser::JumpKind::Return
       );
     }
 
@@ -304,7 +302,7 @@ namespace snek::interpreter
   ExecuteStatement(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const ptr& statement
+    const parser::statement_ptr& statement
   )
   {
     if (!statement)
@@ -314,42 +312,62 @@ namespace snek::interpreter
 
     switch (statement->kind)
     {
-      case Kind::Block:
-        return ExecuteBlock(runtime, scope, As<Block>(statement));
+      case parser::StatementKind::Block:
+        return ExecuteBlock(
+          runtime,
+          scope,
+          As<parser::Statement::Block>(statement)
+        );
 
-      case Kind::DeclareType:
-        return ExecuteDeclareType(runtime, scope, As<DeclareType>(statement));
+      case parser::StatementKind::DeclareType:
+        return ExecuteDeclareType(
+          runtime,
+          scope,
+          As<parser::Statement::DeclareType>(statement)
+        );
 
-      case Kind::DeclareVar:
+      case parser::StatementKind::DeclareVar:
         return ExecuteDeclareVar(
           runtime,
           scope,
-          As<parser::statement::DeclareVar>(statement)
+          As<parser::Statement::DeclareVar>(statement)
         );
 
-      case Kind::Expression:
+      case parser::StatementKind::Expression:
         return EvaluateExpression(
           runtime,
           scope,
-          As<Expression>(statement)->expression
+          As<parser::Statement::Expression>(statement)->expression
         );
 
-      case Kind::If:
-        return ExecuteIf(runtime, scope, As<If>(statement));
+      case parser::StatementKind::If:
+        return ExecuteIf(
+          runtime,
+          scope,
+          As<parser::Statement::If>(statement)
+        );
 
-      case Kind::Import:
-        return ExecuteImport(runtime, scope, As<Import>(statement));
+      case parser::StatementKind::Import:
+        return ExecuteImport(
+          runtime,
+          scope,
+          As<parser::Statement::Import>(statement)
+        );
 
-      case Kind::Jump:
+      case parser::StatementKind::Jump:
         ExecuteJump(
           runtime,
           scope,
-          As<parser::statement::Jump>(statement)
+          As<parser::Statement::Jump>(statement)
         );
         break;
 
-      case Kind::While:
-        return ExecuteWhile(runtime, scope, As<While>(statement));
+      case parser::StatementKind::While:
+        return ExecuteWhile(
+          runtime,
+          scope,
+          As<parser::Statement::While>(statement)
+        );
     }
 
     return nullptr;

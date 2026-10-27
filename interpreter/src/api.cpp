@@ -126,7 +126,7 @@ namespace snek::interpreter::api
           {
             U"code",
             runtime->int_type(),
-            std::make_shared<parser::expression::Int>(
+            std::make_shared<parser::Expression::Int>(
               std::nullopt,
               EXIT_SUCCESS
             )

@@ -29,25 +29,23 @@
 
 namespace snek::interpreter
 {
-  using namespace snek::parser::statement;
-
   template<class T>
   inline const T*
-  As(const ptr& statement)
+  As(const parser::statement_ptr& statement)
   {
     return static_cast<const T*>(statement.get());
   }
 
   static void
   FindReturnValues(
-    const ptr& statement,
-    std::vector<parser::expression::ptr>& values
+    const parser::statement_ptr& statement,
+    std::vector<parser::expression_ptr>& values
   );
 
   static void
   FindReturnValuesFromBlock(
-    const Block* statement,
-    std::vector<parser::expression::ptr>& values
+    const parser::Statement::Block* statement,
+    std::vector<parser::expression_ptr>& values
   )
   {
     const auto size = statement->statements.size();
@@ -60,8 +58,8 @@ namespace snek::interpreter
 
   static void
   FindReturnValuesFromIf(
-    const If* statement,
-    std::vector<parser::expression::ptr>& values
+    const parser::Statement::If* statement,
+    std::vector<parser::expression_ptr>& values
   )
   {
     FindReturnValues(statement->then_statement, values);
@@ -70,11 +68,11 @@ namespace snek::interpreter
 
   static void
   FindReturnValuesFromJump(
-    const Jump* statement,
-    std::vector<parser::expression::ptr>& values
+    const parser::Statement::Jump* statement,
+    std::vector<parser::expression_ptr>& values
   )
   {
-    if (statement->jump_kind != JumpKind::Return)
+    if (statement->jump_kind != parser::JumpKind::Return)
     {
       return;
     }
@@ -83,8 +81,8 @@ namespace snek::interpreter
 
   static void
   FindReturnValues(
-    const ptr& statement,
-    std::vector<parser::expression::ptr>& values
+    const parser::statement_ptr& statement,
+    std::vector<parser::expression_ptr>& values
   )
   {
     if (!statement)
@@ -94,20 +92,32 @@ namespace snek::interpreter
 
     switch (statement->kind)
     {
-      case Kind::Block:
-        FindReturnValuesFromBlock(As<Block>(statement), values);
+      case parser::StatementKind::Block:
+        FindReturnValuesFromBlock(
+          As<parser::Statement::Block>(statement),
+          values
+        );
         break;
 
-      case Kind::If:
-        FindReturnValuesFromIf(As<If>(statement), values);
+      case parser::StatementKind::If:
+        FindReturnValuesFromIf(
+          As<parser::Statement::If>(statement),
+          values
+        );
         break;
 
-      case Kind::Jump:
-        FindReturnValuesFromJump(As<Jump>(statement), values);
+      case parser::StatementKind::Jump:
+        FindReturnValuesFromJump(
+          As<parser::Statement::Jump>(statement),
+          values
+        );
         break;
 
-      case Kind::While:
-        FindReturnValues(As<While>(statement)->body, values);
+      case parser::StatementKind::While:
+        FindReturnValues(
+          As<parser::Statement::While>(statement)->body,
+          values
+        );
         break;
 
       default:
@@ -119,10 +129,10 @@ namespace snek::interpreter
   ResolveFromReturnStatements(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const ptr& statement
+    const parser::statement_ptr& statement
   )
   {
-    std::vector<parser::expression::ptr> return_values;
+    std::vector<parser::expression_ptr> return_values;
     std::vector<type::ptr> types;
 
     FindReturnValues(statement, return_values);
@@ -142,7 +152,7 @@ namespace snek::interpreter
   ResolveDeclareVar(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const DeclareVar* statement
+    const parser::Statement::DeclareVar* statement
   )
   {
     if (statement->value)
@@ -157,7 +167,7 @@ namespace snek::interpreter
   ResolveStatement(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const ptr& statement
+    const parser::statement_ptr& statement
   )
   {
     if (!statement)
@@ -167,26 +177,30 @@ namespace snek::interpreter
 
     switch (statement->kind)
     {
-      case Kind::Block:
-      case Kind::If:
-      case Kind::Jump:
-      case Kind::While:
+      case parser::StatementKind::Block:
+      case parser::StatementKind::If:
+      case parser::StatementKind::Jump:
+      case parser::StatementKind::While:
         return ResolveFromReturnStatements(runtime, scope, statement);
 
-      case Kind::DeclareType:
+      case parser::StatementKind::DeclareType:
         return nullptr;
 
-      case Kind::DeclareVar:
-        return ResolveDeclareVar(runtime, scope, As<DeclareVar>(statement));
+      case parser::StatementKind::DeclareVar:
+        return ResolveDeclareVar(
+          runtime,
+          scope,
+          As<parser::Statement::DeclareVar>(statement)
+        );
 
-      case Kind::Expression:
+      case parser::StatementKind::Expression:
         return ResolveExpression(
           runtime,
           scope,
-          As<Expression>(statement)->expression
+          As<parser::Statement::Expression>(statement)->expression
         );
 
-      case Kind::Import:
+      case parser::StatementKind::Import:
         return nullptr;
     }
 

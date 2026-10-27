@@ -66,7 +66,7 @@ LexFile(
 
   try
   {
-    while (!lexer.PeekToken(Token::Kind::Eof))
+    while (!lexer.PeekToken(TokenKind::Eof))
     {
       callback(lexer);
     }

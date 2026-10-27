@@ -23,31 +23,34 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include "snek/parser/error.hpp"
 #include "snek/parser/import.hpp"
 
-namespace snek::parser::import
+namespace snek::parser
 {
   static inline std::optional<std::u32string>
   ParseAlias(Lexer& lexer)
   {
-    return lexer.PeekReadToken(Token::Kind::KeywordAs)
+    return lexer.PeekReadToken(TokenKind::KeywordAs)
       ? std::make_optional(lexer.ReadId())
       : std::nullopt;
   }
 
-  ptr
-  ParseSpecifier(Lexer& lexer)
+  import_ptr
+  Import::ParseSpecifier(Lexer& lexer)
   {
     const auto position = lexer.position();
 
-    if (!lexer.PeekReadToken(Token::Kind::Mul))
+    if (!lexer.PeekReadToken(TokenKind::Mul))
     {
       const auto name = lexer.ReadId();
 
-      return std::make_shared<Named>(position, name, ParseAlias(lexer));
+      return std::make_shared<Import::Named>(
+        position,
+        name,
+        ParseAlias(lexer)
+      );
     }
 
-    return std::make_shared<Star>(position, ParseAlias(lexer));
+    return std::make_shared<Import::Star>(position, ParseAlias(lexer));
   }
 }

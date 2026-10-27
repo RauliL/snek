@@ -32,7 +32,7 @@ using namespace snek::parser;
 
 template<class T>
 static inline std::shared_ptr<T>
-As(const type::ptr& type)
+As(const type_ptr& type)
 {
   return std::static_pointer_cast<T>(type);
 }
@@ -41,161 +41,161 @@ TEST_CASE("Hitting end of input while parsing a type")
 {
   Lexer lexer("");
 
-  REQUIRE_THROWS_AS(type::Parse(lexer), SyntaxError);
+  REQUIRE_THROWS_AS(Type::Parse(lexer), SyntaxError);
 }
 
 TEST_CASE("Parse named type")
 {
   Lexer lexer("foo");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::Named);
+  REQUIRE(result->kind == TypeKind::Named);
 }
 
 TEST_CASE("Parse null type")
 {
   Lexer lexer("null");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::Null);
+  REQUIRE(result->kind == TypeKind::Null);
 }
 
 TEST_CASE("Parse boolean type: true")
 {
   Lexer lexer("true");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::Boolean);
-  REQUIRE(As<type::Boolean>(result)->value);
+  REQUIRE(result->kind == TypeKind::Boolean);
+  REQUIRE(As<Type::Boolean>(result)->value);
 }
 
 TEST_CASE("Parse boolean type: false")
 {
   Lexer lexer("false");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::Boolean);
-  REQUIRE(!As<type::Boolean>(result)->value);
+  REQUIRE(result->kind == TypeKind::Boolean);
+  REQUIRE(!As<Type::Boolean>(result)->value);
 }
 
 TEST_CASE("Parse string type")
 {
   Lexer lexer("\"foo\"");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::String);
-  REQUIRE(!As<type::String>(result)->value.compare(U"foo"));
+  REQUIRE(result->kind == TypeKind::String);
+  REQUIRE(!As<Type::String>(result)->value.compare(U"foo"));
 }
 
 TEST_CASE("Parse function type")
 {
   Lexer lexer("(foo) => bar");
-  const auto result = type::Parse(lexer);
-  std::shared_ptr<type::Function> function;
+  const auto result = Type::Parse(lexer);
+  std::shared_ptr<Type::Function> function;
 
-  REQUIRE(result->kind == type::Kind::Function);
-  function = As<type::Function>(result);
+  REQUIRE(result->kind == TypeKind::Function);
+  function = As<Type::Function>(result);
   REQUIRE(function->signature.parameters.size() == 1);
-  REQUIRE(function->signature.return_type->kind == type::Kind::Named);
+  REQUIRE(function->signature.return_type->kind == TypeKind::Named);
 }
 
 TEST_CASE("Parse empty record type")
 {
   Lexer lexer("{}");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::Record);
-  REQUIRE(As<type::Record>(result)->fields.empty());
+  REQUIRE(result->kind == TypeKind::Record);
+  REQUIRE(As<Type::Record>(result)->fields.empty());
 }
 
 TEST_CASE("Parse record type with one field")
 {
   Lexer lexer("{ foo: bar }");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::Record);
-  REQUIRE(As<type::Record>(result)->fields.size() == 1);
+  REQUIRE(result->kind == TypeKind::Record);
+  REQUIRE(As<Type::Record>(result)->fields.size() == 1);
 }
 
 TEST_CASE("Parse record type with one field and dangling comma")
 {
   Lexer lexer("{ foo: bar, }");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::Record);
-  REQUIRE(As<type::Record>(result)->fields.size() == 1);
+  REQUIRE(result->kind == TypeKind::Record);
+  REQUIRE(As<Type::Record>(result)->fields.size() == 1);
 }
 
 TEST_CASE("Parse record type with string as field name")
 {
   Lexer lexer("{ \"foo\": bar }");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::Record);
-  REQUIRE(As<type::Record>(result)->fields.size() == 1);
+  REQUIRE(result->kind == TypeKind::Record);
+  REQUIRE(As<Type::Record>(result)->fields.size() == 1);
 }
 
 TEST_CASE("Parse record type with two fields")
 {
   Lexer lexer("{ foo: bar, bar: foo }");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::Record);
-  REQUIRE(As<type::Record>(result)->fields.size() == 2);
+  REQUIRE(result->kind == TypeKind::Record);
+  REQUIRE(As<Type::Record>(result)->fields.size() == 2);
 }
 
 TEST_CASE("Parse unterminated record type")
 {
   Lexer lexer("{ \"foo\": bar");
 
-  REQUIRE_THROWS_AS(type::Parse(lexer), SyntaxError);
+  REQUIRE_THROWS_AS(Type::Parse(lexer), SyntaxError);
 }
 
 TEST_CASE("Parse empty tuple type")
 {
   Lexer lexer("[]");
-  const auto result = type::Parse(lexer);
-  std::shared_ptr<type::Multiple> multiple;
+  const auto result = Type::Parse(lexer);
+  std::shared_ptr<Type::Multiple> multiple;
 
-  REQUIRE(result->kind == type::Kind::Multiple);
-  multiple = As<type::Multiple>(result);
-  REQUIRE(multiple->multiple_kind == type::Multiple::MultipleKind::Tuple);
+  REQUIRE(result->kind == TypeKind::Multiple);
+  multiple = As<Type::Multiple>(result);
+  REQUIRE(multiple->multiple_kind == Type::Multiple::MultipleKind::Tuple);
   REQUIRE(multiple->types.empty());
 }
 
 TEST_CASE("Parse tuple type with one element")
 {
   Lexer lexer("[foo]");
-  const auto result = type::Parse(lexer);
-  std::shared_ptr<type::Multiple> multiple;
+  const auto result = Type::Parse(lexer);
+  std::shared_ptr<Type::Multiple> multiple;
 
-  REQUIRE(result->kind == type::Kind::Multiple);
-  multiple = As<type::Multiple>(result);
-  REQUIRE(multiple->multiple_kind == type::Multiple::MultipleKind::Tuple);
+  REQUIRE(result->kind == TypeKind::Multiple);
+  multiple = As<Type::Multiple>(result);
+  REQUIRE(multiple->multiple_kind == Type::Multiple::MultipleKind::Tuple);
   REQUIRE(multiple->types.size() == 1);
 }
 
 TEST_CASE("Parse tuple type with one element and dangling comma")
 {
   Lexer lexer("[foo,]");
-  const auto result = type::Parse(lexer);
-  std::shared_ptr<type::Multiple> multiple;
+  const auto result = Type::Parse(lexer);
+  std::shared_ptr<Type::Multiple> multiple;
 
-  REQUIRE(result->kind == type::Kind::Multiple);
-  multiple = As<type::Multiple>(result);
-  REQUIRE(multiple->multiple_kind == type::Multiple::MultipleKind::Tuple);
+  REQUIRE(result->kind == TypeKind::Multiple);
+  multiple = As<Type::Multiple>(result);
+  REQUIRE(multiple->multiple_kind == Type::Multiple::MultipleKind::Tuple);
   REQUIRE(multiple->types.size() == 1);
 }
 
 TEST_CASE("Parse tuple type with two elements")
 {
   Lexer lexer("[foo, foo]");
-  const auto result = type::Parse(lexer);
-  std::shared_ptr<type::Multiple> multiple;
+  const auto result = Type::Parse(lexer);
+  std::shared_ptr<Type::Multiple> multiple;
 
-  REQUIRE(result->kind == type::Kind::Multiple);
-  multiple = As<type::Multiple>(result);
-  REQUIRE(multiple->multiple_kind == type::Multiple::MultipleKind::Tuple);
+  REQUIRE(result->kind == TypeKind::Multiple);
+  multiple = As<Type::Multiple>(result);
+  REQUIRE(multiple->multiple_kind == Type::Multiple::MultipleKind::Tuple);
   REQUIRE(multiple->types.size() == 2);
 }
 
@@ -203,60 +203,60 @@ TEST_CASE("Parse unterminated tuple type")
 {
   Lexer lexer("[foo,");
 
-  REQUIRE_THROWS_AS(type::Parse(lexer), SyntaxError);
+  REQUIRE_THROWS_AS(Type::Parse(lexer), SyntaxError);
 }
 
 TEST_CASE("Parse unrecognized type")
 {
   Lexer lexer("+");
 
-  REQUIRE_THROWS_AS(type::Parse(lexer), SyntaxError);
+  REQUIRE_THROWS_AS(Type::Parse(lexer), SyntaxError);
 }
 
 TEST_CASE("Parse list type")
 {
   Lexer lexer("foo[]");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::List);
+  REQUIRE(result->kind == TypeKind::List);
 }
 
 TEST_CASE("Parse list type without closing bracket")
 {
   Lexer lexer("foo[");
 
-  REQUIRE_THROWS_AS(type::Parse(lexer), SyntaxError);
+  REQUIRE_THROWS_AS(Type::Parse(lexer), SyntaxError);
 }
 
 TEST_CASE("Parse nested list type")
 {
   Lexer lexer("foo[][]");
-  const auto result = type::Parse(lexer);
+  const auto result = Type::Parse(lexer);
 
-  REQUIRE(result->kind == type::Kind::List);
-  REQUIRE(As<type::List>(result)->element_type->kind == type::Kind::List);
+  REQUIRE(result->kind == TypeKind::List);
+  REQUIRE(As<Type::List>(result)->element_type->kind == TypeKind::List);
 }
 
 TEST_CASE("Parse intersection type")
 {
   Lexer lexer("foo & bar");
-  const auto result = type::Parse(lexer);
-  std::shared_ptr<type::Multiple> multiple;
+  const auto result = Type::Parse(lexer);
+  std::shared_ptr<Type::Multiple> multiple;
 
-  REQUIRE(result->kind == type::Kind::Multiple);
-  multiple = As<type::Multiple>(result);
+  REQUIRE(result->kind == TypeKind::Multiple);
+  multiple = As<Type::Multiple>(result);
   REQUIRE(
-    multiple->multiple_kind == type::Multiple::MultipleKind::Intersection
+    multiple->multiple_kind == Type::Multiple::MultipleKind::Intersection
   );
 }
 
 TEST_CASE("Parse union type")
 {
   Lexer lexer("foo | bar");
-  const auto result = type::Parse(lexer);
-  std::shared_ptr<type::Multiple> multiple;
+  const auto result = Type::Parse(lexer);
+  std::shared_ptr<Type::Multiple> multiple;
 
-  REQUIRE(result->kind == type::Kind::Multiple);
-  multiple = As<type::Multiple>(result);
-  REQUIRE(multiple->multiple_kind == type::Multiple::MultipleKind::Union);
+  REQUIRE(result->kind == TypeKind::Multiple);
+  multiple = As<Type::Multiple>(result);
+  REQUIRE(multiple->multiple_kind == Type::Multiple::MultipleKind::Union);
 }

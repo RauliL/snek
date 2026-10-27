@@ -28,11 +28,9 @@
 
 namespace snek::interpreter
 {
-  using namespace parser::field;
-
   template<class T>
   static inline const T*
-  As(const ptr& field)
+  As(const parser::field_ptr& field)
   {
     return static_cast<const T*>(field.get());
   }
@@ -48,7 +46,7 @@ namespace snek::interpreter
   ResolveComputed(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Computed* field,
+    const parser::Field::Computed* field,
     type::Record::container_type& resolved_fields
   )
   {
@@ -78,7 +76,7 @@ namespace snek::interpreter
   ResolveFunction(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Function* field,
+    const parser::Field::Function* field,
     type::Record::container_type& resolved_fields
   )
   {
@@ -94,7 +92,7 @@ namespace snek::interpreter
   ResolveNamed(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Named* field,
+    const parser::Field::Named* field,
     type::Record::container_type& resolved_fields
   )
   {
@@ -113,14 +111,14 @@ namespace snek::interpreter
   ResolveShorthand(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Shorthand* field,
+    const parser::Field::Shorthand* field,
     type::Record::container_type& resolved_fields
   )
   {
     const auto type = ResolveExpression(
       runtime,
       scope,
-      std::make_shared<parser::expression::Id>(
+      std::make_shared<parser::Expression::Id>(
         field->position,
         field->name
       )
@@ -142,7 +140,7 @@ namespace snek::interpreter
   ResolveSpread(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Spread* field,
+    const parser::Field::Spread* field,
     type::Record::container_type& resolved_fields
   )
   {
@@ -165,50 +163,50 @@ namespace snek::interpreter
   ResolveField(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const ptr& field,
+    const parser::field_ptr& field,
     type::Record::container_type& resolved_fields
   )
   {
     switch (field->kind)
     {
-      case Kind::Computed:
+      case parser::FieldKind::Computed:
         return ResolveComputed(
           runtime,
           scope,
-          As<Computed>(field),
+          As<parser::Field::Computed>(field),
           resolved_fields
         );
 
-      case Kind::Function:
+      case parser::FieldKind::Function:
         return ResolveFunction(
           runtime,
           scope,
-          As<Function>(field),
+          As<parser::Field::Function>(field),
           resolved_fields
         );
         break;
 
-      case Kind::Named:
+      case parser::FieldKind::Named:
         return ResolveNamed(
           runtime,
           scope,
-          As<Named>(field),
+          As<parser::Field::Named>(field),
           resolved_fields
         );
 
-      case Kind::Shorthand:
+      case parser::FieldKind::Shorthand:
         return ResolveShorthand(
           runtime,
           scope,
-          As<Shorthand>(field),
+          As<parser::Field::Shorthand>(field),
           resolved_fields
         );
 
-      case Kind::Spread:
+      case parser::FieldKind::Spread:
         return ResolveSpread(
           runtime,
           scope,
-          As<Spread>(field),
+          As<parser::Field::Spread>(field),
           resolved_fields
         );
     }

@@ -49,7 +49,7 @@ namespace snek::interpreter
   {
     std::u32string name;
     type::ptr type = nullptr;
-    parser::expression::ptr default_value = nullptr;
+    parser::expression_ptr default_value = nullptr;
     bool rest = false;
     std::optional<Position> position = std::nullopt;
 

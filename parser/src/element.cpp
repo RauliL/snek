@@ -27,32 +27,32 @@
 #include "snek/parser/error.hpp"
 #include "snek/parser/expression.hpp"
 
-namespace snek::parser::element
+namespace snek::parser
 {
-  ptr
-  Parse(Lexer& lexer)
+  element_ptr
+  Element::Parse(Lexer& lexer)
   {
     const auto token = lexer.ReadToken();
-    Kind kind = Kind::Value;
+    ElementKind kind = ElementKind::Value;
 
-    if (token.kind == Token::Kind::Spread)
+    if (token.kind == TokenKind::Spread)
     {
-      kind = Kind::Spread;
+      kind = ElementKind::Spread;
     } else {
       lexer.UnreadToken(token);
     }
 
-    return std::make_shared<Base>(
+    return std::make_shared<Element>(
       token.position,
       kind,
-      expression::Parse(lexer)
+      Expression::Parse(lexer)
     );
   }
 
   std::u32string
-  Base::ToString() const
+  Element::ToString() const
   {
-    return kind == Kind::Spread
+    return kind == ElementKind::Spread
       ? U"..." + expression->ToString()
       : expression->ToString();
   }

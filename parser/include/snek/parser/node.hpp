@@ -71,39 +71,17 @@ namespace snek::parser
       , kind(kind_) {}
   };
 
-  namespace element
-  {
-    class Base;
-    using ptr = std::shared_ptr<Base>;
-  }
+  class Element;
+  class Expression;
+  class Field;
+  class Import;
+  class Statement;
+  class Type;
 
-  namespace expression
-  {
-    class Base;
-    using ptr = std::shared_ptr<Base>;
-  }
-
-  namespace field
-  {
-    class Base;
-    using ptr = std::shared_ptr<Base>;
-  }
-
-  namespace import
-  {
-    class Base;
-    using ptr = std::shared_ptr<Base>;
-  }
-
-  namespace statement
-  {
-    class Base;
-    using ptr = std::shared_ptr<Base>;
-  }
-
-  namespace type
-  {
-    class Base;
-    using ptr = std::shared_ptr<Base>;
-  }
+  using element_ptr = std::shared_ptr<Element>;
+  using expression_ptr = std::shared_ptr<Expression>;
+  using field_ptr = std::shared_ptr<Field>;
+  using import_ptr = std::shared_ptr<Import>;
+  using statement_ptr = std::shared_ptr<Statement>;
+  using type_ptr = std::shared_ptr<Type>;
 }

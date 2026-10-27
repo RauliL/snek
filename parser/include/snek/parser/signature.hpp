@@ -39,15 +39,15 @@ namespace snek::parser
   {
   public:
     std::u32string name;
-    type::ptr type;
-    expression::ptr default_value;
+    type_ptr type;
+    expression_ptr default_value;
     bool rest;
 
     Parameter(
       const std::optional<Position>& position = std::nullopt,
       const std::u32string& name_ = U"arg",
-      const type::ptr& type_ = nullptr,
-      const expression::ptr& default_value_ = nullptr,
+      const type_ptr& type_ = nullptr,
+      const expression_ptr& default_value_ = nullptr,
       bool rest_ = false
     )
       : Node(position)
@@ -72,7 +72,7 @@ namespace snek::parser
   struct Signature final
   {
     std::vector<Parameter> parameters = {};
-    type::ptr return_type = nullptr;
+    type_ptr return_type = nullptr;
 
     std::u32string ToString(
       const std::u32string& return_type_separator = U": ",

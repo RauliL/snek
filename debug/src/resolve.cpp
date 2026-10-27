@@ -50,7 +50,7 @@
      argv[1],
      [&runtime, &first](auto& lexer)
      {
-       const auto statement = statement::Parse(lexer, true);
+       const auto statement = Statement::Parse(lexer, true);
        const auto type = snek::interpreter::ResolveStatement(
          runtime,
          runtime.root_scope(),

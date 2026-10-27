@@ -29,11 +29,9 @@
 
 namespace snek::interpreter
 {
-  using namespace snek::parser::expression;
-
   template<class T>
   inline const T*
-  As(const ptr& expression)
+  As(const parser::expression_ptr& expression)
   {
     return static_cast<const T*>(expression.get());
   }
@@ -49,7 +47,7 @@ namespace snek::interpreter
   ResolveAssign(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Assign* expression
+    const parser::Expression::Assign* expression
   )
   {
     return expression->op
@@ -61,13 +59,13 @@ namespace snek::interpreter
   ResolveBinary(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Binary* expression
+    const parser::Expression::Binary* expression
   )
   {
     switch (expression->op)
     {
-      case Binary::Operator::LogicalAnd:
-      case Binary::Operator::LogicalOr:
+      case parser::BinaryOp::LogicalAnd:
+      case parser::BinaryOp::LogicalOr:
         return type::Reify(
           runtime,
           {
@@ -89,7 +87,7 @@ namespace snek::interpreter
   ResolveCall(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Call* expression
+    const parser::Expression::Call* expression
   )
   {
     const auto type = ResolveExpression(
@@ -127,7 +125,7 @@ namespace snek::interpreter
   ResolveFunction(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Function* expression
+    const parser::Expression::Function* expression
   )
   {
     return std::make_shared<type::Function>(
@@ -149,7 +147,7 @@ namespace snek::interpreter
   ResolveElement(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::element::ptr& element,
+    const parser::element_ptr& element,
     std::vector<type::ptr>& resolved_elements
   )
   {
@@ -159,7 +157,7 @@ namespace snek::interpreter
     {
       return false;
     }
-    else if (element->kind == parser::element::Kind::Spread)
+    else if (element->kind == parser::ElementKind::Spread)
     {
       if (type->kind() == type::Kind::Tuple)
       {
@@ -185,7 +183,7 @@ namespace snek::interpreter
   ResolveId(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Id* expression
+    const parser::Expression::Id* expression
   )
   {
     value::ptr slot;
@@ -202,7 +200,7 @@ namespace snek::interpreter
   ResolveList(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const List* expression
+    const parser::Expression::List* expression
   )
   {
     std::vector<type::ptr> resolved_elements;
@@ -222,7 +220,7 @@ namespace snek::interpreter
   ResolveProperty(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Property* expression
+    const parser::Expression::Property* expression
   )
   {
     const auto type = ResolveExpression(
@@ -254,7 +252,7 @@ namespace snek::interpreter
   ResolveRecord(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Record* expression
+    const parser::Expression::Record* expression
   )
   {
     type::Record::container_type resolved_fields;
@@ -274,7 +272,7 @@ namespace snek::interpreter
   ResolveTernary(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Ternary* expression
+    const parser::Expression::Ternary* expression
   )
   {
     // TODO: Check if condition is constant.
@@ -291,10 +289,10 @@ namespace snek::interpreter
   ResolveUnary(
     const Runtime& runtime,
     const Scope::ptr&,
-    const Unary* expression
+    const parser::Expression::Unary* expression
   )
   {
-    return expression->op == Unary::Operator::Not
+    return expression->op == parser::UnaryOp::Not
       ? runtime.boolean_type()
       : nullptr;
   }
@@ -303,7 +301,7 @@ namespace snek::interpreter
   ResolveExpression(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const ptr& expression
+    const parser::expression_ptr& expression
   )
   {
     if (!expression)
@@ -313,66 +311,108 @@ namespace snek::interpreter
 
     switch (expression->kind)
     {
-      case Kind::Assign:
-        return ResolveAssign(runtime, scope, As<Assign>(expression));
+      case parser::ExpressionKind::Assign:
+        return ResolveAssign(
+          runtime,
+          scope,
+          As<parser::Expression::Assign>(expression)
+        );
 
-      case Kind::Binary:
-        return ResolveBinary(runtime, scope, As<Binary>(expression));
+      case parser::ExpressionKind::Binary:
+        return ResolveBinary(
+          runtime,
+          scope,
+          As<parser::Expression::Binary>(expression)
+        );
 
-      case Kind::Boolean:
+      case parser::ExpressionKind::Boolean:
         return runtime.boolean_type();
 
-      case Kind::Call:
-        return ResolveCall(runtime, scope, As<Call>(expression));
+      case parser::ExpressionKind::Call:
+        return ResolveCall(
+          runtime,
+          scope,
+          As<parser::Expression::Call>(expression)
+        );
 
       // TODO: Maybe return number instead.
-      case Kind::Decrement:
+      case parser::ExpressionKind::Decrement:
         return nullptr;
 
-      case Kind::Float:
+      case parser::ExpressionKind::Float:
         return runtime.float_type();
 
-      case Kind::Function:
-        return ResolveFunction(runtime, scope, As<Function>(expression));
+      case parser::ExpressionKind::Function:
+        return ResolveFunction(
+          runtime,
+          scope,
+          As<parser::Expression::Function>(expression)
+        );
 
-      case Kind::Id:
-        return ResolveId(runtime, scope, As<Id>(expression));
+      case parser::ExpressionKind::Id:
+        return ResolveId(
+          runtime,
+          scope,
+          As<parser::Expression::Id>(expression)
+        );
 
       // TODO: Maybe return number instead.
-      case Kind::Increment:
+      case parser::ExpressionKind::Increment:
         return nullptr;
 
-      case Kind::Int:
+      case parser::ExpressionKind::Int:
         return runtime.int_type();
 
-      case Kind::List:
-        return ResolveList(runtime, scope, As<List>(expression));
+      case parser::ExpressionKind::List:
+        return ResolveList(
+          runtime,
+          scope,
+          As<parser::Expression::List>(expression)
+        );
 
-      case Kind::Null:
+      case parser::ExpressionKind::Null:
         return runtime.void_type();
 
-      case Kind::Property:
-        return ResolveProperty(runtime, scope, As<Property>(expression));
+      case parser::ExpressionKind::Property:
+        return ResolveProperty(
+          runtime,
+          scope,
+          As<parser::Expression::Property>(expression)
+        );
 
-      case Kind::Record:
-        return ResolveRecord(runtime, scope, As<Record>(expression));
+      case parser::ExpressionKind::Record:
+        return ResolveRecord(
+          runtime,
+          scope,
+          As<parser::Expression::Record>(expression)
+        );
 
-      case Kind::Spread:
+      case parser::ExpressionKind::Spread:
         return nullptr;
 
-      case Kind::String:
-        return std::make_shared<type::String>(As<String>(expression)->value);
+      case parser::ExpressionKind::String:
+        return std::make_shared<type::String>(
+          As<parser::Expression::String>(expression)->value
+        );
 
       // TODO: Add special case for lists and records where an element/field
       // lookup is done.
-      case Kind::Subscript:
+      case parser::ExpressionKind::Subscript:
         return nullptr;
 
-      case Kind::Ternary:
-        return ResolveTernary(runtime, scope, As<Ternary>(expression));
+      case parser::ExpressionKind::Ternary:
+        return ResolveTernary(
+          runtime,
+          scope,
+          As<parser::Expression::Ternary>(expression)
+        );
 
-      case Kind::Unary:
-        return ResolveUnary(runtime, scope, As<Unary>(expression));
+      case parser::ExpressionKind::Unary:
+        return ResolveUnary(
+          runtime,
+          scope,
+          As<parser::Expression::Unary>(expression)
+        );
     }
 
     return nullptr;
@@ -382,8 +422,8 @@ namespace snek::interpreter
   ResolveReturnType(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::type::ptr& return_type,
-    const parser::statement::ptr& body
+    const parser::type_ptr& return_type,
+    const parser::statement_ptr& body
   )
   {
     // TODO: Create new fake scope and populate it with parameters and local

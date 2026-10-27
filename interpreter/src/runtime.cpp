@@ -174,12 +174,12 @@ namespace snek::interpreter
     });
     try
     {
-      while (!lexer.PeekToken(parser::Token::Kind::Eof))
+      while (!lexer.PeekToken(parser::TokenKind::Eof))
       {
         value = ExecuteStatement(
           runtime,
           scope,
-          parser::statement::Parse(lexer, true)
+          parser::Statement::Parse(lexer, true)
         );
       }
     }
@@ -187,7 +187,7 @@ namespace snek::interpreter
     {
       throw runtime.MakeError(
         U"Unexpected `" +
-        parser::statement::Jump::ToString(jump.kind())
+        parser::Statement::Jump::ToString(jump.kind())
         + U"'."
       );
     }

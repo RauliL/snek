@@ -34,7 +34,7 @@ namespace snek::interpreter
   EvaluateExpression(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::expression::ptr& expression,
+    const parser::expression_ptr& expression,
     bool tail_call = false
   );
 }

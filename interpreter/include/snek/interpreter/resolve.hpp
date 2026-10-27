@@ -37,7 +37,7 @@ namespace snek::interpreter
   ResolveType(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::type::ptr& type
+    const parser::type_ptr& type
   );
 
   Parameter
@@ -58,21 +58,21 @@ namespace snek::interpreter
   ResolveExpression(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::expression::ptr& expression
+    const parser::expression_ptr& expression
   );
 
   type::ptr
   ResolveStatement(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::statement::ptr& statement
+    const parser::statement_ptr& statement
   );
 
   bool
   ResolveField(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::field::ptr& field,
+    const parser::field_ptr& field,
     type::Record::container_type& resolved_fields
   );
 
@@ -80,8 +80,8 @@ namespace snek::interpreter
   ResolveReturnType(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::type::ptr& return_type,
-    const parser::statement::ptr& body
+    const parser::type_ptr& return_type,
+    const parser::statement_ptr& body
   );
 
   type::ptr

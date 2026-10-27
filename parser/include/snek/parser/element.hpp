@@ -27,31 +27,31 @@
 
 #include "snek/parser/lexer.hpp"
 
-namespace snek::parser::element
+namespace snek::parser
 {
-  enum class Kind
+  enum class ElementKind
   {
     Spread,
     Value,
   };
 
-  class Base final : public TypedNode<Kind>
+  class Element final : public TypedNode<ElementKind>
   {
   public:
-    DEFAULT_COPY_AND_ASSIGN(Base);
+    DEFAULT_COPY_AND_ASSIGN(Element);
 
-    expression::ptr expression;
+    expression_ptr expression;
 
-    explicit Base(
+    explicit Element(
       const std::optional<Position>& position,
-      Kind kind,
-      const expression::ptr& expression_
+      ElementKind kind,
+      const expression_ptr& expression_
     )
       : TypedNode(position, kind)
       , expression(expression_) {}
 
+    static element_ptr Parse(Lexer& lexer);
+
     std::u32string ToString() const override;
   };
-
-  ptr Parse(Lexer& lexer);
 }

@@ -40,7 +40,7 @@ namespace snek::interpreter
   static void
   Process(
     const Runtime&,
-    const parser::expression::ptr&,
+    const parser::expression_ptr&,
     const value::ptr&,
     const callback_type&
   );
@@ -48,7 +48,7 @@ namespace snek::interpreter
   static void
   ProcessList(
     const Runtime& runtime,
-    const parser::expression::List* variable,
+    const parser::Expression::List* variable,
     const value::ptr& value,
     const callback_type& callback
   )
@@ -77,7 +77,7 @@ namespace snek::interpreter
     {
       const auto& element = variable->elements[i];
 
-      if (element->kind == parser::element::Kind::Value)
+      if (element->kind == parser::ElementKind::Value)
       {
         Process(runtime, element->expression, list->At(i), callback);
       } else {
@@ -106,7 +106,7 @@ namespace snek::interpreter
   static void
   ProcessRecord(
     const Runtime& runtime,
-    const parser::expression::Record* variable,
+    const parser::Expression::Record* variable,
     const value::ptr& value,
     const callback_type& callback
   )
@@ -129,9 +129,9 @@ namespace snek::interpreter
       const auto& field = variable->fields[i];
       const auto kind = field->kind;
 
-      if (kind == parser::field::Kind::Named)
+      if (kind == parser::FieldKind::Named)
       {
-        const auto named = static_cast<const parser::field::Named*>(
+        const auto named = static_cast<const parser::Field::Named*>(
           field.get()
         );
         const auto& name = named->name;
@@ -149,9 +149,9 @@ namespace snek::interpreter
         Process(runtime, named->value, *property, callback);
         used_keys.insert(name);
       }
-      else if (kind == parser::field::Kind::Shorthand)
+      else if (kind == parser::FieldKind::Shorthand)
       {
-        const auto& name = static_cast<const parser::field::Shorthand*>(
+        const auto& name = static_cast<const parser::Field::Shorthand*>(
           field.get()
         )->name;
         const auto property = value::GetProperty(runtime, value, name);
@@ -168,7 +168,7 @@ namespace snek::interpreter
         callback(name, *property);
         used_keys.insert(name);
       }
-      else if (kind == parser::field::Kind::Spread)
+      else if (kind == parser::FieldKind::Spread)
       {
         std::unordered_map<std::u32string, value::ptr> result;
 
@@ -187,7 +187,7 @@ namespace snek::interpreter
         );
         Process(
           runtime,
-          static_cast<const parser::field::Spread*>(field.get())->expression,
+          static_cast<const parser::Field::Spread*>(field.get())->expression,
           value::Record::Make(result),
           callback
         );
@@ -204,7 +204,7 @@ namespace snek::interpreter
   static void
   Process(
     const Runtime& runtime,
-    const parser::expression::ptr& variable,
+    const parser::expression_ptr& variable,
     const value::ptr& value,
     const callback_type& callback
   )
@@ -216,28 +216,28 @@ namespace snek::interpreter
 
     switch (variable->kind)
     {
-      case parser::expression::Kind::Id:
+      case parser::ExpressionKind::Id:
         callback(
-          static_cast<const parser::expression::Id*>(
+          static_cast<const parser::Expression::Id*>(
             variable.get()
           )->identifier,
           value
         );
         break;
 
-      case parser::expression::Kind::List:
+      case parser::ExpressionKind::List:
         ProcessList(
           runtime,
-          static_cast<const parser::expression::List*>(variable.get()),
+          static_cast<const parser::Expression::List*>(variable.get()),
           value,
           callback
         );
         return;
 
-      case parser::expression::Kind::Record:
+      case parser::ExpressionKind::Record:
         ProcessRecord(
           runtime,
-          static_cast<const parser::expression::Record*>(variable.get()),
+          static_cast<const parser::Expression::Record*>(variable.get()),
           value,
           callback
         );
@@ -256,7 +256,7 @@ namespace snek::interpreter
   AssignTo(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::expression::ptr& variable,
+    const parser::expression_ptr& variable,
     const value::ptr& value
   )
   {
@@ -275,7 +275,7 @@ namespace snek::interpreter
   DeclareVar(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::expression::ptr& variable,
+    const parser::expression_ptr& variable,
     const value::ptr& value,
     bool read_only,
     bool exported

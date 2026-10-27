@@ -29,9 +29,9 @@
 
 #include "snek/parser/signature.hpp"
 
-namespace snek::parser::type
+namespace snek::parser
 {
-  enum class Kind
+  enum class TypeKind
   {
     Boolean,
     Function,
@@ -43,18 +43,27 @@ namespace snek::parser::type
     String,
   };
 
-  class Base : public TypedNode<Kind>
+  class Type : public TypedNode<TypeKind>
   {
   public:
-    DISALLOW_COPY_AND_ASSIGN(Base);
+    DISALLOW_COPY_AND_ASSIGN(Type);
 
-    explicit Base(const std::optional<Position>& position, Kind kind)
+    class Boolean;
+    class Function;
+    class List;
+    class Multiple;
+    class Named;
+    class Null;
+    class Record;
+    class String;
+
+    explicit Type(const std::optional<Position>& position, TypeKind kind)
       : TypedNode(position, kind) {}
+
+    static type_ptr Parse(Lexer& lexer);
   };
 
-  ptr Parse(Lexer& lexer);
-
-  class Boolean final : public Base
+  class Type::Boolean final : public Type
   {
   public:
     using value_type = bool;
@@ -65,7 +74,7 @@ namespace snek::parser::type
       const std::optional<Position>& position,
       value_type value_
     )
-      : Base(position, Kind::Boolean)
+      : Type(position, TypeKind::Boolean)
       , value(value_) {}
 
     inline std::u32string ToString() const override
@@ -74,7 +83,7 @@ namespace snek::parser::type
     }
   };
 
-  class Function final : public Base
+  class Type::Function final : public Type
   {
   public:
     const Signature signature;
@@ -83,7 +92,7 @@ namespace snek::parser::type
       const std::optional<Position>& position,
       const Signature& signature_
     )
-      : Base(position, Kind::Function)
+      : Type(position, TypeKind::Function)
       , signature(signature_) {}
 
     inline std::u32string ToString() const override
@@ -92,16 +101,16 @@ namespace snek::parser::type
     }
   };
 
-  class List final : public Base
+  class Type::List final : public Type
   {
   public:
-    const ptr element_type;
+    const type_ptr element_type;
 
     explicit List(
       const std::optional<Position>& position,
-      const ptr& element_type_
+      const type_ptr& element_type_
     )
-      : Base(position, Kind::List)
+      : Type(position, TypeKind::List)
       , element_type(element_type_) {}
 
     inline std::u32string ToString() const override
@@ -110,10 +119,10 @@ namespace snek::parser::type
     }
   };
 
-  class Multiple final : public Base
+  class Type::Multiple final : public Type
   {
   public:
-    using value_type = ptr;
+    using value_type = type_ptr;
     using container_type = std::vector<value_type>;
 
     enum class MultipleKind
@@ -131,14 +140,14 @@ namespace snek::parser::type
       MultipleKind multiple_kind_,
       const container_type& types_
     )
-      : Base(position, Kind::Multiple)
+      : Type(position, TypeKind::Multiple)
       , multiple_kind(multiple_kind_)
       , types(types_) {}
 
     std::u32string ToString() const override;
   };
 
-  class Named final : public Base
+  class Type::Named final : public Type
   {
   public:
     const std::u32string name;
@@ -147,7 +156,7 @@ namespace snek::parser::type
       const std::optional<Position>& position,
       const std::u32string& name_
     )
-      : Base(position, Kind::Named)
+      : Type(position, TypeKind::Named)
       , name(name_) {}
 
     inline std::u32string ToString() const override
@@ -156,11 +165,11 @@ namespace snek::parser::type
     }
   };
 
-  class Null final : public Base
+  class Type::Null final : public Type
   {
   public:
     explicit Null(const std::optional<Position>& position)
-      : Base(position, Kind::Null) {}
+      : Type(position, TypeKind::Null) {}
 
     inline std::u32string ToString() const override
     {
@@ -168,11 +177,11 @@ namespace snek::parser::type
     }
   };
 
-  class Record final : public Base
+  class Type::Record final : public Type
   {
   public:
     using key_type = std::u32string;
-    using mapped_type = ptr;
+    using mapped_type = type_ptr;
     using container_type = std::unordered_map<key_type, mapped_type>;
     using value_type = container_type::value_type;
 
@@ -182,13 +191,13 @@ namespace snek::parser::type
       const std::optional<Position>& position,
       const container_type& fields_
     )
-      : Base(position, Kind::Record)
+      : Type(position, TypeKind::Record)
       , fields(fields_) {}
 
     std::u32string ToString() const override;
   };
 
-  class String final : public Base
+  class Type::String final : public Type
   {
   public:
     using value_type = std::u32string;
@@ -200,7 +209,7 @@ namespace snek::parser::type
       const std::optional<Position>& position,
       const_reference value_
     )
-      : Base(position, Kind::String)
+      : Type(position, TypeKind::String)
       , value(value_) {}
 
     std::u32string ToString() const override;

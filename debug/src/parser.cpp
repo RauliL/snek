@@ -42,7 +42,7 @@ main(int argc, char** argv)
     argv[1],
     [](auto& lexer)
     {
-      PrintNode(statement::Parse(lexer, true));
+      PrintNode(Statement::Parse(lexer, true));
     }
   );
 

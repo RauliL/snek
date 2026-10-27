@@ -34,28 +34,28 @@
 
 namespace snek::parser
 {
-  using keyword_map = std::unordered_map<std::u32string, Token::Kind>;
+  using keyword_map = std::unordered_map<std::u32string, TokenKind>;
 
-  static const std::unordered_map<std::u32string, Token::Kind> keywords =
+  static const std::unordered_map<std::u32string, TokenKind> keywords =
   {
-    { U"as", Token::Kind::KeywordAs },
-    { U"break", Token::Kind::KeywordBreak },
-    { U"const", Token::Kind::KeywordConst },
-    { U"continue", Token::Kind::KeywordContinue },
-    { U"else", Token::Kind::KeywordElse },
-    { U"export", Token::Kind::KeywordExport },
-    { U"false", Token::Kind::KeywordFalse },
-    { U"for", Token::Kind::KeywordFor },
-    { U"from", Token::Kind::KeywordFrom },
-    { U"if", Token::Kind::KeywordIf },
-    { U"import", Token::Kind::KeywordImport },
-    { U"let", Token::Kind::KeywordLet },
-    { U"null", Token::Kind::KeywordNull },
-    { U"pass", Token::Kind::KeywordPass },
-    { U"return", Token::Kind::KeywordReturn },
-    { U"true", Token::Kind::KeywordTrue },
-    { U"type", Token::Kind::KeywordType },
-    { U"while", Token::Kind::KeywordWhile },
+    { U"as", TokenKind::KeywordAs },
+    { U"break", TokenKind::KeywordBreak },
+    { U"const", TokenKind::KeywordConst },
+    { U"continue", TokenKind::KeywordContinue },
+    { U"else", TokenKind::KeywordElse },
+    { U"export", TokenKind::KeywordExport },
+    { U"false", TokenKind::KeywordFalse },
+    { U"for", TokenKind::KeywordFor },
+    { U"from", TokenKind::KeywordFrom },
+    { U"if", TokenKind::KeywordIf },
+    { U"import", TokenKind::KeywordImport },
+    { U"let", TokenKind::KeywordLet },
+    { U"null", TokenKind::KeywordNull },
+    { U"pass", TokenKind::KeywordPass },
+    { U"return", TokenKind::KeywordReturn },
+    { U"true", TokenKind::KeywordTrue },
+    { U"type", TokenKind::KeywordType },
+    { U"while", TokenKind::KeywordWhile },
   };
 
   char32_t
@@ -254,18 +254,18 @@ namespace snek::parser
       } else {
         if (m_indent_stack.empty())
         {
-          return Token(m_input->position(), Token::Kind::Eof);
+          return Token(m_input->position(), TokenKind::Eof);
         }
         m_token_queue.push_back(Token(
           m_input->position(),
-          Token::Kind::NewLine
+          TokenKind::NewLine
         ));
         do
         {
           m_indent_stack.pop();
           m_token_queue.push_back(Token(
             m_input->position(),
-            Token::Kind::Dedent
+            TokenKind::Dedent
           ));
         }
         while (!m_indent_stack.empty());
@@ -274,7 +274,7 @@ namespace snek::parser
   }
 
   void
-  Lexer::ReadToken(Token::Kind expected)
+  Lexer::ReadToken(TokenKind expected)
   {
     const auto token = ReadToken();
 
@@ -285,7 +285,7 @@ namespace snek::parser
         U"Unexpected " +
         token.ToString() +
         U"; Missing " +
-        Token::ToString(expected)
+        ToString(expected)
         + U'.'
       };
     }
@@ -294,7 +294,7 @@ namespace snek::parser
   void
   Lexer::UnreadToken(const Token& token)
   {
-    if (token.kind != Token::Kind::Eof)
+    if (token.kind != TokenKind::Eof)
     {
       m_token_queue.push_front(token);
     }
@@ -309,7 +309,7 @@ namespace snek::parser
       {
         if (m_input->Eof())
         {
-          return Token(m_input->position(), Token::Kind::Eof);
+          return Token(m_input->position(), TokenKind::Eof);
         }
         LexLogicalLine();
       } else {
@@ -319,7 +319,7 @@ namespace snek::parser
   }
 
   bool
-  Lexer::PeekToken(Token::Kind expected)
+  Lexer::PeekToken(TokenKind expected)
   {
     const auto token = ReadToken();
 
@@ -329,7 +329,7 @@ namespace snek::parser
   }
 
   bool
-  Lexer::PeekNextButOneToken(Token::Kind expected)
+  Lexer::PeekNextButOneToken(TokenKind expected)
   {
     const auto skip = ReadToken();
     const auto token = ReadToken();
@@ -341,7 +341,7 @@ namespace snek::parser
   }
 
   bool
-  Lexer::PeekReadToken(Token::Kind expected)
+  Lexer::PeekReadToken(TokenKind expected)
   {
     const auto token = ReadToken();
 
@@ -360,12 +360,12 @@ namespace snek::parser
   {
     const auto token = ReadToken();
 
-    if (token.kind != Token::Kind::Id)
+    if (token.kind != TokenKind::Id)
     {
       throw SyntaxError{
         token.position,
         U"Unexpected " +
-        Token::ToString(token.kind) +
+        ToString(token.kind) +
         U"; Missing identifier."
       };
     }
@@ -378,12 +378,12 @@ namespace snek::parser
   {
     const auto token = ReadToken();
 
-    if (token.kind != Token::Kind::String)
+    if (token.kind != TokenKind::String)
     {
       throw SyntaxError{
         token.position,
         U"Unexpected " +
-        Token::ToString(token.kind) +
+        ToString(token.kind) +
         U"; Missing string."
       };
     }
@@ -394,7 +394,7 @@ namespace snek::parser
   std::u32string
   Lexer::ReadRecordKey()
   {
-    return PeekToken(Token::Kind::String) ? *ReadToken().text : ReadId();
+    return PeekToken(TokenKind::String) ? *ReadToken().text : ReadId();
   }
 
   void
@@ -438,7 +438,7 @@ namespace snek::parser
       if (indent > 0)
       {
         m_indent_stack.push(indent);
-        m_token_queue.push_back(Token(position, Token::Kind::Indent));
+        m_token_queue.push_back(Token(position, TokenKind::Indent));
       }
     } else {
       const auto previous_indent = m_indent_stack.top();
@@ -448,14 +448,14 @@ namespace snek::parser
         do
         {
           m_indent_stack.pop();
-          m_token_queue.push_back(Token(position, Token::Kind::Dedent));
+          m_token_queue.push_back(Token(position, TokenKind::Dedent));
         }
         while (!m_indent_stack.empty() && m_indent_stack.top() > indent);
       }
       else if (previous_indent < indent)
       {
         m_indent_stack.push(indent);
-        m_token_queue.push_back(Token(position, Token::Kind::Indent));
+        m_token_queue.push_back(Token(position, TokenKind::Indent));
       }
     }
 
@@ -473,7 +473,7 @@ namespace snek::parser
       {
         m_token_queue.push_back(Token(
           std::make_optional(m_input->position()),
-          Token::Kind::NewLine
+          TokenKind::NewLine
         ));
         break;
       }
@@ -510,10 +510,10 @@ namespace snek::parser
         m_token_queue.push_back(Token(
           token_position,
           c == '('
-            ? Token::Kind::LeftParen
+            ? TokenKind::LeftParen
             : c == '['
-            ? Token::Kind::LeftBracket
-            : Token::Kind::LeftBrace
+            ? TokenKind::LeftBracket
+            : TokenKind::LeftBrace
         ));
         continue;
       }
@@ -530,10 +530,10 @@ namespace snek::parser
         m_token_queue.push_back(Token(
           token_position,
           c == ')'
-            ? Token::Kind::RightParen
+            ? TokenKind::RightParen
             : c == ']'
-            ? Token::Kind::RightBracket
-            : Token::Kind::RightBrace
+            ? TokenKind::RightBracket
+            : TokenKind::RightBrace
         ));
         continue;
       }
@@ -569,7 +569,7 @@ namespace snek::parser
   {
     const auto position = m_input->position();
     const auto c = m_input->Read();
-    Token::Kind kind;
+    TokenKind kind;
 
     switch (c)
     {
@@ -580,90 +580,90 @@ namespace snek::parser
           {
             throw SyntaxError{ position, U"Unexpected `..'." };
           }
-          kind = Token::Kind::Spread;
+          kind = TokenKind::Spread;
         } else {
-          kind = Token::Kind::Dot;
+          kind = TokenKind::Dot;
         }
         break;
 
       case ',':
-        kind = Token::Kind::Comma;
+        kind = TokenKind::Comma;
         break;
 
       case ':':
-        kind = Token::Kind::Colon;
+        kind = TokenKind::Colon;
         break;
 
       case ';':
-        kind = Token::Kind::Semicolon;
+        kind = TokenKind::Semicolon;
         break;
 
       case '!':
         kind =
           m_input->PeekRead(U'=')
-            ? Token::Kind::NotEqual
-            : Token::Kind::Not;
+            ? TokenKind::NotEqual
+            : TokenKind::Not;
         break;
 
       case '~':
-        kind = Token::Kind::BitwiseNot;
+        kind = TokenKind::BitwiseNot;
         break;
 
       case '^':
         kind =
           m_input->PeekRead(U'=')
-            ? Token::Kind::AssignBitwiseXor
-            : Token::Kind::BitwiseXor;
+            ? TokenKind::AssignBitwiseXor
+            : TokenKind::BitwiseXor;
         break;
 
       case '=':
         kind =
           m_input->PeekRead(U'=')
-            ? Token::Kind::Equal
+            ? TokenKind::Equal
             : m_input->PeekRead(U'>')
-            ? Token::Kind::FatArrow
-            : Token::Kind::Assign;
+            ? TokenKind::FatArrow
+            : TokenKind::Assign;
         break;
 
       case '+':
         kind =
           m_input->PeekRead(U'=')
-            ? Token::Kind::AssignAdd
+            ? TokenKind::AssignAdd
             : m_input->PeekRead(U'+')
-            ? Token::Kind::Increment
-            : Token::Kind::Add;
+            ? TokenKind::Increment
+            : TokenKind::Add;
         break;
 
       case '-':
         kind =
           m_input->PeekRead(U'=')
-            ? Token::Kind::AssignSub
+            ? TokenKind::AssignSub
             : m_input->PeekRead(U'>')
-            ? Token::Kind::Arrow
+            ? TokenKind::Arrow
             : m_input->PeekRead(U'-')
-            ? Token::Kind::Decrement
-            : Token::Kind::Sub;
+            ? TokenKind::Decrement
+            : TokenKind::Sub;
         break;
 
       case '*':
         kind =
           m_input->PeekRead(U'=')
-            ? Token::Kind::AssignMul
-            : Token::Kind::Mul;
+            ? TokenKind::AssignMul
+            : TokenKind::Mul;
         break;
 
       case '/':
         kind =
           m_input->PeekRead(U'=')
-            ? Token::Kind::AssignDiv
-            : Token::Kind::Div;
+            ? TokenKind::AssignDiv
+            : TokenKind::Div;
         break;
 
       case '%':
         kind =
           m_input->PeekRead(U'=')
-            ? Token::Kind::AssignDiv
-            : Token::Kind::Mod;
+            ? TokenKind::AssignDiv
+            : TokenKind::Mod;
         break;
 
       case '&':
@@ -671,16 +671,16 @@ namespace snek::parser
         {
           if (m_input->PeekRead(U'='))
           {
-            kind = Token::Kind::AssignLogicalAnd;
+            kind = TokenKind::AssignLogicalAnd;
           } else {
-            kind = Token::Kind::LogicalAnd;
+            kind = TokenKind::LogicalAnd;
           }
         }
         else if (m_input->PeekRead(U'='))
         {
-          kind = Token::Kind::AssignBitwiseAnd;
+          kind = TokenKind::AssignBitwiseAnd;
         } else {
-          kind = Token::Kind::BitwiseAnd;
+          kind = TokenKind::BitwiseAnd;
         }
         break;
 
@@ -689,16 +689,16 @@ namespace snek::parser
         {
           if (m_input->PeekRead(U'='))
           {
-            kind = Token::Kind::AssignLogicalOr;
+            kind = TokenKind::AssignLogicalOr;
           } else {
-            kind = Token::Kind::LogicalOr;
+            kind = TokenKind::LogicalOr;
           }
         }
         else if (m_input->PeekRead(U'='))
         {
-          kind = Token::Kind::AssignBitwiseOr;
+          kind = TokenKind::AssignBitwiseOr;
         } else {
-          kind = Token::Kind::BitwiseOr;
+          kind = TokenKind::BitwiseOr;
         }
         break;
 
@@ -707,13 +707,13 @@ namespace snek::parser
         {
           kind =
             m_input->PeekRead(U'=')
-              ? Token::Kind::AssignLeftShift
-              : Token::Kind::LeftShift;
+              ? TokenKind::AssignLeftShift
+              : TokenKind::LeftShift;
         } else {
           kind =
             m_input->PeekRead(U'=')
-              ? Token::Kind::LessThanEqual
-              : Token::Kind::LessThan;
+              ? TokenKind::LessThanEqual
+              : TokenKind::LessThan;
         }
         break;
 
@@ -722,31 +722,31 @@ namespace snek::parser
         {
           kind =
             m_input->PeekRead(U'=')
-              ? Token::Kind::AssignRightShift
-              : Token::Kind::RightShift;
+              ? TokenKind::AssignRightShift
+              : TokenKind::RightShift;
         } else {
           kind =
             m_input->PeekRead(U'=')
-              ? Token::Kind::GreaterThanEqual
-              : Token::Kind::GreaterThan;
+              ? TokenKind::GreaterThanEqual
+              : TokenKind::GreaterThan;
         }
         break;
 
       case '?':
         if (m_input->PeekRead(U'.'))
         {
-          kind = Token::Kind::ConditionalDot;
+          kind = TokenKind::ConditionalDot;
         }
         else if (m_input->PeekRead(U'?'))
         {
           if (m_input->PeekRead(U'='))
           {
-            kind = Token::Kind::AssignNullCoalescing;
+            kind = TokenKind::AssignNullCoalescing;
           } else {
-            kind = Token::Kind::NullCoalescing;
+            kind = TokenKind::NullCoalescing;
           }
         } else {
-          kind = Token::Kind::Ternary;
+          kind = TokenKind::Ternary;
         }
         break;
 
@@ -775,7 +775,7 @@ namespace snek::parser
       return Token(position, keyword_index->second);
     }
 
-    return Token(position, Token::Kind::Id, result);
+    return Token(position, TokenKind::Id, result);
   }
 
   Token
@@ -810,7 +810,7 @@ namespace snek::parser
       }
     }
 
-    return Token(position, Token::Kind::String, result);
+    return Token(position, TokenKind::String, result);
   }
 
   static inline void
@@ -836,7 +836,7 @@ namespace snek::parser
   {
     const auto position = m_input->position();
     std::u32string result;
-    Token::Kind kind = Token::Kind::Int;
+    TokenKind kind = TokenKind::Int;
 
     // TODO: Add support for different bases, such as 0x00 and so on.
     EatDigits(m_input, result);
@@ -847,7 +847,7 @@ namespace snek::parser
       // TODO: Fix lexing stuff like `5.round()`.
       if (!m_input->Eof() && std::isdigit(m_input->Peek()))
       {
-        kind = Token::Kind::Float;
+        kind = TokenKind::Float;
         result.append(1, U'.');
         EatDigits(m_input, result);
       } else {
@@ -858,7 +858,7 @@ namespace snek::parser
     // Do we have an exponent?
     if (m_input->PeekRead(U'e') || m_input->PeekRead(U'E'))
     {
-      kind = Token::Kind::Float;
+      kind = TokenKind::Float;
       result.append(1, 'e');
       if (m_input->Peek('+') || m_input->Peek('-'))
       {

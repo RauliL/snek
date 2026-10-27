@@ -27,9 +27,9 @@
 
 #include "snek/parser/signature.hpp"
 
-namespace snek::parser::field
+namespace snek::parser
 {
-  enum class Kind
+  enum class FieldKind
   {
     Computed,
     Function,
@@ -38,49 +38,55 @@ namespace snek::parser::field
     Spread,
   };
 
-  class Base : public TypedNode<Kind>
+  class Field : public TypedNode<FieldKind>
   {
   public:
-    DISALLOW_COPY_AND_ASSIGN(Base);
+    DISALLOW_COPY_AND_ASSIGN(Field);
 
-    explicit Base(const std::optional<Position>& position, Kind kind)
+    class Computed;
+    class Function;
+    class Named;
+    class Shorthand;
+    class Spread;
+
+    explicit Field(const std::optional<Position>& position, FieldKind kind)
       : TypedNode(position, kind) {}
+
+    static field_ptr Parse(Lexer& lexer);
   };
 
-  ptr Parse(Lexer& lexer);
-
-  class Computed final : public Base
+  class Field::Computed final : public Field
   {
   public:
-    const expression::ptr key;
-    const expression::ptr value;
+    const expression_ptr key;
+    const expression_ptr value;
 
     explicit Computed(
       const std::optional<Position>& position,
-      const expression::ptr& key_,
-      const expression::ptr& value_
+      const expression_ptr& key_,
+      const expression_ptr& value_
     )
-      : Base(position, Kind::Computed)
+      : Field(position, FieldKind::Computed)
       , key(key_)
       , value(value_) {}
 
     std::u32string ToString() const override;
   };
 
-  class Function final : public Base
+  class Field::Function final : public Field
   {
   public:
     const std::u32string name;
     const Signature signature;
-    const statement::ptr body;
+    const statement_ptr body;
 
     explicit Function(
       const std::optional<Position>& position,
       const std::u32string& name_,
       const Signature& signature_,
-      const statement::ptr& body_
+      const statement_ptr& body_
     )
-      : Base(position, Kind::Function)
+      : Field(position, FieldKind::Function)
       , name(name_)
       , signature(signature_)
       , body(body_) {}
@@ -91,25 +97,25 @@ namespace snek::parser::field
     }
   };
 
-  class Named final : public Base
+  class Field::Named final : public Field
   {
   public:
     const std::u32string name;
-    const expression::ptr value;
+    const expression_ptr value;
 
     explicit Named(
       const std::optional<Position>& position,
       const std::u32string& name_,
-      const expression::ptr& value_
+      const expression_ptr& value_
     )
-      : Base(position, Kind::Named)
+      : Field(position, FieldKind::Named)
       , name(name_)
       , value(value_) {}
 
     std::u32string ToString() const override;
   };
 
-  class Shorthand final : public Base
+  class Field::Shorthand final : public Field
   {
   public:
     const std::u32string name;
@@ -118,22 +124,22 @@ namespace snek::parser::field
       const std::optional<Position>& position,
       const std::u32string& name_
     )
-      : Base(position, Kind::Shorthand)
+      : Field(position, FieldKind::Shorthand)
       , name(name_) {}
 
     std::u32string ToString() const override;
   };
 
-  class Spread final : public Base
+  class Field::Spread final : public Field
   {
   public:
-    const expression::ptr expression;
+    const expression_ptr expression;
 
     explicit Spread(
       const std::optional<Position>& position,
-      const expression::ptr& expression_
+      const expression_ptr& expression_
     )
-      : Base(position, Kind::Spread)
+      : Field(position, FieldKind::Spread)
       , expression(expression_) {}
 
     std::u32string ToString() const override;

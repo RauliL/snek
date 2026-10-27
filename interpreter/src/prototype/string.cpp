@@ -442,7 +442,7 @@ namespace snek::interpreter::prototype
         {
           U"start",
           runtime->int_type(),
-          std::make_shared<parser::expression::Int>(std::nullopt, 0)
+          std::make_shared<parser::Expression::Int>(std::nullopt, 0)
         },
       },
       optional_int,
@@ -463,7 +463,7 @@ namespace snek::interpreter::prototype
         {
           U"start",
           optional_int,
-          std::make_shared<parser::expression::Null>()
+          std::make_shared<parser::Expression::Null>()
         },
       },
       optional_int,

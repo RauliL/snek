@@ -37,7 +37,7 @@ namespace snek::interpreter
 
     Jump(
       const std::optional<Position>& position,
-      parser::statement::JumpKind kind,
+      parser::JumpKind kind,
       const value::ptr& value = nullptr
     )
       : m_position(position)
@@ -49,7 +49,7 @@ namespace snek::interpreter
       return m_position;
     }
 
-    inline parser::statement::JumpKind kind() const
+    inline parser::JumpKind kind() const
     {
       return m_kind;
     }
@@ -61,7 +61,7 @@ namespace snek::interpreter
 
   private:
     std::optional<Position> m_position;
-    parser::statement::JumpKind m_kind;
+    parser::JumpKind m_kind;
     value::ptr m_value;
   };
 }
