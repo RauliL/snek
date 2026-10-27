@@ -27,27 +27,6 @@
 
 #include "snek/parser/parameter.hpp"
 
-namespace snek::parser::expression
-{
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
-namespace snek::parser::statement
-{
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
-namespace snek::parser::type
-{
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
 namespace snek::parser::field
 {
   enum class Kind
@@ -59,18 +38,14 @@ namespace snek::parser::field
     Spread,
   };
 
-  class Base : public Node
+  class Base : public TypedNode<Kind>
   {
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
 
-    explicit Base(const std::optional<Position>& position)
-      : Node(position) {}
-
-    virtual Kind kind() const = 0;
+    explicit Base(const std::optional<Position>& position, Kind kind)
+      : TypedNode(position, kind) {}
   };
-
-  using ptr = std::shared_ptr<Base>;
 
   ptr Parse(Lexer& lexer);
 
@@ -85,14 +60,9 @@ namespace snek::parser::field
       const expression::ptr& key_,
       const expression::ptr& value_
     )
-      : Base(position)
+      : Base(position, Kind::Computed)
       , key(key_)
       , value(value_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Computed;
-    }
 
     std::u32string ToString() const override;
   };
@@ -112,16 +82,11 @@ namespace snek::parser::field
       const type::ptr& return_type_,
       const statement::ptr& body_
     )
-      : Base(position)
+      : Base(position, Kind::Function)
       , name(name_)
       , parameters(parameters_)
       , return_type(return_type_)
       , body(body_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Function;
-    }
 
     std::u32string ToString() const override;
   };
@@ -137,14 +102,9 @@ namespace snek::parser::field
       const std::u32string& name_,
       const expression::ptr& value_
     )
-      : Base(position)
+      : Base(position, Kind::Named)
       , name(name_)
       , value(value_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Named;
-    }
 
     std::u32string ToString() const override;
   };
@@ -158,13 +118,8 @@ namespace snek::parser::field
       const std::optional<Position>& position,
       const std::u32string& name_
     )
-      : Base(position)
+      : Base(position, Kind::Shorthand)
       , name(name_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Shorthand;
-    }
 
     std::u32string ToString() const override;
   };
@@ -178,13 +133,8 @@ namespace snek::parser::field
       const std::optional<Position>& position,
       const expression::ptr& expression_
     )
-      : Base(position)
+      : Base(position, Kind::Spread)
       , expression(expression_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Spread;
-    }
 
     std::u32string ToString() const override;
   };

@@ -43,18 +43,14 @@ namespace snek::parser::type
     String,
   };
 
-  class Base : public Node
+  class Base : public TypedNode<Kind>
   {
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
 
-    explicit Base(const std::optional<Position>& position)
-      : Node(position) {}
-
-    virtual Kind kind() const = 0;
+    explicit Base(const std::optional<Position>& position, Kind kind)
+      : TypedNode(position, kind) {}
   };
-
-  using ptr = std::shared_ptr<Base>;
 
   ptr Parse(Lexer& lexer);
 
@@ -69,13 +65,8 @@ namespace snek::parser::type
       const std::optional<Position>& position,
       value_type value_
     )
-      : Base(position)
+      : Base(position, Kind::Boolean)
       , value(value_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Boolean;
-    }
 
     inline std::u32string ToString() const override
     {
@@ -94,14 +85,9 @@ namespace snek::parser::type
       const std::vector<Parameter>& parameters_,
       const ptr& return_type_
     )
-      : Base(position)
+      : Base(position, Kind::Function)
       , parameters(parameters_)
       , return_type(return_type_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Function;
-    }
 
     std::u32string ToString() const override;
   };
@@ -115,13 +101,8 @@ namespace snek::parser::type
       const std::optional<Position>& position,
       const ptr& element_type_
     )
-      : Base(position)
+      : Base(position, Kind::List)
       , element_type(element_type_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::List;
-    }
 
     inline std::u32string ToString() const override
     {
@@ -150,14 +131,9 @@ namespace snek::parser::type
       MultipleKind multiple_kind_,
       const container_type& types_
     )
-      : Base(position)
+      : Base(position, Kind::Multiple)
       , multiple_kind(multiple_kind_)
       , types(types_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Multiple;
-    }
 
     std::u32string ToString() const override;
   };
@@ -171,13 +147,8 @@ namespace snek::parser::type
       const std::optional<Position>& position,
       const std::u32string& name_
     )
-      : Base(position)
+      : Base(position, Kind::Named)
       , name(name_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Named;
-    }
 
     inline std::u32string ToString() const override
     {
@@ -189,12 +160,7 @@ namespace snek::parser::type
   {
   public:
     explicit Null(const std::optional<Position>& position)
-      : Base(position) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Null;
-    }
+      : Base(position, Kind::Null) {}
 
     inline std::u32string ToString() const override
     {
@@ -216,13 +182,8 @@ namespace snek::parser::type
       const std::optional<Position>& position,
       const container_type& fields_
     )
-      : Base(position)
+      : Base(position, Kind::Record)
       , fields(fields_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Record;
-    }
 
     std::u32string ToString() const override;
   };
@@ -239,13 +200,8 @@ namespace snek::parser::type
       const std::optional<Position>& position,
       const_reference value_
     )
-      : Base(position)
+      : Base(position, Kind::String)
       , value(value_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::String;
-    }
 
     std::u32string ToString() const override;
   };

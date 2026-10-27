@@ -215,7 +215,7 @@ namespace snek::interpreter
       {
         continue;
       }
-      switch (specifier->kind())
+      switch (specifier->kind)
       {
         case parser::import::Kind::Named:
           ImportNamed(
@@ -312,7 +312,7 @@ namespace snek::interpreter
       return nullptr;
     }
 
-    switch (statement->kind())
+    switch (statement->kind)
     {
       case Kind::Block:
         return ExecuteBlock(runtime, scope, As<Block>(statement));

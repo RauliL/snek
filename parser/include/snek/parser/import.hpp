@@ -37,7 +37,7 @@ namespace snek::parser::import
     Star,
   };
 
-  class Base : public Node
+  class Base : public TypedNode<Kind>
   {
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
@@ -46,15 +46,12 @@ namespace snek::parser::import
 
     explicit Base(
       const std::optional<Position>& position,
+      Kind kind,
       const std::optional<std::u32string>& alias_ = std::nullopt
     )
-      : Node(position)
+      : TypedNode(position, kind)
       , alias(alias_) {}
-
-    virtual Kind kind() const = 0;
   };
-
-  using ptr = std::shared_ptr<Base>;
 
   ptr ParseSpecifier(Lexer& lexer);
 
@@ -68,13 +65,8 @@ namespace snek::parser::import
       const std::u32string name_,
       const std::optional<std::u32string>& alias = std::nullopt
     )
-      : Base(position, alias)
+      : Base(position, Kind::Named, alias)
       , name(name_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Named;
-    }
 
     inline std::u32string ToString() const override
     {
@@ -96,12 +88,7 @@ namespace snek::parser::import
       const std::optional<Position>& position,
       const std::optional<std::u32string>& alias = std::nullopt
     )
-      : Base(position, alias) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Star;
-    }
+      : Base(position, Kind::Star, alias) {}
 
     inline std::u32string ToString() const override
     {

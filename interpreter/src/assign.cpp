@@ -127,7 +127,7 @@ namespace snek::interpreter
     for (std::size_t i = 0; i < size; ++i)
     {
       const auto& field = variable->fields[i];
-      const auto kind = field->kind();
+      const auto kind = field->kind;
 
       if (kind == parser::field::Kind::Named)
       {
@@ -214,7 +214,7 @@ namespace snek::interpreter
       return;
     }
 
-    switch (variable->kind())
+    switch (variable->kind)
     {
       case parser::expression::Kind::Id:
         callback(

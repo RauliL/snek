@@ -25,20 +25,85 @@
  */
 #pragma once
 
+#include <memory>
 #include <optional>
+#include <type_traits>
 
 #include "snek/position.hpp"
 
 namespace snek::parser
 {
+  /**
+   * Representation of an AST node.
+   */
   class Node
   {
   public:
+    /** Position of the node in source code, if known. */
     std::optional<Position> position;
 
-    Node(const std::optional<Position>& position_)
+    Node(const std::optional<Position>& position_ = std::nullopt)
       : position(position_) {}
 
+    /**
+     * Returns human readable desription of the node.
+     */
     virtual std::u32string ToString() const = 0;
   };
+
+  /**
+   * AST node that has type information.
+   */
+  template<
+    typename NodeType,
+    typename = typename std::enable_if<std::is_enum<NodeType>::value>::type
+  >
+  class TypedNode : public Node
+  {
+  public:
+    const NodeType kind;
+
+    explicit TypedNode(
+      const std::optional<Position>& position,
+      NodeType kind_
+    )
+      : Node(position)
+      , kind(kind_) {}
+  };
+
+  namespace element
+  {
+    class Base;
+    using ptr = std::shared_ptr<Base>;
+  }
+
+  namespace expression
+  {
+    class Base;
+    using ptr = std::shared_ptr<Base>;
+  }
+
+  namespace field
+  {
+    class Base;
+    using ptr = std::shared_ptr<Base>;
+  }
+
+  namespace import
+  {
+    class Base;
+    using ptr = std::shared_ptr<Base>;
+  }
+
+  namespace statement
+  {
+    class Base;
+    using ptr = std::shared_ptr<Base>;
+  }
+
+  namespace type
+  {
+    class Base;
+    using ptr = std::shared_ptr<Base>;
+  }
 }

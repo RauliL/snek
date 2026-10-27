@@ -141,18 +141,18 @@ namespace snek::parser::expression
   static Parameter
   ToParameter(const ptr& expression)
   {
-    if (expression->kind() == Kind::Id)
+    if (expression->kind == Kind::Id)
     {
       return Parameter(
         expression->position,
         As<Id>(expression)->identifier
       );
     }
-    else if (expression->kind() == Kind::Assign)
+    else if (expression->kind == Kind::Assign)
     {
       const auto assign = As<Assign>(expression);
 
-      if (!assign->op && assign->variable->kind() == Kind::Id)
+      if (!assign->op && assign->variable->kind == Kind::Id)
       {
         return Parameter(
           expression->position,
@@ -987,7 +987,7 @@ namespace snek::parser::expression
   {
     for (const auto& field : fields)
     {
-      const auto kind = field->kind();
+      const auto kind = field->kind;
 
       if (kind == field::Kind::Spread)
       {

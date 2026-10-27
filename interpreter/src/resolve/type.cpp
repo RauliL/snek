@@ -133,7 +133,7 @@ namespace snek::interpreter
       return nullptr;
     }
 
-    switch (type->kind())
+    switch (type->kind)
     {
       case Kind::Boolean:
         return std::make_shared<type::Boolean>(As<Boolean>(type)->value);

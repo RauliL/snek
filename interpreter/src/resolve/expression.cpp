@@ -311,7 +311,7 @@ namespace snek::interpreter
       return nullptr;
     }
 
-    switch (expression->kind())
+    switch (expression->kind)
     {
       case Kind::Assign:
         return ResolveAssign(runtime, scope, As<Assign>(expression));

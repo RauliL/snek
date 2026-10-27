@@ -92,7 +92,7 @@ namespace snek::interpreter
       return;
     }
 
-    switch (statement->kind())
+    switch (statement->kind)
     {
       case Kind::Block:
         FindReturnValuesFromBlock(As<Block>(statement), values);
@@ -165,7 +165,7 @@ namespace snek::interpreter
       return nullptr;
     }
 
-    switch (statement->kind())
+    switch (statement->kind)
     {
       case Kind::Block:
       case Kind::If:

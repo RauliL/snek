@@ -56,10 +56,10 @@ namespace snek::parser
       bool read_opening_parenthesis = true
     );
 
-    const std::u32string name;
-    const type::ptr type;
-    const expression::ptr default_value;
-    const bool rest;
+    std::u32string name;
+    type::ptr type;
+    expression::ptr default_value;
+    bool rest;
 
     Parameter(
       const std::optional<Position>& position = std::nullopt,

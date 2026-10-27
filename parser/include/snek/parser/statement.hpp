@@ -27,13 +27,6 @@
 
 #include "snek/parser/expression.hpp"
 
-namespace snek::parser::import
-{
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
 namespace snek::parser::statement
 {
   enum class Kind
@@ -57,18 +50,14 @@ namespace snek::parser::statement
     Return = static_cast<int>(Token::Kind::KeywordReturn),
   };
 
-  class Base : public Node
+  class Base : public TypedNode<Kind>
   {
   public:
     DISALLOW_COPY_AND_ASSIGN(Base);
 
-    explicit Base(const std::optional<Position>& position)
-      : Node(position) {}
-
-    virtual Kind kind() const = 0;
+    explicit Base(const std::optional<Position>& position, Kind kind)
+      : TypedNode(position, kind) {}
   };
-
-  using ptr = std::shared_ptr<Base>;
 
   ptr Parse(Lexer& lexer, bool is_top_level);
 
@@ -87,13 +76,8 @@ namespace snek::parser::statement
       const std::optional<Position>& position,
       const container_type& statements_
     )
-      : Base(position)
+      : Base(position, Kind::Block)
       , statements(statements_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Block;
-    }
 
     inline std::u32string ToString() const override
     {
@@ -114,15 +98,10 @@ namespace snek::parser::statement
       const std::u32string name_,
       const type::ptr type_
     )
-      : Base(position)
+      : Base(position, Kind::DeclareType)
       , is_export(is_export_)
       , name(name_)
       , type(type_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::DeclareType;
-    }
 
     std::u32string ToString() const override;
   };
@@ -142,16 +121,11 @@ namespace snek::parser::statement
       const expression::ptr& variable_,
       const expression::ptr& value_
     )
-      : Base(position)
+      : Base(position, Kind::DeclareVar)
       , is_export(is_export_)
       , is_read_only(is_read_only_)
       , variable(variable_)
       , value(value_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::DeclareVar;
-    }
 
     std::u32string ToString() const override;
   };
@@ -162,13 +136,8 @@ namespace snek::parser::statement
     const expression::ptr expression;
 
     explicit Expression(const expression::ptr& expression_)
-      : Base(expression_->position)
+      : Base(expression_->position, Kind::Expression)
       , expression(expression_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Expression;
-    }
 
     inline std::u32string ToString() const override
     {
@@ -189,15 +158,10 @@ namespace snek::parser::statement
       const ptr& then_statement_,
       const ptr& else_statement_ = nullptr
     )
-      : Base(position)
+      : Base(position, Kind::If)
       , condition(condition_)
       , then_statement(then_statement_)
       , else_statement(else_statement_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::If;
-    }
 
     std::u32string ToString() const override;
   };
@@ -215,14 +179,9 @@ namespace snek::parser::statement
       const container_type& specifiers_,
       const std::u32string& path_
     )
-      : Base(position)
+      : Base(position, Kind::Import)
       , specifiers(specifiers_)
       , path(path_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Import;
-    }
 
     std::u32string ToString() const override;
   };
@@ -238,14 +197,9 @@ namespace snek::parser::statement
       JumpKind jump_kind_,
       const expression::ptr& value_ = nullptr
     )
-      : Base(position)
+      : Base(position, Kind::Jump)
       , jump_kind(jump_kind_)
       , value(value_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Jump;
-    }
 
     static std::u32string ToString(JumpKind kind);
 
@@ -263,14 +217,9 @@ namespace snek::parser::statement
       const expression::ptr& condition_,
       const ptr& body_
     )
-      : Base(position)
+      : Base(position, Kind::While)
       , condition(condition_)
       , body(body_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::While;
-    }
 
     std::u32string ToString() const override;
   };

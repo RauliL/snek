@@ -227,7 +227,7 @@ namespace snek::interpreter
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
-    switch (field->kind())
+    switch (field->kind)
     {
       case parser::field::Kind::Computed:
         EvaluateComputedField(
@@ -418,7 +418,7 @@ namespace snek::interpreter
     {
       arguments.push_back(nullptr);
     }
-    else if (expression->kind() == Kind::Spread)
+    else if (expression->kind == Kind::Spread)
     {
       const auto value = EvaluateExpression(
         runtime,
@@ -761,7 +761,7 @@ namespace snek::interpreter
       return nullptr;
     }
 
-    switch (expression->kind())
+    switch (expression->kind)
     {
       case Kind::Assign:
         return EvaluateAssign(runtime, scope, As<Assign>(expression));

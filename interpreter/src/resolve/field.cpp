@@ -169,7 +169,7 @@ namespace snek::interpreter
     type::Record::container_type& resolved_fields
   )
   {
-    switch (field->kind())
+    switch (field->kind)
     {
       case Kind::Computed:
         return ResolveComputed(

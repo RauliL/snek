@@ -34,7 +34,7 @@ TEST_CASE("Parse computed record field")
   Lexer lexer("[foo]: \"bar\"");
   const auto result = field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Computed);
+  REQUIRE(result->kind == field::Kind::Computed);
 }
 
 TEST_CASE("Parse function record field with block")
@@ -42,7 +42,7 @@ TEST_CASE("Parse function record field with block")
   Lexer lexer("foo(a, b):\n  pass");
   const auto result = field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Function);
+  REQUIRE(result->kind == field::Kind::Function);
 }
 
 TEST_CASE("Parse function record field with arrow")
@@ -50,7 +50,7 @@ TEST_CASE("Parse function record field with arrow")
   Lexer lexer("foo(a, b) => foo");
   const auto result = field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Function);
+  REQUIRE(result->kind == field::Kind::Function);
 }
 
 TEST_CASE("Parse named record field")
@@ -58,7 +58,7 @@ TEST_CASE("Parse named record field")
   Lexer lexer("\"foo\": \"bar\"");
   const auto result = field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Named);
+  REQUIRE(result->kind == field::Kind::Named);
 }
 
 TEST_CASE("Parse shorthand record field")
@@ -66,7 +66,7 @@ TEST_CASE("Parse shorthand record field")
   Lexer lexer("foo");
   const auto result = field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Shorthand);
+  REQUIRE(result->kind == field::Kind::Shorthand);
 }
 
 TEST_CASE("Parse spread record field")
@@ -74,5 +74,5 @@ TEST_CASE("Parse spread record field")
   Lexer lexer("...foo");
   const auto result = field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Spread);
+  REQUIRE(result->kind == field::Kind::Spread);
 }
