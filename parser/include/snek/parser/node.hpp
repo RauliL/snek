@@ -25,20 +25,85 @@
  */
 #pragma once
 
+#include <memory>
 #include <optional>
+#include <type_traits>
 
 #include "snek/position.hpp"
 
 namespace snek::parser
 {
+  /**
+   * Representation of an AST node.
+   */
   class Node
   {
   public:
+    /** Position of the node in source code, if known. */
     std::optional<Position> position;
 
-    Node(const std::optional<Position>& position_)
+    Node(const std::optional<Position>& position_ = std::nullopt)
       : position(position_) {}
 
+    /**
+     * Returns human readable desription of the node.
+     */
     virtual std::u32string ToString() const = 0;
   };
+
+  /**
+   * AST node that has type information.
+   */
+  template<
+    typename NodeType,
+    typename = typename std::enable_if<std::is_enum<NodeType>::value>::type
+  >
+  class TypedNode : public Node
+  {
+  public:
+    const NodeType kind;
+
+    explicit TypedNode(
+      const std::optional<Position>& position,
+      NodeType kind_
+    )
+      : Node(position)
+      , kind(kind_) {}
+
+    /**
+     * Tests whether node is of given type.
+     */
+    inline bool Is(NodeType kind_) const
+    {
+      return kind == kind_;
+    }
+  };
+
+  /**
+   * Helper function for casting an AST node. Use with caution.
+   */
+  template<
+    typename T,
+    typename U,
+    typename = typename std::enable_if<std::is_base_of<Node, U>::value>::type
+  >
+  inline const T*
+  As(const std::shared_ptr<U>& ptr)
+  {
+    return static_cast<const T*>(ptr.get());
+  }
+
+  class Element;
+  class Expression;
+  class Field;
+  class Import;
+  class Statement;
+  class Type;
+
+  using element_ptr = std::shared_ptr<Element>;
+  using expression_ptr = std::shared_ptr<Expression>;
+  using field_ptr = std::shared_ptr<Field>;
+  using import_ptr = std::shared_ptr<Import>;
+  using statement_ptr = std::shared_ptr<Statement>;
+  using type_ptr = std::shared_ptr<Type>;
 }

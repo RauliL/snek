@@ -35,6 +35,6 @@ namespace snek::interpreter
   ExecuteStatement(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::statement::ptr& statement
+    const parser::statement_ptr& statement
   );
 }

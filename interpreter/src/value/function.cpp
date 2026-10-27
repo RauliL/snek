@@ -150,7 +150,7 @@ namespace snek::interpreter::value
       explicit ScriptedFunction(
         const std::vector<Parameter>& parameters,
         const type::ptr& return_type,
-        const parser::statement::ptr& body,
+        const parser::statement_ptr& body,
         const Scope::ptr& enclosing_scope
       )
         : Function()
@@ -199,16 +199,12 @@ namespace snek::interpreter::value
         }
         catch (const Jump& jump)
         {
-          if (jump.kind() == parser::statement::JumpKind::Return)
+          if (jump.Is(parser::JumpKind::Return))
           {
-            return jump.value();
+            return jump.value;
           }
 
-          throw runtime.MakeError(
-            U"Unexpected `" +
-            parser::statement::Jump::ToString(jump.kind())
-            + U"'."
-          );
+          throw runtime.MakeError(U"Unexpected `" + jump.ToString() + U"'.");
         }
 
         return nullptr;
@@ -217,7 +213,7 @@ namespace snek::interpreter::value
     private:
       const std::vector<Parameter> m_parameters;
       const type::ptr m_return_type;
-      const parser::statement::ptr m_body;
+      const parser::statement_ptr m_body;
       const Scope::ptr m_enclosing_scope;
     };
 
@@ -296,7 +292,7 @@ namespace snek::interpreter::value
   Function::MakeScripted(
     const std::vector<Parameter>& parameters,
     const type::ptr& return_type,
-    const parser::statement::ptr& body,
+    const parser::statement_ptr& body,
     const Scope::ptr& enclosing_scope
   )
   {

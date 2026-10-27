@@ -95,7 +95,7 @@ namespace snek::interpreter::prototype
   )
   {
     const auto optional_float = type::MakeOptional(runtime->float_type());
-    const auto null_expression = std::make_shared<parser::expression::Null>(
+    const auto null_expression = std::make_shared<parser::Expression::Null>(
       std::nullopt
     );
 
@@ -114,4 +114,3 @@ namespace snek::interpreter::prototype
     );
   }
 }
-

@@ -25,40 +25,38 @@
  */
 #pragma once
 
-#include <memory>
-
 #include "snek/parser/lexer.hpp"
 
-namespace snek::parser::import
+namespace snek::parser
 {
-  enum class Kind
+  enum class ImportKind
   {
     Named,
     Star,
   };
 
-  class Base : public Node
+  class Import : public TypedNode<ImportKind>
   {
   public:
-    DISALLOW_COPY_AND_ASSIGN(Base);
+    DISALLOW_COPY_AND_ASSIGN(Import);
+
+    class Named;
+    class Star;
 
     const std::optional<std::u32string> alias;
 
-    explicit Base(
+    explicit Import(
       const std::optional<Position>& position,
+      ImportKind kind,
       const std::optional<std::u32string>& alias_ = std::nullopt
     )
-      : Node(position)
+      : TypedNode(position, kind)
       , alias(alias_) {}
 
-    virtual Kind kind() const = 0;
+    static import_ptr ParseSpecifier(Lexer& lexer);
   };
 
-  using ptr = std::shared_ptr<Base>;
-
-  ptr ParseSpecifier(Lexer& lexer);
-
-  class Named final : public Base
+  class Import::Named final : public Import
   {
   public:
     const std::u32string name;
@@ -68,13 +66,8 @@ namespace snek::parser::import
       const std::u32string name_,
       const std::optional<std::u32string>& alias = std::nullopt
     )
-      : Base(position, alias)
+      : Import(position, ImportKind::Named, alias)
       , name(name_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Named;
-    }
 
     inline std::u32string ToString() const override
     {
@@ -89,19 +82,14 @@ namespace snek::parser::import
     }
   };
 
-  class Star final : public Base
+  class Import::Star final : public Import
   {
   public:
     explicit Star(
       const std::optional<Position>& position,
       const std::optional<std::u32string>& alias = std::nullopt
     )
-      : Base(position, alias) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Star;
-    }
+      : Import(position, ImportKind::Star, alias) {}
 
     inline std::u32string ToString() const override
     {

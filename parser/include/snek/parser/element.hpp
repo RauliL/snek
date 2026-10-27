@@ -25,46 +25,31 @@
  */
 #pragma once
 
-#include <memory>
-
 #include "snek/parser/lexer.hpp"
 
-namespace snek::parser::expression
+namespace snek::parser
 {
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
-namespace snek::parser::element
-{
-  enum class Kind
+  enum class ElementKind
   {
     Spread,
     Value,
   };
 
-  class Base final : public Node
+  class Element final : public TypedNode<ElementKind>
   {
   public:
-    DISALLOW_COPY_AND_ASSIGN(Base);
+    const expression_ptr expression;
 
-    const Kind kind;
-    const expression::ptr expression;
-
-    explicit Base(
+    explicit Element(
       const std::optional<Position>& position,
-      Kind kind_,
-      const expression::ptr& expression_
+      ElementKind kind,
+      const expression_ptr& expression_
     )
-      : Node(position)
-      , kind(kind_)
+      : TypedNode(position, kind)
       , expression(expression_) {}
+
+    static element_ptr Parse(Lexer& lexer);
 
     std::u32string ToString() const override;
   };
-
-  using ptr = std::shared_ptr<Base>;
-
-  ptr Parse(Lexer& lexer);
 }

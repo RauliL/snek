@@ -34,7 +34,7 @@ namespace snek::interpreter
   AssignTo(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::expression::ptr& variable,
+    const parser::expression_ptr& variable,
     const value::ptr& value
   );
 
@@ -42,7 +42,7 @@ namespace snek::interpreter
   DeclareVar(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::expression::ptr& variable,
+    const parser::expression_ptr& variable,
     const value::ptr& value,
     bool read_only,
     bool exported

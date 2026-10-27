@@ -30,42 +30,24 @@
 
 #include "snek/parser/lexer.hpp"
 
-namespace snek::parser::expression
-{
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
-namespace snek::parser::type
-{
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
 namespace snek::parser
 {
+  /**
+   * Representation of function parameter.
+   */
   class Parameter final : public Node
   {
   public:
-    static Parameter Parse(Lexer& lexer);
-
-    static std::vector<Parameter> ParseList(
-      Lexer& lexer,
-      bool read_opening_parenthesis = true
-    );
-
-    const std::u32string name;
-    const type::ptr type;
-    const expression::ptr default_value;
-    const bool rest;
+    std::u32string name;
+    type_ptr type;
+    expression_ptr default_value;
+    bool rest;
 
     Parameter(
       const std::optional<Position>& position = std::nullopt,
       const std::u32string& name_ = U"arg",
-      const type::ptr& type_ = nullptr,
-      const expression::ptr& default_value_ = nullptr,
+      const type_ptr& type_ = nullptr,
+      const expression_ptr& default_value_ = nullptr,
       bool rest_ = false
     )
       : Node(position)
@@ -74,6 +56,27 @@ namespace snek::parser
       , default_value(default_value_)
       , rest(rest_) {}
 
+    static Parameter Parse(Lexer& lexer);
+
+    static std::vector<Parameter> ParseList(
+      Lexer& lexer,
+      bool read_opening_parenthesis = true
+    );
+
     std::u32string ToString() const override;
+  };
+
+  /**
+   * Representation of function signature.
+   */
+  struct Signature final
+  {
+    std::vector<Parameter> parameters = {};
+    type_ptr return_type = nullptr;
+
+    std::u32string ToString(
+      const std::u32string& return_type_separator = U": ",
+      bool include_missing_return_type = false
+    ) const;
   };
 }

@@ -32,15 +32,15 @@ using namespace snek::parser;
 TEST_CASE("Parse spread list element")
 {
   Lexer lexer("...foo");
-  const auto result = element::Parse(lexer);
+  const auto result = Element::Parse(lexer);
 
-  REQUIRE(result->kind == element::Kind::Spread);
+  REQUIRE(result->Is(ElementKind::Spread));
 }
 
 TEST_CASE("Parse ordinary list element")
 {
   Lexer lexer("foo");
-  const auto result = element::Parse(lexer);
+  const auto result = Element::Parse(lexer);
 
-  REQUIRE(result->kind == element::Kind::Value);
+  REQUIRE(result->Is(ElementKind::Value));
 }

@@ -28,7 +28,6 @@
 #include "snek/interpreter/runtime.hpp"
 #include "snek/interpreter/type.hpp"
 #include "snek/parser/expression.hpp"
-#include "snek/parser/parameter.hpp"
 #include "snek/parser/statement.hpp"
 #include "snek/parser/type.hpp"
 
@@ -38,7 +37,7 @@ namespace snek::interpreter
   ResolveType(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::type::ptr& type
+    const parser::type_ptr& type
   );
 
   Parameter
@@ -59,22 +58,30 @@ namespace snek::interpreter
   ResolveExpression(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::expression::ptr& expression
+    const parser::expression_ptr& expression
   );
 
   type::ptr
   ResolveStatement(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::statement::ptr& statement
+    const parser::statement_ptr& statement
   );
 
   bool
   ResolveField(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::field::ptr& field,
+    const parser::field_ptr& field,
     type::Record::container_type& resolved_fields
+  );
+
+  type::ptr
+  ResolveReturnType(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const parser::type_ptr& return_type,
+    const parser::statement_ptr& body
   );
 
   type::ptr

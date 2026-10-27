@@ -19,8 +19,8 @@ add_library(
   ./src/field.cpp
   ./src/import.cpp
   ./src/lexer.cpp
-  ./src/parameter.cpp
   ./src/position.cpp
+  ./src/signature.cpp
   ./src/statement.cpp
   ./src/token.cpp
   ./src/type.cpp

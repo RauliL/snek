@@ -26,86 +26,84 @@
 #include "snek/parser/error.hpp"
 #include "snek/parser/expression.hpp"
 #include "snek/parser/field.hpp"
-#include "snek/parser/parameter.hpp"
 #include "snek/parser/statement.hpp"
 #include "snek/parser/type.hpp"
 #include "snek/parser/utils.hpp"
 
-namespace snek::parser::field
+namespace snek::parser
 {
-  static ptr
+  static field_ptr
   ParseComputed(const std::optional<Position>& position, Lexer& lexer)
   {
-    const auto expression = expression::Parse(lexer);
+    const auto expression = Expression::Parse(lexer);
 
-    lexer.ReadToken(Token::Kind::RightBracket);
-    lexer.ReadToken(Token::Kind::Colon);
+    lexer.ReadToken(TokenKind::RightBracket);
+    lexer.ReadToken(TokenKind::Colon);
 
-    return std::make_shared<Computed>(
+    return std::make_shared<Field::Computed>(
       position,
       expression,
-      expression::Parse(lexer)
+      Expression::Parse(lexer)
     );
   }
 
-  static inline ptr
+  static inline field_ptr
   ParseSpread(const std::optional<Position>& position, Lexer& lexer)
   {
-    return std::make_shared<Spread>(position, expression::Parse(lexer));
+    return std::make_shared<Field::Spread>(position, Expression::Parse(lexer));
   }
 
-  static ptr
+  static field_ptr
   ParseNamed(const Token& token, Lexer& lexer)
   {
-    if (lexer.PeekReadToken(Token::Kind::LeftParen))
+    if (lexer.PeekReadToken(TokenKind::LeftParen))
     {
       const auto parameters = Parameter::ParseList(lexer, false);
-      type::ptr return_type;
+      type_ptr return_type;
 
-      if (lexer.PeekReadToken(Token::Kind::Arrow))
+      if (lexer.PeekReadToken(TokenKind::Arrow))
       {
-        return_type = type::Parse(lexer);
+        return_type = Type::Parse(lexer);
       }
 
-      return std::make_shared<Function>(
+      return std::make_shared<Field::Function>(
         token.position,
         *token.text,
-        parameters,
-        return_type,
-        statement::ParseFunctionBody(lexer)
+        Signature{ parameters, return_type },
+        Statement::ParseFunctionBody(lexer)
       );
     }
     // TODO: Figure out how to handle shorthand properties with non-identifier
     // key such as string or number.
-    else if (!lexer.PeekReadToken(Token::Kind::Colon))
+    else if (!lexer.PeekReadToken(TokenKind::Colon))
     {
-      return std::make_shared<Shorthand>(token.position, *token.text);
+      return std::make_shared<Field::Shorthand>(token.position, *token.text);
     }
 
-    return std::make_shared<Named>(
+    return std::make_shared<Field::Named>(
       token.position,
       *token.text,
-      expression::Parse(lexer)
+      Expression::Parse(lexer)
     );
   }
 
-  ptr
-  Parse(Lexer& lexer)
+  field_ptr
+  Field::Parse(Lexer& lexer)
   {
     const auto token = lexer.ReadToken();
 
     switch (token.kind)
     {
-      case Token::Kind::LeftBracket:
+      case TokenKind::LeftBracket:
         return ParseComputed(token.position, lexer);
 
-      case Token::Kind::Spread:
+      case TokenKind::Spread:
         return ParseSpread(token.position, lexer);
 
-      case Token::Kind::Id:
-      case Token::Kind::String:
-      case Token::Kind::Float:
-      case Token::Kind::Int:
+      case TokenKind::Id:
+      case TokenKind::String:
+      case TokenKind::Float:
+      case TokenKind::Int:
         return ParseNamed(token, lexer);
 
       default:
@@ -119,38 +117,13 @@ namespace snek::parser::field
   }
 
   std::u32string
-  Computed::ToString() const
+  Field::Computed::ToString() const
   {
     return U'[' + key->ToString() + U"]: " + value->ToString();
   }
 
   std::u32string
-  Function::ToString() const
-  {
-    std::u32string result(name);
-
-    result.append(
-      utils::Join<Parameter, std::vector<Parameter>::const_iterator>(
-        std::begin(parameters),
-        std::end(parameters),
-        [](const Parameter& parameter)
-        {
-          return parameter.ToString();
-        },
-        U'(',
-        U')'
-      )
-    );
-    if (return_type)
-    {
-      result.append(U" -> ").append(return_type->ToString());
-    }
-
-    return result;
-  }
-
-  std::u32string
-  Named::ToString() const
+  Field::Named::ToString() const
   {
     if (utils::IsId(name))
     {
@@ -161,13 +134,13 @@ namespace snek::parser::field
   }
 
   std::u32string
-  Shorthand::ToString() const
+  Field::Shorthand::ToString() const
   {
     return utils::IsId(name) ? name : utils::ToJsonString(name);
   }
 
   std::u32string
-  Spread::ToString() const
+  Field::Spread::ToString() const
   {
     return U"..." + expression->ToString();
   }

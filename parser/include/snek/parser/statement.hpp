@@ -27,16 +27,9 @@
 
 #include "snek/parser/expression.hpp"
 
-namespace snek::parser::import
+namespace snek::parser
 {
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
-namespace snek::parser::statement
-{
-  enum class Kind
+  enum class StatementKind
   {
     Block,
     DeclareType,
@@ -52,34 +45,43 @@ namespace snek::parser::statement
 
   enum class JumpKind
   {
-    Break = static_cast<int>(Token::Kind::KeywordBreak),
-    Continue = static_cast<int>(Token::Kind::KeywordContinue),
-    Return = static_cast<int>(Token::Kind::KeywordReturn),
+    Break = static_cast<int>(TokenKind::KeywordBreak),
+    Continue = static_cast<int>(TokenKind::KeywordContinue),
+    Return = static_cast<int>(TokenKind::KeywordReturn),
   };
 
-  class Base : public Node
+  class Statement : public TypedNode<StatementKind>
   {
   public:
-    DISALLOW_COPY_AND_ASSIGN(Base);
+    DISALLOW_COPY_AND_ASSIGN(Statement);
 
-    explicit Base(const std::optional<Position>& position)
-      : Node(position) {}
+    class Block;
+    class DeclareType;
+    class DeclareVar;
+    class Expression;
+    class If;
+    class Import;
+    class Jump;
+    class While;
 
-    virtual Kind kind() const = 0;
+    explicit Statement(
+      const std::optional<Position>& position,
+      StatementKind kind
+    )
+      : TypedNode(position, kind) {}
+
+    static statement_ptr Parse(Lexer& lexer, bool is_top_level);
+
+    static statement_ptr ParseBlock(Lexer& lexer);
+
+    static statement_ptr ParseFunctionBody(Lexer& lexer);
   };
 
-  using ptr = std::shared_ptr<Base>;
-
-  ptr Parse(Lexer& lexer, bool is_top_level);
-
-  ptr ParseBlock(Lexer& lexer);
-
-  ptr ParseFunctionBody(Lexer& lexer);
-
-  class Block final : public Base
+  class Statement::Block final : public Statement
   {
   public:
-    using container_type = std::vector<ptr>;
+    using value_type = statement_ptr;
+    using container_type = std::vector<value_type>;
 
     const container_type statements;
 
@@ -87,13 +89,8 @@ namespace snek::parser::statement
       const std::optional<Position>& position,
       const container_type& statements_
     )
-      : Base(position)
+      : Statement(position, StatementKind::Block)
       , statements(statements_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Block;
-    }
 
     inline std::u32string ToString() const override
     {
@@ -101,74 +98,59 @@ namespace snek::parser::statement
     }
   };
 
-  class DeclareType final : public Base
+  class Statement::DeclareType final : public Statement
   {
   public:
     const bool is_export;
     const std::u32string name;
-    const type::ptr type;
+    const type_ptr type;
 
     explicit DeclareType(
       const std::optional<Position>& position,
       bool is_export_,
       const std::u32string name_,
-      const type::ptr type_
+      const type_ptr type_
     )
-      : Base(position)
+      : Statement(position, StatementKind::DeclareType)
       , is_export(is_export_)
       , name(name_)
       , type(type_) {}
 
-    inline Kind kind() const override
-    {
-      return Kind::DeclareType;
-    }
-
     std::u32string ToString() const override;
   };
 
-  class DeclareVar final : public Base
+  class Statement::DeclareVar final : public Statement
   {
   public:
     const bool is_export;
     const bool is_read_only;
-    const expression::ptr variable;
-    const expression::ptr value;
+    const expression_ptr variable;
+    const expression_ptr value;
 
     explicit DeclareVar(
       const std::optional<Position>& position,
       bool is_export_,
       bool is_read_only_,
-      const expression::ptr& variable_,
-      const expression::ptr& value_
+      const expression_ptr& variable_,
+      const expression_ptr& value_
     )
-      : Base(position)
+      : Statement(position, StatementKind::DeclareVar)
       , is_export(is_export_)
       , is_read_only(is_read_only_)
       , variable(variable_)
       , value(value_) {}
 
-    inline Kind kind() const override
-    {
-      return Kind::DeclareVar;
-    }
-
     std::u32string ToString() const override;
   };
 
-  class Expression final : public Base
+  class Statement::Expression final : public Statement
   {
   public:
-    const expression::ptr expression;
+    const expression_ptr expression;
 
-    explicit Expression(const expression::ptr& expression_)
-      : Base(expression_->position)
+    explicit Expression(const expression_ptr& expression_)
+      : Statement(expression_->position, StatementKind::Expression)
       , expression(expression_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Expression;
-    }
 
     inline std::u32string ToString() const override
     {
@@ -176,36 +158,32 @@ namespace snek::parser::statement
     }
   };
 
-  class If final : public Base
+  class Statement::If final : public Statement
   {
   public:
-    const expression::ptr condition;
-    const ptr then_statement;
-    const ptr else_statement;
+    const expression_ptr condition;
+    const statement_ptr then_statement;
+    const statement_ptr else_statement;
 
     explicit If(
       const std::optional<Position>& position,
-      const expression::ptr& condition_,
-      const ptr& then_statement_,
-      const ptr& else_statement_ = nullptr
+      const expression_ptr& condition_,
+      const statement_ptr& then_statement_,
+      const statement_ptr& else_statement_ = nullptr
     )
-      : Base(position)
+      : Statement(position, StatementKind::If)
       , condition(condition_)
       , then_statement(then_statement_)
       , else_statement(else_statement_) {}
 
-    inline Kind kind() const override
-    {
-      return Kind::If;
-    }
-
     std::u32string ToString() const override;
   };
 
-  class Import final : public Base
+  class Statement::Import final : public Statement
   {
   public:
-    using container_type = std::vector<import::ptr>;
+    using value_type = import_ptr;
+    using container_type = std::vector<import_ptr>;
 
     const container_type specifiers;
     const std::u32string path;
@@ -215,36 +193,31 @@ namespace snek::parser::statement
       const container_type& specifiers_,
       const std::u32string& path_
     )
-      : Base(position)
+      : Statement(position, StatementKind::Import)
       , specifiers(specifiers_)
       , path(path_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::Import;
-    }
 
     std::u32string ToString() const override;
   };
 
-  class Jump final : public Base
+  class Statement::Jump final : public Statement
   {
   public:
     const JumpKind jump_kind;
-    const expression::ptr value;
+    const expression_ptr value;
 
     explicit Jump(
       const std::optional<Position>& position,
       JumpKind jump_kind_,
-      const expression::ptr& value_ = nullptr
+      const expression_ptr& value_ = nullptr
     )
-      : Base(position)
+      : Statement(position, StatementKind::Jump)
       , jump_kind(jump_kind_)
       , value(value_) {}
 
-    inline Kind kind() const override
+    inline bool Is(JumpKind jump_kind_) const
     {
-      return Kind::Jump;
+      return jump_kind == jump_kind_;
     }
 
     static std::u32string ToString(JumpKind kind);
@@ -252,25 +225,20 @@ namespace snek::parser::statement
     std::u32string ToString() const override;
   };
 
-  class While final : public Base
+  class Statement::While final : public Statement
   {
   public:
-    const expression::ptr condition;
-    const ptr body;
+    const expression_ptr condition;
+    const statement_ptr body;
 
     explicit While(
       const std::optional<Position>& position,
-      const expression::ptr& condition_,
-      const ptr& body_
+      const expression_ptr& condition_,
+      const statement_ptr& body_
     )
-      : Base(position)
+      : Statement(position, StatementKind::While)
       , condition(condition_)
       , body(body_) {}
-
-    inline Kind kind() const override
-    {
-      return Kind::While;
-    }
 
     std::u32string ToString() const override;
   };

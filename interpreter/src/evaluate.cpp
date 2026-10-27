@@ -32,18 +32,16 @@
 
 namespace snek::interpreter
 {
-  using namespace parser::expression;
-
   template<class T>
   static inline const T*
-  As(const ptr& expression)
+  As(const parser::expression_ptr& expression)
   {
     return static_cast<const T*>(expression.get());
   }
 
   template<class T>
   static inline const T*
-  As(const parser::field::ptr& field)
+  As(const parser::field_ptr& field)
   {
     return static_cast<const T*>(field.get());
   }
@@ -55,49 +53,17 @@ namespace snek::interpreter
     return static_cast<const T*>(value.get());
   }
 
-  static type::ptr
-  ResolveReturnType(
-    const Runtime& runtime,
-    const Scope::ptr& scope,
-    const parser::type::ptr& return_type,
-    const parser::statement::ptr& body
-  )
-  {
-    // TODO: Create new fake scope and populate it with parameters and local
-    // variables.
-    const auto actual_return_type = ResolveStatement(runtime, scope, body);
-    type::ptr resolved_return_type;
-
-    if (!return_type)
-    {
-      return actual_return_type;
-    }
-    resolved_return_type = ResolveType(runtime, scope, return_type);
-    if (!actual_return_type->Accepts(resolved_return_type))
-    {
-      throw runtime.MakeError(
-        U"Return type "
-        + resolved_return_type->ToString()
-        + U" does not match actual return type "
-        + actual_return_type->ToString()
-        + U"."
-      );
-    }
-
-    return resolved_return_type;
-  }
-
   static void
   EvaluateElement(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::element::ptr& element,
+    const parser::element_ptr& element,
     std::vector<value::ptr>& list
   )
   {
     switch (element->kind)
     {
-      case parser::element::Kind::Spread:
+      case parser::ElementKind::Spread:
       {
         const auto value = EvaluateExpression(
           runtime,
@@ -121,7 +87,7 @@ namespace snek::interpreter
         break;
       }
 
-      case parser::element::Kind::Value:
+      case parser::ElementKind::Value:
         list.push_back(EvaluateExpression(
           runtime,
           scope,
@@ -135,7 +101,7 @@ namespace snek::interpreter
   EvaluateComputedField(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::field::Computed* field,
+    const parser::Field::Computed* field,
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
@@ -148,13 +114,22 @@ namespace snek::interpreter
   EvaluateFunctionField(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::field::Function* field,
+    const parser::Field::Function* field,
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
     record[field->name] = value::Function::MakeScripted(
-      ResolveParameterList(runtime, scope, field->parameters),
-      ResolveReturnType(runtime, scope, field->return_type, field->body),
+      ResolveParameterList(
+        runtime,
+        scope,
+        field->signature.parameters
+      ),
+      ResolveReturnType(
+        runtime,
+        scope,
+        field->signature.return_type,
+        field->body
+      ),
       field->body,
       scope
     );
@@ -164,7 +139,7 @@ namespace snek::interpreter
   EvaluateNamedField(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::field::Named* field,
+    const parser::Field::Named* field,
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
@@ -179,7 +154,7 @@ namespace snek::interpreter
   EvaluateShorthandField(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::field::Shorthand* field,
+    const parser::Field::Shorthand* field,
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
@@ -201,7 +176,7 @@ namespace snek::interpreter
   EvaluateSpreadField(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::field::Spread* field,
+    const parser::Field::Spread* field,
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
@@ -223,53 +198,53 @@ namespace snek::interpreter
   EvaluateField(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const parser::field::ptr& field,
+    const parser::field_ptr& field,
     std::unordered_map<std::u32string, value::ptr>& record
   )
   {
-    switch (field->kind())
+    switch (field->kind)
     {
-      case parser::field::Kind::Computed:
+      case parser::FieldKind::Computed:
         EvaluateComputedField(
           runtime,
           scope,
-          As<parser::field::Computed>(field),
+          As<parser::Field::Computed>(field),
           record
         );
         break;
 
-      case parser::field::Kind::Function:
+      case parser::FieldKind::Function:
         EvaluateFunctionField(
           runtime,
           scope,
-          As<parser::field::Function>(field),
+          As<parser::Field::Function>(field),
           record
         );
         break;
 
-      case parser::field::Kind::Named:
+      case parser::FieldKind::Named:
         EvaluateNamedField(
           runtime,
           scope,
-          As<parser::field::Named>(field),
+          As<parser::Field::Named>(field),
           record
         );
         break;
 
-      case parser::field::Kind::Shorthand:
+      case parser::FieldKind::Shorthand:
         EvaluateShorthandField(
           runtime,
           scope,
-          As<parser::field::Shorthand>(field),
+          As<parser::Field::Shorthand>(field),
           record
         );
         break;
 
-      case parser::field::Kind::Spread:
+      case parser::FieldKind::Spread:
         EvaluateSpreadField(
           runtime,
           scope,
-          As<parser::field::Spread>(field),
+          As<parser::Field::Spread>(field),
           record
         );
         break;
@@ -280,7 +255,7 @@ namespace snek::interpreter
   EvaluateAssign(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Assign* expression
+    const parser::Expression::Assign* expression
   )
   {
     value::ptr new_value;
@@ -289,7 +264,7 @@ namespace snek::interpreter
     {
       switch (*expression->op)
       {
-        case parser::expression::Assign::Operator::LogicalAnd:
+        case parser::AssignOp::LogicalAnd:
           {
             const auto old_value = EvaluateExpression(
               runtime,
@@ -309,7 +284,7 @@ namespace snek::interpreter
           }
           break;
 
-        case parser::expression::Assign::Operator::LogicalOr:
+        case parser::AssignOp::LogicalOr:
           {
             const auto old_value = EvaluateExpression(
               runtime,
@@ -329,7 +304,7 @@ namespace snek::interpreter
           }
           break;
 
-        case parser::expression::Assign::Operator::NullCoalescing:
+        case parser::AssignOp::NullCoalescing:
           {
             const auto old_value = EvaluateExpression(
               runtime,
@@ -353,7 +328,7 @@ namespace snek::interpreter
           new_value = value::CallMethod(
             runtime,
             EvaluateExpression(runtime, scope, expression->variable),
-            Assign::ToString(*expression->op),
+            parser::ToString(*expression->op),
             { EvaluateExpression(runtime, scope, expression->value) },
             expression->position
           );
@@ -371,7 +346,7 @@ namespace snek::interpreter
   EvaluateBinary(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Binary* expression,
+    const parser::Expression::Binary* expression,
     bool tail_call
   )
   {
@@ -379,17 +354,17 @@ namespace snek::interpreter
 
     switch (expression->op)
     {
-      case Binary::Operator::LogicalAnd:
+      case parser::BinaryOp::LogicalAnd:
         return value::ToBoolean(left)
           ? EvaluateExpression(runtime, scope, expression->right)
           : left;
 
-      case Binary::Operator::LogicalOr:
+      case parser::BinaryOp::LogicalOr:
         return value::ToBoolean(left)
           ? left
           : EvaluateExpression(runtime, scope, expression->right);
 
-      case Binary::Operator::NullCoalescing:
+      case parser::BinaryOp::NullCoalescing:
         return left
           ? left
           : EvaluateExpression(runtime, scope, expression->right);
@@ -398,7 +373,7 @@ namespace snek::interpreter
         return value::CallMethod(
           runtime,
           left,
-          Binary::ToString(expression->op),
+          parser::ToString(expression->op),
           { EvaluateExpression(runtime, scope, expression->right) },
           expression->position,
           tail_call
@@ -410,7 +385,7 @@ namespace snek::interpreter
   EvaluateArgument(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const ptr& expression,
+    const parser::expression_ptr& expression,
     std::vector<value::ptr>& arguments
   )
   {
@@ -418,12 +393,12 @@ namespace snek::interpreter
     {
       arguments.push_back(nullptr);
     }
-    else if (expression->kind() == Kind::Spread)
+    else if (expression->Is(parser::ExpressionKind::Spread))
     {
       const auto value = EvaluateExpression(
         runtime,
         scope,
-        As<Spread>(expression)->expression
+        As<parser::Expression::Spread>(expression)->expression
       );
 
       if (value::IsList(value))
@@ -450,7 +425,7 @@ namespace snek::interpreter
   EvaluateCall(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Call* expression,
+    const parser::Expression::Call* expression,
     bool tail_call
   )
   {
@@ -493,7 +468,7 @@ namespace snek::interpreter
   EvaluateDecrement(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Decrement* expression,
+    const parser::Expression::Decrement* expression,
     bool tail_call
   )
   {
@@ -516,15 +491,20 @@ namespace snek::interpreter
   EvaluateFunction(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Function* expression
+    const parser::Expression::Function* expression
   )
   {
     return value::Function::MakeScripted(
-      ResolveParameterList(runtime, scope, expression->parameters),
+      ResolveParameterList(
+        runtime,
+        scope,
+        expression->signature.parameters
+      ),
       ResolveReturnType(
         runtime,
         scope,
-        expression->return_type, expression->body
+        expression->signature.return_type,
+        expression->body
       ),
       expression->body,
       scope
@@ -535,7 +515,7 @@ namespace snek::interpreter
   EvaluateId(
     const Runtime& runtime,
     const Scope::ptr& scope,
-    const Id* expression
+    const parser::Expression::Id* expression
   )
   {
     if (scope)
@@ -559,7 +539,7 @@ namespace snek::interpreter
   EvaluateIncrement(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Increment* expression,
+    const parser::Expression::Increment* expression,
     bool tail_call
   )
   {
@@ -582,7 +562,7 @@ namespace snek::interpreter
   EvaluateList(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const List* expression
+    const parser::Expression::List* expression
   )
   {
     const auto size = expression->elements.size();
@@ -601,7 +581,7 @@ namespace snek::interpreter
   EvaluateProperty(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Property* expression
+    const parser::Expression::Property* expression
   )
   {
     const auto value = EvaluateExpression(
@@ -636,7 +616,7 @@ namespace snek::interpreter
   EvaluateRecord(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Record* expression
+    const parser::Expression::Record* expression
   )
   {
     std::unordered_map<std::u32string, value::ptr> record;
@@ -653,7 +633,7 @@ namespace snek::interpreter
   EvaluateSubscript(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Subscript* expression,
+    const parser::Expression::Subscript* expression,
     bool tail_call
   )
   {
@@ -682,7 +662,7 @@ namespace snek::interpreter
   EvaluateTernary(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Ternary* expression
+    const parser::Expression::Ternary* expression
   )
   {
     return EvaluateExpression(
@@ -699,20 +679,20 @@ namespace snek::interpreter
   }
 
   static std::u32string
-  GetMethodName(Unary::Operator op)
+  GetMethodName(parser::UnaryOp op)
   {
     switch (op)
     {
-      case Unary::Operator::Add:
+      case parser::UnaryOp::Add:
         return U"+@";
 
-      case Unary::Operator::BitwiseNot:
+      case parser::UnaryOp::BitwiseNot:
         return U"~";
 
-      case Unary::Operator::Not:
+      case parser::UnaryOp::Not:
         return U"!";
 
-      case Unary::Operator::Sub:
+      case parser::UnaryOp::Sub:
         return U"-@";
     }
 
@@ -723,7 +703,7 @@ namespace snek::interpreter
   EvaluateUnary(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const Unary* expression,
+    const parser::Expression::Unary* expression,
     bool tail_call
   )
   {
@@ -733,7 +713,7 @@ namespace snek::interpreter
       expression->operand
     );
 
-    if (expression->op == Unary::Operator::Not)
+    if (expression->op == parser::UnaryOp::Not)
     {
       return runtime.MakeBoolean(!value::ToBoolean(operand));
     }
@@ -752,7 +732,7 @@ namespace snek::interpreter
   EvaluateExpression(
     Runtime& runtime,
     const Scope::ptr& scope,
-    const ptr& expression,
+    const parser::expression_ptr& expression,
     bool tail_call
   )
   {
@@ -761,84 +741,128 @@ namespace snek::interpreter
       return nullptr;
     }
 
-    switch (expression->kind())
+    switch (expression->kind)
     {
-      case Kind::Assign:
-        return EvaluateAssign(runtime, scope, As<Assign>(expression));
+      case parser::ExpressionKind::Assign:
+        return EvaluateAssign(
+          runtime,
+          scope,
+          As<parser::Expression::Assign>(expression)
+        );
 
-      case Kind::Binary:
+      case parser::ExpressionKind::Binary:
         return EvaluateBinary(
           runtime,
           scope,
-          As<Binary>(expression),
+          As<parser::Expression::Binary>(expression),
           tail_call
         );
 
-      case Kind::Boolean:
-        return runtime.MakeBoolean(As<Boolean>(expression)->value);
+      case parser::ExpressionKind::Boolean:
+        return runtime.MakeBoolean(
+          As<parser::Expression::Boolean>(expression)->value
+        );
 
-      case Kind::Call:
-        return EvaluateCall(runtime, scope, As<Call>(expression), tail_call);
+      case parser::ExpressionKind::Call:
+        return EvaluateCall(
+          runtime,
+          scope,
+          As<parser::Expression::Call>(expression),
+          tail_call
+        );
 
-      case Kind::Decrement:
+      case parser::ExpressionKind::Decrement:
         return EvaluateDecrement(
           runtime,
           scope,
-          As<Decrement>(expression),
+          As<parser::Expression::Decrement>(expression),
           tail_call
         );
 
-      case Kind::Float:
-        return std::make_shared<value::Float>(As<Float>(expression)->value);
+      case parser::ExpressionKind::Float:
+        return std::make_shared<value::Float>(
+          As<parser::Expression::Float>(expression)->value
+        );
 
-      case Kind::Function:
-        return EvaluateFunction(runtime, scope, As<Function>(expression));
+      case parser::ExpressionKind::Function:
+        return EvaluateFunction(
+          runtime,
+          scope,
+          As<parser::Expression::Function>(expression)
+        );
 
-      case Kind::Id:
-        return EvaluateId(runtime, scope, As<Id>(expression));
+      case parser::ExpressionKind::Id:
+        return EvaluateId(
+          runtime,
+          scope,
+          As<parser::Expression::Id>(expression)
+        );
 
-      case Kind::Increment:
+      case parser::ExpressionKind::Increment:
         return EvaluateIncrement(
           runtime,
           scope,
-          As<Increment>(expression),
+          As<parser::Expression::Increment>(expression),
           tail_call
         );
 
-      case Kind::Int:
-        return runtime.MakeInt(As<Int>(expression)->value);
+      case parser::ExpressionKind::Int:
+        return runtime.MakeInt(As<parser::Expression::Int>(expression)->value);
 
-      case Kind::List:
-        return EvaluateList(runtime, scope, As<List>(expression));
+      case parser::ExpressionKind::List:
+        return EvaluateList(
+          runtime,
+          scope,
+          As<parser::Expression::List>(expression)
+        );
 
-      case Kind::Null:
+      case parser::ExpressionKind::Null:
         return nullptr;
 
-      case Kind::Property:
-        return EvaluateProperty(runtime, scope, As<Property>(expression));
+      case parser::ExpressionKind::Property:
+        return EvaluateProperty(
+          runtime,
+          scope,
+          As<parser::Expression::Property>(expression)
+        );
 
-      case Kind::Record:
-        return EvaluateRecord(runtime, scope, As<Record>(expression));
+      case parser::ExpressionKind::Record:
+        return EvaluateRecord(
+          runtime,
+          scope,
+          As<parser::Expression::Record>(expression)
+        );
 
-      case Kind::Spread:
+      case parser::ExpressionKind::Spread:
         throw runtime.MakeError(U"Unexpected spread expression.");
 
-      case Kind::String:
-        return value::String::Make(As<String>(expression)->value);
+      case parser::ExpressionKind::String:
+        return value::String::Make(
+          As<parser::Expression::String>(expression)->value
+        );
 
-      case Kind::Subscript:
+      case parser::ExpressionKind::Subscript:
         return EvaluateSubscript(
           runtime,
           scope,
-          As<Subscript>(expression),
+          As<parser::Expression::Subscript>(expression),
           tail_call
         );
 
-      case Kind::Ternary:
-        return EvaluateTernary(runtime, scope, As<Ternary>(expression));
+      case parser::ExpressionKind::Ternary:
+        return EvaluateTernary(
+          runtime,
+          scope,
+          As<parser::Expression::Ternary>(expression)
+        );
 
-      case Kind::Unary:
-        return EvaluateUnary(runtime, scope, As<Unary>(expression), tail_call);
+      case parser::ExpressionKind::Unary:
+        return EvaluateUnary(
+          runtime,
+          scope,
+          As<parser::Expression::Unary>(expression),
+          tail_call
+        );
     }
 
     return nullptr;

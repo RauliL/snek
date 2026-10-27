@@ -32,103 +32,103 @@
 #include "snek/parser/type.hpp"
 #include "snek/parser/utils.hpp"
 
-namespace snek::parser::statement
+namespace snek::parser
 {
   static inline void
   SkipNewLine(Lexer& lexer)
   {
-    if (!lexer.PeekReadToken(Token::Kind::Eof))
+    if (!lexer.PeekReadToken(TokenKind::Eof))
     {
-      lexer.PeekReadToken(Token::Kind::NewLine);
+      lexer.PeekReadToken(TokenKind::NewLine);
     }
   }
 
   static void
   ParseBlockLike(Lexer& lexer, const std::function<void()>& callback)
   {
-    lexer.ReadToken(Token::Kind::Indent);
+    lexer.ReadToken(TokenKind::Indent);
     do
     {
-      if (!lexer.PeekReadToken(Token::Kind::NewLine))
+      if (!lexer.PeekReadToken(TokenKind::NewLine))
       {
         callback();
       }
     }
-    while (!lexer.PeekReadToken(Token::Kind::Dedent));
+    while (!lexer.PeekReadToken(TokenKind::Dedent));
   }
 
-  static ptr
+  static statement_ptr
   ParseJump(Lexer& lexer)
   {
     const auto token = lexer.ReadToken();
-    expression::ptr value;
+    expression_ptr value;
 
     if (
-      token.kind == Token::Kind::KeywordReturn &&
-      !lexer.PeekToken(Token::Kind::Eof) &&
-      !lexer.PeekToken(Token::Kind::NewLine) &&
-      !lexer.PeekToken(Token::Kind::Semicolon)
+      token.Is(TokenKind::KeywordReturn) &&
+      !lexer.PeekToken(TokenKind::Eof) &&
+      !lexer.PeekToken(TokenKind::NewLine) &&
+      !lexer.PeekToken(TokenKind::Semicolon)
     )
     {
-      value = expression::Parse(lexer);
+      value = Expression::Parse(lexer);
     }
 
-    return std::make_shared<Jump>(
+    return std::make_shared<Statement::Jump>(
       token.position,
       static_cast<JumpKind>(token.kind),
       value
     );
   }
 
-  static ptr
+  static statement_ptr
   ParseDeclareVar(Lexer& lexer, bool exported = false)
   {
     const auto token = lexer.ReadToken();
-    expression::ptr variable;
-    expression::ptr value;
+    expression_ptr variable;
+    expression_ptr value;
 
-    if (lexer.PeekToken(Token::Kind::Id))
+    if (lexer.PeekToken(TokenKind::Id))
     {
-      variable = std::make_shared<expression::Id>(
+      variable = std::make_shared<Expression::Id>(
         token.position,
         *lexer.ReadToken().text
       );
       // Shorthand function declaration.
-      if (lexer.PeekToken(Token::Kind::LeftParen))
+      if (lexer.PeekToken(TokenKind::LeftParen))
       {
-        return std::make_shared<DeclareVar>(
+        return std::make_shared<Statement::DeclareVar>(
           token.position,
           exported,
-          token.kind == Token::Kind::KeywordConst,
+          token.Is(TokenKind::KeywordConst),
           variable,
-          expression::ParseFunction(lexer)
+          Expression::ParseFunction(lexer)
         );
       }
       // Record expression with block syntax.
-      else if (lexer.PeekReadToken(Token::Kind::Colon))
+      else if (lexer.PeekReadToken(TokenKind::Colon))
       {
-        std::vector<field::ptr> fields;
+        Expression::Record::container_type fields;
 
         // TODO: Support for single line record with ";".
-        lexer.ReadToken(Token::Kind::NewLine);
+        lexer.ReadToken(TokenKind::NewLine);
         ParseBlockLike(
           lexer,
           [&]() -> void
           {
-            fields.push_back(field::Parse(lexer));
+            fields.push_back(Field::Parse(lexer));
           }
         );
 
-        return std::make_shared<DeclareVar>(
+        return std::make_shared<Statement::DeclareVar>(
           token.position,
           exported,
-          token.kind == Token::Kind::KeywordConst,
+          token.Is(TokenKind::KeywordConst),
           variable,
-          std::make_shared<expression::Record>(variable->position, fields)
+          std::make_shared<Expression::Record>(variable->position, fields)
         );
       }
     } else {
-      variable = expression::ParseTernary(lexer);
+      variable = Expression::ParseTernary(lexer);
       if (!variable->IsAssignable())
       {
         throw SyntaxError{
@@ -139,90 +139,95 @@ namespace snek::parser::statement
         };
       }
     }
-    if (lexer.PeekReadToken(Token::Kind::Assign))
+    if (lexer.PeekReadToken(TokenKind::Assign))
     {
-      value = expression::Parse(lexer);
+      value = Expression::Parse(lexer);
     }
 
-    return std::make_shared<DeclareVar>(
+    return std::make_shared<Statement::DeclareVar>(
       token.position,
       exported,
-      token.kind == Token::Kind::KeywordConst,
+      token.Is(TokenKind::KeywordConst),
       variable,
       value
     );
   }
 
-  static ptr
+  static statement_ptr
   ParseDeclareType(Lexer& lexer, bool exported = false)
   {
     const auto position = lexer.ReadToken().position;
     const auto name = lexer.ReadId();
-    type::ptr type;
+    type_ptr type;
 
-    if (lexer.PeekReadToken(Token::Kind::Colon))
+    if (lexer.PeekReadToken(TokenKind::Colon))
     {
-      type::Record::container_type fields;
+      Type::Record::container_type fields;
 
       // TODO: Support for single line type with ";".
-      lexer.ReadToken(Token::Kind::NewLine);
+      lexer.ReadToken(TokenKind::NewLine);
       ParseBlockLike(
         lexer,
         [&]() -> void
         {
           const auto name = lexer.ReadRecordKey();
 
-          lexer.ReadToken(Token::Kind::Colon);
-          fields[name] = type::Parse(lexer);
+          lexer.ReadToken(TokenKind::Colon);
+          fields[name] = Type::Parse(lexer);
         }
       );
-      type = std::make_shared<type::Record>(position, fields);
+      type = std::make_shared<Type::Record>(position, fields);
     } else {
-      lexer.ReadToken(Token::Kind::Assign);
-      type = type::Parse(lexer);
+      lexer.ReadToken(TokenKind::Assign);
+      type = Type::Parse(lexer);
     }
 
-    return std::make_shared<DeclareType>(position, exported, name, type);
+    return std::make_shared<Statement::DeclareType>(
+      position,
+      exported,
+      name,
+      type
+    );
   }
 
-  static ptr
+  static statement_ptr
   ParseImport(Lexer& lexer)
   {
     const auto position = lexer.ReadToken().position;
-    Import::container_type specifiers;
+    Statement::Import::container_type specifiers;
     std::u32string path;
 
     do
     {
       // To allow dangling commas.
-      if (!specifiers.empty() && lexer.PeekToken(Token::Kind::KeywordFrom))
+      if (!specifiers.empty() && lexer.PeekToken(TokenKind::KeywordFrom))
       {
         break;
       }
-      specifiers.push_back(import::ParseSpecifier(lexer));
+      specifiers.push_back(parser::Import::ParseSpecifier(lexer));
     }
-    while (lexer.PeekReadToken(Token::Kind::Colon));
-    lexer.PeekReadToken(Token::Kind::KeywordFrom);
+    while (lexer.PeekReadToken(TokenKind::Colon));
+    lexer.PeekReadToken(TokenKind::KeywordFrom);
     path = lexer.ReadString();
     SkipNewLine(lexer);
 
-    return std::make_shared<Import>(position, specifiers, path);
+    return std::make_shared<Statement::Import>(position, specifiers, path);
   }
 
-  static ptr
+  static statement_ptr
   ParseExport(Lexer& lexer)
   {
     const auto token = lexer.ReadToken();
-    ptr statement;
+    statement_ptr statement;
 
     if (
-      lexer.PeekToken(Token::Kind::KeywordLet) ||
-      lexer.PeekToken(Token::Kind::KeywordConst)
+      lexer.PeekToken(TokenKind::KeywordLet) ||
+      lexer.PeekToken(TokenKind::KeywordConst)
     )
     {
       statement = ParseDeclareVar(lexer, true);
     }
-    else if (lexer.PeekToken(Token::Kind::KeywordType))
+    else if (lexer.PeekToken(TokenKind::KeywordType))
     {
       statement = ParseDeclareType(lexer, true);
     } else {
@@ -236,53 +241,55 @@ namespace snek::parser::statement
     return statement;
   }
 
-  static ptr
+  static statement_ptr
   ParseSimpleStatement(Lexer& lexer, bool is_top_level)
   {
     const auto token = lexer.PeekToken();
-    ptr statement;
+    statement_ptr statement;
 
     switch (token.kind)
     {
-      case Token::Kind::Eof:
+      case TokenKind::Eof:
         throw SyntaxError{
           token.position,
           U"Unexpected end of input; Missing statement."
         };
 
-      case Token::Kind::KeywordPass:
+      case TokenKind::KeywordPass:
         lexer.ReadToken();
         break;
 
-      case Token::Kind::KeywordBreak:
-      case Token::Kind::KeywordContinue:
-      case Token::Kind::KeywordReturn:
+      case TokenKind::KeywordBreak:
+      case TokenKind::KeywordContinue:
+      case TokenKind::KeywordReturn:
         statement = ParseJump(lexer);
         break;
 
-      case Token::Kind::KeywordConst:
-      case Token::Kind::KeywordLet:
+      case TokenKind::KeywordConst:
+      case TokenKind::KeywordLet:
         statement = ParseDeclareVar(lexer);
         break;
 
-      case Token::Kind::KeywordType:
+      case TokenKind::KeywordType:
         statement = ParseDeclareType(lexer);
         break;
 
       default:
-        statement = std::make_shared<Expression>(expression::Parse(lexer));
+        statement = std::make_shared<Statement::Expression>(
+          Expression::Parse(lexer)
+        );
         break;
     }
 
     if (
-      lexer.PeekReadToken(Token::Kind::Semicolon) &&
-      !lexer.PeekToken(Token::Kind::Eof) &&
-      !lexer.PeekToken(Token::Kind::NewLine)
+      lexer.PeekReadToken(TokenKind::Semicolon) &&
+      !lexer.PeekToken(TokenKind::Eof) &&
+      !lexer.PeekToken(TokenKind::NewLine)
     )
     {
-      return std::make_shared<Block>(
+      return std::make_shared<Statement::Block>(
         statement->position,
-        Block::container_type{
+        Statement::Block::container_type{
           statement,
           ParseSimpleStatement(lexer, is_top_level)
         }
@@ -294,13 +301,13 @@ namespace snek::parser::statement
     return statement;
   }
 
-  ptr
-  ParseBlock(Lexer& lexer)
+  statement_ptr
+  Statement::ParseBlock(Lexer& lexer)
   {
-    if (lexer.PeekReadToken(Token::Kind::NewLine))
+    if (lexer.PeekReadToken(TokenKind::NewLine))
     {
       const auto position = lexer.position();
-      statement::Block::container_type statements;
+      Statement::Block::container_type statements;
 
       ParseBlockLike(
         lexer,
@@ -316,12 +323,12 @@ namespace snek::parser::statement
     return ParseSimpleStatement(lexer, false);
   }
 
-  ptr
-  ParseFunctionBody(Lexer& lexer)
+  statement_ptr
+  Statement::ParseFunctionBody(Lexer& lexer)
   {
-    if (lexer.PeekReadToken(Token::Kind::FatArrow))
+    if (lexer.PeekReadToken(TokenKind::FatArrow))
     {
-      const auto value = expression::Parse(lexer);
+      const auto value = parser::Expression::Parse(lexer);
 
       return std::make_shared<Jump>(
         value->position,
@@ -329,33 +336,33 @@ namespace snek::parser::statement
         value
       );
     }
-    lexer.ReadToken(Token::Kind::Colon);
+    lexer.ReadToken(TokenKind::Colon);
 
-    return ParseBlock(lexer);
+    return Statement::ParseBlock(lexer);
   }
 
-  static ptr
+  static statement_ptr
   ParseIf(Lexer& lexer)
   {
     const auto position = lexer.ReadToken().position;
-    const auto condition = expression::Parse(lexer);
-    ptr then_statement;
-    ptr else_statement;
+    const auto condition = Expression::Parse(lexer);
+    statement_ptr then_statement;
+    statement_ptr else_statement;
 
-    lexer.ReadToken(Token::Kind::Colon);
-    then_statement = ParseBlock(lexer);
-    if (lexer.PeekReadToken(Token::Kind::KeywordElse))
+    lexer.ReadToken(TokenKind::Colon);
+    then_statement = Statement::ParseBlock(lexer);
+    if (lexer.PeekReadToken(TokenKind::KeywordElse))
     {
-      if (lexer.PeekToken(Token::Kind::KeywordIf))
+      if (lexer.PeekToken(TokenKind::KeywordIf))
       {
         else_statement = ParseIf(lexer);
       } else {
-        lexer.ReadToken(Token::Kind::Colon);
-        else_statement = ParseBlock(lexer);
+        lexer.ReadToken(TokenKind::Colon);
+        else_statement = Statement::ParseBlock(lexer);
       }
     }
 
-    return std::make_shared<If>(
+    return std::make_shared<Statement::If>(
       position,
       condition,
       then_statement,
@@ -363,31 +370,35 @@ namespace snek::parser::statement
     );
   }
 
-  static ptr
+  static statement_ptr
   ParseWhile(Lexer& lexer)
   {
     const auto position = lexer.ReadToken().position;
-    const auto condition = expression::Parse(lexer);
+    const auto condition = Expression::Parse(lexer);
 
-    lexer.ReadToken(Token::Kind::Colon);
+    lexer.ReadToken(TokenKind::Colon);
 
-    return std::make_shared<While>(position, condition, ParseBlock(lexer));
+    return std::make_shared<Statement::While>(
+      position,
+      condition,
+      Statement::ParseBlock(lexer)
+    );
   }
 
-  ptr
-  Parse(Lexer& lexer, bool is_top_level)
+  statement_ptr
+  Statement::Parse(Lexer& lexer, bool is_top_level)
   {
     const auto token = lexer.PeekToken();
 
     switch (token.kind)
     {
-      case Token::Kind::KeywordIf:
+      case TokenKind::KeywordIf:
         return ParseIf(lexer);
 
-      case Token::Kind::KeywordWhile:
+      case TokenKind::KeywordWhile:
         return ParseWhile(lexer);
 
-      case Token::Kind::KeywordImport:
+      case TokenKind::KeywordImport:
         if (!is_top_level)
         {
           throw SyntaxError{
@@ -398,7 +409,7 @@ namespace snek::parser::statement
 
         return ParseImport(lexer);
 
-      case Token::Kind::KeywordExport:
+      case TokenKind::KeywordExport:
         if (!is_top_level)
         {
           throw SyntaxError{
@@ -415,7 +426,7 @@ namespace snek::parser::statement
   }
 
   std::u32string
-  DeclareType::ToString() const
+  Statement::DeclareType::ToString() const
   {
     std::u32string result;
 
@@ -432,7 +443,7 @@ namespace snek::parser::statement
   }
 
   std::u32string
-  DeclareVar::ToString() const
+  Statement::DeclareVar::ToString() const
   {
     std::u32string result;
 
@@ -452,7 +463,7 @@ namespace snek::parser::statement
   }
 
   std::u32string
-  If::ToString() const
+  Statement::If::ToString() const
   {
     std::u32string result(U"if ");
 
@@ -467,12 +478,12 @@ namespace snek::parser::statement
   }
 
   std::u32string
-  Import::ToString() const
+  Statement::Import::ToString() const
   {
     std::u32string result(U"import ");
 
     result.append(
-      utils::Join<import::ptr, std::vector<import::ptr>::const_iterator>(
+      utils::Join<value_type, container_type::const_iterator>(
         std::begin(specifiers),
         std::end(specifiers),
         [](const auto& specifier)
@@ -486,7 +497,7 @@ namespace snek::parser::statement
   }
 
   std::u32string
-  Jump::ToString(JumpKind kind)
+  Statement::Jump::ToString(JumpKind kind)
   {
     return kind == JumpKind::Break
       ? U"break"
@@ -496,7 +507,7 @@ namespace snek::parser::statement
   }
 
   std::u32string
-  Jump::ToString() const
+  Statement::Jump::ToString() const
   {
     std::u32string result(ToString(jump_kind));
 
@@ -509,7 +520,7 @@ namespace snek::parser::statement
   }
 
   std::u32string
-  While::ToString() const
+  Statement::While::ToString() const
   {
     std::u32string result(U"while ");
 

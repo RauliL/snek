@@ -96,9 +96,7 @@ namespace snek::interpreter::prototype
   )
   {
     const auto optional_int = type::MakeOptional(runtime->int_type());
-    const auto null_expression = std::make_shared<parser::expression::Null>(
-      std::nullopt
-    );
+    const auto null_expression = std::make_shared<parser::Expression::Null>();
 
     fields[U"parse"] = value::Function::MakeNative(
       {
@@ -106,7 +104,7 @@ namespace snek::interpreter::prototype
         {
           U"base",
           runtime->int_type(),
-          std::make_shared<parser::expression::Int>(std::nullopt, 10)
+          std::make_shared<parser::Expression::Int>(std::nullopt, 10)
         },
       },
       runtime->int_type(),

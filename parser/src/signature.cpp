@@ -25,7 +25,8 @@
  */
 #include "snek/parser/error.hpp"
 #include "snek/parser/expression.hpp"
-#include "snek/parser/parameter.hpp"
+#include "snek/parser/signature.hpp"
+#include "snek/parser/utils.hpp"
 #include "snek/parser/type.hpp"
 
 namespace snek::parser
@@ -34,18 +35,18 @@ namespace snek::parser
   Parameter::Parse(Lexer& lexer)
   {
     const auto position = lexer.position();
-    const auto rest = lexer.PeekReadToken(Token::Kind::Spread);
+    const auto rest = lexer.PeekReadToken(TokenKind::Spread);
     const auto name = lexer.ReadId();
-    type::ptr type;
-    expression::ptr default_value;
+    type_ptr type;
+    expression_ptr default_value;
 
-    if (lexer.PeekReadToken(Token::Kind::Colon))
+    if (lexer.PeekReadToken(TokenKind::Colon))
     {
-      type = type::Parse(lexer);
+      type = Type::Parse(lexer);
     }
-    if (lexer.PeekReadToken(Token::Kind::Assign))
+    if (lexer.PeekReadToken(TokenKind::Assign))
     {
-      default_value = expression::Parse(lexer);
+      default_value = Expression::Parse(lexer);
     }
 
     return Parameter(position, name, type, default_value, rest);
@@ -58,12 +59,12 @@ namespace snek::parser
 
     if (read_opening_parenthesis)
     {
-      lexer.ReadToken(Token::Kind::LeftParen);
+      lexer.ReadToken(TokenKind::LeftParen);
     }
 
     for (;;)
     {
-      if (lexer.PeekReadToken(Token::Kind::RightParen))
+      if (lexer.PeekReadToken(TokenKind::RightParen))
       {
         break;
       }
@@ -73,8 +74,8 @@ namespace snek::parser
       result.push_back(parameter);
 
       if (
-        !lexer.PeekToken(Token::Kind::RightParen) &&
-        !lexer.PeekToken(Token::Kind::Comma)
+        !lexer.PeekToken(TokenKind::RightParen) &&
+        !lexer.PeekToken(TokenKind::Comma)
       )
       {
         throw SyntaxError{
@@ -82,10 +83,10 @@ namespace snek::parser
           U"Unterminated parameter list; Missing `)'."
         };
       }
-      lexer.PeekReadToken(Token::Kind::Comma);
+      lexer.PeekReadToken(TokenKind::Comma);
       if (parameter.rest)
       {
-        lexer.ReadToken(Token::Kind::RightParen);
+        lexer.ReadToken(TokenKind::RightParen);
         break;
       }
     }
@@ -110,6 +111,38 @@ namespace snek::parser
     if (default_value)
     {
       result.append(U" = ").append(default_value->ToString());
+    }
+
+    return result;
+  }
+
+  std::u32string
+  Signature::ToString(
+    const std::u32string& return_type_separator,
+    bool include_missing_return_type
+  ) const
+  {
+    auto result = utils::Join<
+      Parameter,
+      std::vector<Parameter>::const_iterator
+    >(
+      std::begin(parameters),
+      std::end(parameters),
+      [](const auto& parameter)
+      {
+        return parameter.ToString();
+      },
+      U'(',
+      U')'
+    );
+
+    if (return_type)
+    {
+      result.append(return_type_separator).append(return_type->ToString());
+    }
+    else if (include_missing_return_type)
+    {
+      result.append(return_type_separator).append(U"any");
     }
 
     return result;

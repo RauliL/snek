@@ -27,7 +27,7 @@
 
 #include "snek/parser/error.hpp"
 #include "snek/parser/expression.hpp"
-#include "snek/parser/parameter.hpp"
+#include "snek/parser/signature.hpp"
 #include "snek/parser/type.hpp"
 
 using namespace snek::parser;
@@ -60,7 +60,7 @@ TEST_CASE("Parse typed parameter")
   const auto result = Parameter::Parse(lexer);
 
   REQUIRE(!result.name.compare(U"foo"));
-  REQUIRE(result.type->kind() == type::Kind::Named);
+  REQUIRE(result.type->Is(TypeKind::Named));
   REQUIRE(!result.default_value);
   REQUIRE(!result.rest);
 }
@@ -72,7 +72,7 @@ TEST_CASE("Parse parameter with default value")
 
   REQUIRE(!result.name.compare(U"foo"));
   REQUIRE(!result.type);
-  REQUIRE(result.default_value->kind() == expression::Kind::Id);
+  REQUIRE(result.default_value->Is(ExpressionKind::Id));
   REQUIRE(!result.rest);
 }
 

@@ -28,243 +28,378 @@
 namespace snek::parser
 {
   std::u32string
-  Token::ToString(Token::Kind kind)
+  ToString(TokenKind kind)
   {
     switch (kind)
     {
-      case Token::Kind::Eof:
+      case TokenKind::Eof:
         return U"end of input";
 
-      case Token::Kind::NewLine:
+      case TokenKind::NewLine:
         return U"line terminator";
 
-      case Token::Kind::Indent:
+      case TokenKind::Indent:
         return U"indent";
 
-      case Token::Kind::Dedent:
+      case TokenKind::Dedent:
         return U"dedent";
 
-      case Token::Kind::LeftParen:
+      case TokenKind::LeftParen:
         return U"`('";
 
-      case Token::Kind::RightParen:
+      case TokenKind::RightParen:
         return U"`)'";
 
-      case Token::Kind::LeftBracket:
+      case TokenKind::LeftBracket:
         return U"`['";
 
-      case Token::Kind::RightBracket:
+      case TokenKind::RightBracket:
         return U"`]'";
 
-      case Token::Kind::LeftBrace:
+      case TokenKind::LeftBrace:
         return U"`{'";
 
-      case Token::Kind::RightBrace:
+      case TokenKind::RightBrace:
         return U"`}'";
 
-      case Token::Kind::Dot:
+      case TokenKind::Dot:
         return U"`.'";
 
-      case Token::Kind::ConditionalDot:
+      case TokenKind::ConditionalDot:
         return U"`?.'";
 
-      case Token::Kind::Comma:
+      case TokenKind::Comma:
         return U"`,'";
 
-      case Token::Kind::Colon:
+      case TokenKind::Colon:
         return U"`:'";
 
-      case Token::Kind::Semicolon:
+      case TokenKind::Semicolon:
         return U"`;'";
 
-      case Token::Kind::Arrow:
+      case TokenKind::Arrow:
         return U"`->'";
 
-      case Token::Kind::FatArrow:
+      case TokenKind::FatArrow:
         return U"`=>'";
 
-      case Token::Kind::Spread:
+      case TokenKind::Spread:
         return U"`...'";
 
-      case Token::Kind::Ternary:
+      case TokenKind::Ternary:
         return U"`?'";
 
-      case Token::Kind::Id:
+      case TokenKind::Id:
         return U"identifier";
 
-      case Token::Kind::Int:
+      case TokenKind::Int:
         return U"integer literal";
 
-      case Token::Kind::Float:
+      case TokenKind::Float:
         return U"float literal";
 
-      case Token::Kind::String:
+      case TokenKind::String:
         return U"string literal";
 
-      case Token::Kind::Add:
+      case TokenKind::Add:
         return U"`+'";
 
-      case Token::Kind::Sub:
+      case TokenKind::Sub:
         return U"`-'";
 
-      case Token::Kind::Mul:
+      case TokenKind::Mul:
         return U"`*'";
 
-      case Token::Kind::Div:
+      case TokenKind::Div:
         return U"`/'";
 
-      case Token::Kind::Mod:
+      case TokenKind::Mod:
         return U"`%'";
 
-      case Token::Kind::Not:
+      case TokenKind::Not:
         return U"`!'";
 
-      case Token::Kind::BitwiseAnd:
+      case TokenKind::BitwiseAnd:
         return U"`&'";
 
-      case Token::Kind::BitwiseOr:
+      case TokenKind::BitwiseOr:
         return U"`|'";
 
-      case Token::Kind::BitwiseNot:
+      case TokenKind::BitwiseNot:
         return U"`~'";
 
-      case Token::Kind::BitwiseXor:
+      case TokenKind::BitwiseXor:
         return U"`^'";
 
-      case Token::Kind::Equal:
+      case TokenKind::Equal:
         return U"`=='";
 
-      case Token::Kind::NotEqual:
+      case TokenKind::NotEqual:
         return U"`!='";
 
-      case Token::Kind::LessThan:
+      case TokenKind::LessThan:
         return U"`<'";
 
-      case Token::Kind::GreaterThan:
+      case TokenKind::GreaterThan:
         return U"`>'";
 
-      case Token::Kind::LessThanEqual:
+      case TokenKind::LessThanEqual:
         return U"`<='";
 
-      case Token::Kind::GreaterThanEqual:
+      case TokenKind::GreaterThanEqual:
         return U"`>='";
 
-      case Token::Kind::LeftShift:
+      case TokenKind::LeftShift:
         return U"`<<'";
 
-      case Token::Kind::RightShift:
+      case TokenKind::RightShift:
         return U"`>>'";
 
-      case Token::Kind::LogicalAnd:
+      case TokenKind::LogicalAnd:
         return U"`&&'";
 
-      case Token::Kind::LogicalOr:
+      case TokenKind::LogicalOr:
         return U"`||'";
 
-      case Token::Kind::Increment:
+      case TokenKind::Increment:
         return U"`++'";
 
-      case Token::Kind::Decrement:
+      case TokenKind::Decrement:
         return U"`--'";
 
-      case Token::Kind::NullCoalescing:
+      case TokenKind::NullCoalescing:
         return U"`\?\?'";
 
-      case Token::Kind::Assign:
+      case TokenKind::Assign:
         return U"`='";
 
-      case Token::Kind::AssignAdd:
+      case TokenKind::AssignAdd:
         return U"`+='";
 
-      case Token::Kind::AssignSub:
+      case TokenKind::AssignSub:
         return U"`-='";
 
-      case Token::Kind::AssignMul:
+      case TokenKind::AssignMul:
         return U"`*='";
 
-      case Token::Kind::AssignDiv:
+      case TokenKind::AssignDiv:
         return U"`/='";
 
-      case Token::Kind::AssignMod:
+      case TokenKind::AssignMod:
         return U"`%='";
 
-      case Token::Kind::AssignBitwiseAnd:
+      case TokenKind::AssignBitwiseAnd:
         return U"`&='";
 
-      case Token::Kind::AssignBitwiseOr:
+      case TokenKind::AssignBitwiseOr:
         return U"`|='";
 
-      case Token::Kind::AssignBitwiseXor:
+      case TokenKind::AssignBitwiseXor:
         return U"`^='";
 
-      case Token::Kind::AssignLeftShift:
+      case TokenKind::AssignLeftShift:
         return U"`<<='";
 
-      case Token::Kind::AssignRightShift:
+      case TokenKind::AssignRightShift:
         return U"`>>='";
 
-      case Token::Kind::AssignLogicalAnd:
+      case TokenKind::AssignLogicalAnd:
         return U"`&&='";
 
-      case Token::Kind::AssignLogicalOr:
+      case TokenKind::AssignLogicalOr:
         return U"`||='";
 
-      case Token::Kind::AssignNullCoalescing:
+      case TokenKind::AssignNullCoalescing:
         return U"`\?\?='";
 
-      case Token::Kind::KeywordAs:
+      case TokenKind::KeywordAs:
         return U"`as'";
 
-      case Token::Kind::KeywordBreak:
+      case TokenKind::KeywordBreak:
         return U"`break'";
 
-      case Token::Kind::KeywordConst:
+      case TokenKind::KeywordConst:
         return U"`const'";
 
-      case Token::Kind::KeywordContinue:
+      case TokenKind::KeywordContinue:
         return U"`continue'";
 
-      case Token::Kind::KeywordElse:
+      case TokenKind::KeywordElse:
         return U"`else'";
 
-      case Token::Kind::KeywordExport:
+      case TokenKind::KeywordExport:
         return U"`export'";
 
-      case Token::Kind::KeywordFalse:
+      case TokenKind::KeywordFalse:
         return U"`false'";
 
-      case Token::Kind::KeywordFor:
+      case TokenKind::KeywordFor:
         return U"`for'";
 
-      case Token::Kind::KeywordFrom:
+      case TokenKind::KeywordFrom:
         return U"`from'";
 
-      case Token::Kind::KeywordIf:
+      case TokenKind::KeywordIf:
         return U"`if'";
 
-      case Token::Kind::KeywordImport:
+      case TokenKind::KeywordImport:
         return U"`import'";
 
-      case Token::Kind::KeywordLet:
+      case TokenKind::KeywordLet:
         return U"`let'";
 
-      case Token::Kind::KeywordNull:
+      case TokenKind::KeywordNull:
         return U"`null'";
 
-      case Token::Kind::KeywordPass:
+      case TokenKind::KeywordPass:
         return U"`pass'";
 
-      case Token::Kind::KeywordReturn:
+      case TokenKind::KeywordReturn:
         return U"`return'";
 
-      case Token::Kind::KeywordTrue:
+      case TokenKind::KeywordTrue:
         return U"`true'";
 
-      case Token::Kind::KeywordType:
+      case TokenKind::KeywordType:
         return U"`type'";
 
-      case Token::Kind::KeywordWhile:
+      case TokenKind::KeywordWhile:
         return U"`while'";
+    }
+
+    return U"unknown";
+  }
+
+  std::u32string
+  ToString(AssignOp op)
+  {
+    switch (op)
+    {
+      case AssignOp::Add:
+        return U"+";
+
+      case AssignOp::Sub:
+        return U"-";
+
+      case AssignOp::Mul:
+        return U"*";
+
+      case AssignOp::Div:
+        return U"/";
+
+      case AssignOp::Mod:
+        return U"%";
+
+      case AssignOp::BitwiseAnd:
+        return U"&";
+
+      case AssignOp::BitwiseOr:
+        return U"|";
+
+      case AssignOp::BitwiseXor:
+        return U"^";
+
+      case AssignOp::LeftShift:
+        return U"<<";
+
+      case AssignOp::RightShift:
+        return U">>";
+
+      case AssignOp::LogicalAnd:
+        return U"&&";
+
+      case AssignOp::LogicalOr:
+        return U"||";
+
+      case AssignOp::NullCoalescing:
+        return U"??";
+    }
+
+    return U"unknown";
+  }
+
+  std::u32string
+  ToString(BinaryOp op)
+  {
+    switch (op)
+    {
+      case BinaryOp::Add:
+        return U"+";
+
+      case BinaryOp::Sub:
+        return U"-";
+
+      case BinaryOp::Mul:
+        return U"*";
+
+      case BinaryOp::Div:
+        return U"/";
+
+      case BinaryOp::Mod:
+        return U"%";
+
+      case BinaryOp::BitwiseAnd:
+        return U"&";
+
+      case BinaryOp::BitwiseOr:
+        return U"|";
+
+      case BinaryOp::BitwiseXor:
+        return U"^";
+
+      case BinaryOp::Equal:
+        return U"==";
+
+      case BinaryOp::NotEqual:
+        return U"!=";
+
+      case BinaryOp::LessThan:
+        return U"<";
+
+      case BinaryOp::GreaterThan:
+        return U">";
+
+      case BinaryOp::LessThanEqual:
+        return U"<=";
+
+      case BinaryOp::GreaterThanEqual:
+        return U">=";
+
+      case BinaryOp::LeftShift:
+        return U"<<";
+
+      case BinaryOp::RightShift:
+        return U">>";
+
+      case BinaryOp::LogicalAnd:
+        return U"&&";
+
+      case BinaryOp::LogicalOr:
+        return U"||";
+
+      case BinaryOp::NullCoalescing:
+        return U"??";
+    }
+
+    return U"unknown";
+  }
+
+  std::u32string
+  ToString(UnaryOp op)
+  {
+    switch (op)
+    {
+      case UnaryOp::Add:
+        return U"+";
+
+      case UnaryOp::BitwiseNot:
+        return U"~";
+
+      case UnaryOp::Not:
+        return U"!";
+
+      case UnaryOp::Sub:
+        return U"-";
     }
 
     return U"unknown";
@@ -273,11 +408,11 @@ namespace snek::parser
   std::u32string
   Token::ToString() const
   {
-    if (text && kind != Kind::String)
+    if (text && kind != TokenKind::String)
     {
       return std::u32string(1, U'`').append(*text).append(1, U'\'');
     }
 
-    return ToString(kind);
+    return parser::ToString(kind);
   }
 }

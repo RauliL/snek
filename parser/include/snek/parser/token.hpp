@@ -30,117 +30,164 @@
 
 namespace snek::parser
 {
-  class Token final : public Node
+  enum class TokenKind
+  {
+    // End of input.
+    Eof,
+    NewLine,
+    Indent,
+    Dedent,
+
+    // Separators.
+    LeftParen,
+    RightParen,
+    LeftBracket,
+    RightBracket,
+    LeftBrace,
+    RightBrace,
+    Dot,
+    ConditionalDot,
+    Comma,
+    Colon,
+    Semicolon,
+    Arrow,
+    FatArrow,
+    Spread,
+    Ternary,
+
+    // Literals.
+    Id,
+    Int,
+    Float,
+    String,
+
+    // Operators.
+    Add,
+    Sub,
+    Mul,
+    Div,
+    Mod,
+    Not,
+    BitwiseAnd,
+    BitwiseOr,
+    BitwiseNot,
+    BitwiseXor,
+    Equal,
+    NotEqual,
+    LessThan,
+    GreaterThan,
+    LessThanEqual,
+    GreaterThanEqual,
+    LeftShift,
+    RightShift,
+    LogicalAnd,
+    LogicalOr,
+    Increment,
+    Decrement,
+    NullCoalescing,
+
+    // Assignment operators.
+    Assign,
+    AssignAdd,
+    AssignSub,
+    AssignMul,
+    AssignDiv,
+    AssignMod,
+    AssignBitwiseAnd,
+    AssignBitwiseOr,
+    AssignBitwiseXor,
+    AssignLeftShift,
+    AssignRightShift,
+    AssignLogicalAnd,
+    AssignLogicalOr,
+    AssignNullCoalescing,
+
+    // Reserved keywords.
+    KeywordAs,
+    KeywordBreak,
+    KeywordConst,
+    KeywordContinue,
+    KeywordFalse,
+    KeywordElse,
+    KeywordFor,
+    KeywordFrom,
+    KeywordExport,
+    KeywordIf,
+    KeywordImport,
+    KeywordLet,
+    KeywordNull,
+    KeywordPass,
+    KeywordReturn,
+    KeywordTrue,
+    KeywordType,
+    KeywordWhile,
+  };
+
+  enum class AssignOp
+  {
+    Add = static_cast<int>(TokenKind::AssignAdd),
+    Sub = static_cast<int>(TokenKind::AssignSub),
+    Mul = static_cast<int>(TokenKind::AssignMul),
+    Div = static_cast<int>(TokenKind::AssignDiv),
+    Mod = static_cast<int>(TokenKind::AssignMod),
+    BitwiseAnd = static_cast<int>(TokenKind::AssignBitwiseAnd),
+    BitwiseOr = static_cast<int>(TokenKind::AssignBitwiseOr),
+    BitwiseXor = static_cast<int>(TokenKind::AssignBitwiseXor),
+    LeftShift = static_cast<int>(TokenKind::AssignLeftShift),
+    RightShift = static_cast<int>(TokenKind::AssignRightShift),
+    LogicalAnd = static_cast<int>(TokenKind::AssignLogicalAnd),
+    LogicalOr = static_cast<int>(TokenKind::AssignLogicalOr),
+    NullCoalescing = static_cast<int>(TokenKind::AssignNullCoalescing),
+  };
+
+  enum class BinaryOp
+  {
+    Add = static_cast<int>(TokenKind::Add),
+    Sub = static_cast<int>(TokenKind::Sub),
+    Mul = static_cast<int>(TokenKind::Mul),
+    Div = static_cast<int>(TokenKind::Div),
+    Mod = static_cast<int>(TokenKind::Mod),
+    BitwiseAnd = static_cast<int>(TokenKind::BitwiseAnd),
+    BitwiseOr = static_cast<int>(TokenKind::BitwiseOr),
+    BitwiseXor = static_cast<int>(TokenKind::BitwiseXor),
+    Equal = static_cast<int>(TokenKind::Equal),
+    NotEqual = static_cast<int>(TokenKind::NotEqual),
+    LessThan = static_cast<int>(TokenKind::LessThan),
+    GreaterThan = static_cast<int>(TokenKind::GreaterThan),
+    LessThanEqual = static_cast<int>(TokenKind::LessThanEqual),
+    GreaterThanEqual = static_cast<int>(TokenKind::GreaterThanEqual),
+    LeftShift = static_cast<int>(TokenKind::LeftShift),
+    RightShift = static_cast<int>(TokenKind::RightShift),
+    LogicalAnd = static_cast<int>(TokenKind::LogicalAnd),
+    LogicalOr = static_cast<int>(TokenKind::LogicalOr),
+    NullCoalescing = static_cast<int>(TokenKind::NullCoalescing),
+  };
+
+  enum class UnaryOp
+  {
+    Not = static_cast<int>(TokenKind::Not),
+    Add = static_cast<int>(TokenKind::Add),
+    Sub = static_cast<int>(TokenKind::Sub),
+    BitwiseNot = static_cast<int>(TokenKind::BitwiseNot),
+  };
+
+  std::u32string ToString(TokenKind kind);
+  std::u32string ToString(AssignOp op);
+  std::u32string ToString(BinaryOp op);
+  std::u32string ToString(UnaryOp op);
+
+  class Token final : public TypedNode<TokenKind>
   {
   public:
-    DEFAULT_COPY_AND_ASSIGN(Token);
-
-    enum class Kind
-    {
-      // End of input.
-      Eof,
-      NewLine,
-      Indent,
-      Dedent,
-
-      // Separators.
-      LeftParen,
-      RightParen,
-      LeftBracket,
-      RightBracket,
-      LeftBrace,
-      RightBrace,
-      Dot,
-      ConditionalDot,
-      Comma,
-      Colon,
-      Semicolon,
-      Arrow,
-      FatArrow,
-      Spread,
-      Ternary,
-
-      // Literals.
-      Id,
-      Int,
-      Float,
-      String,
-
-      // Operators.
-      Add,
-      Sub,
-      Mul,
-      Div,
-      Mod,
-      Not,
-      BitwiseAnd,
-      BitwiseOr,
-      BitwiseNot,
-      BitwiseXor,
-      Equal,
-      NotEqual,
-      LessThan,
-      GreaterThan,
-      LessThanEqual,
-      GreaterThanEqual,
-      LeftShift,
-      RightShift,
-      LogicalAnd,
-      LogicalOr,
-      Increment,
-      Decrement,
-      NullCoalescing,
-
-      // Assignment operators.
-      Assign,
-      AssignAdd,
-      AssignSub,
-      AssignMul,
-      AssignDiv,
-      AssignMod,
-      AssignBitwiseAnd,
-      AssignBitwiseOr,
-      AssignBitwiseXor,
-      AssignLeftShift,
-      AssignRightShift,
-      AssignLogicalAnd,
-      AssignLogicalOr,
-      AssignNullCoalescing,
-
-      // Reserved keywords.
-      KeywordAs,
-      KeywordBreak,
-      KeywordConst,
-      KeywordContinue,
-      KeywordFalse,
-      KeywordElse,
-      KeywordFor,
-      KeywordFrom,
-      KeywordExport,
-      KeywordIf,
-      KeywordImport,
-      KeywordLet,
-      KeywordNull,
-      KeywordPass,
-      KeywordReturn,
-      KeywordTrue,
-      KeywordType,
-      KeywordWhile,
-    };
-
-    Kind kind;
-    std::optional<std::u32string> text;
+    const std::optional<std::u32string> text;
 
     Token(
       const std::optional<Position>& position = std::nullopt,
-      Kind kind_ = Kind::Eof,
+      TokenKind kind = TokenKind::Eof,
       const std::optional<std::u32string>& text_ = std::nullopt
     )
-      : Node(position)
-      , kind(kind_)
+      : TypedNode(position, kind)
       , text(text_) {}
-
-    static std::u32string ToString(Kind kind);
 
     std::u32string ToString() const override;
   };

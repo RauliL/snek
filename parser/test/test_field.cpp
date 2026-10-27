@@ -32,47 +32,47 @@ using namespace snek::parser;
 TEST_CASE("Parse computed record field")
 {
   Lexer lexer("[foo]: \"bar\"");
-  const auto result = field::Parse(lexer);
+  const auto result = Field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Computed);
+  REQUIRE(result->Is(FieldKind::Computed));
 }
 
 TEST_CASE("Parse function record field with block")
 {
   Lexer lexer("foo(a, b):\n  pass");
-  const auto result = field::Parse(lexer);
+  const auto result = Field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Function);
+  REQUIRE(result->Is(FieldKind::Function));
 }
 
 TEST_CASE("Parse function record field with arrow")
 {
   Lexer lexer("foo(a, b) => foo");
-  const auto result = field::Parse(lexer);
+  const auto result = Field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Function);
+  REQUIRE(result->Is(FieldKind::Function));
 }
 
 TEST_CASE("Parse named record field")
 {
   Lexer lexer("\"foo\": \"bar\"");
-  const auto result = field::Parse(lexer);
+  const auto result = Field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Named);
+  REQUIRE(result->Is(FieldKind::Named));
 }
 
 TEST_CASE("Parse shorthand record field")
 {
   Lexer lexer("foo");
-  const auto result = field::Parse(lexer);
+  const auto result = Field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Shorthand);
+  REQUIRE(result->Is(FieldKind::Shorthand));
 }
 
 TEST_CASE("Parse spread record field")
 {
   Lexer lexer("...foo");
-  const auto result = field::Parse(lexer);
+  const auto result = Field::Parse(lexer);
 
-  REQUIRE(result->kind() == field::Kind::Spread);
+  REQUIRE(result->Is(FieldKind::Spread));
 }

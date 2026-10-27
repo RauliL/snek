@@ -30,7 +30,6 @@
 
 #include "snek/interpreter/config.hpp"
 #include "snek/interpreter/parameter.hpp"
-#include "snek/parser/parameter.hpp"
 #include "snek/parser/statement.hpp"
 
 namespace snek::interpreter
@@ -335,7 +334,7 @@ namespace snek::interpreter::value
     MakeScripted(
       const std::vector<Parameter>& parameters,
       const type::ptr& return_type,
-      const parser::statement::ptr& body,
+      const parser::statement_ptr& body,
       const std::shared_ptr<Scope>& enclosing_scope
     );
 
