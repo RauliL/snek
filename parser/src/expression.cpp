@@ -34,6 +34,8 @@
 
 namespace snek::parser
 {
+  using lex_function = std::function<expression_ptr(Lexer&)>;
+
   template<class T>
   static inline const T*
   As(const expression_ptr& expression)
@@ -490,238 +492,148 @@ namespace snek::parser
   }
 
   static expression_ptr
+  ParseBinary(
+    Lexer& lexer,
+    const lex_function& next,
+    std::initializer_list<TokenKind> expected_tokens
+  )
+  {
+    auto expression = next(lexer);
+
+    while (lexer.PeekToken(expected_tokens))
+    {
+      const auto op = static_cast<BinaryOp>(lexer.ReadToken().kind);
+      const auto operand = next(lexer);
+
+      expression = std::make_shared<Expression::Binary>(
+        expression,
+        op,
+        operand
+      );
+    }
+
+    return expression;
+  }
+
+  static inline expression_ptr
   ParseMultiplicative(Lexer& lexer)
   {
-    auto expression = ParseUnary(lexer);
-
-    while (
-      lexer.PeekToken(TokenKind::Mul) ||
-      lexer.PeekToken(TokenKind::Div) ||
-      lexer.PeekToken(TokenKind::Mod)
-    )
-    {
-      const auto op = static_cast<BinaryOp>(
-        lexer.ReadToken().kind
-      );
-      const auto operand = ParseUnary(lexer);
-
-      expression = std::make_shared<Expression::Binary>(
-        expression,
-        op,
-        operand
-      );
-    }
-
-    return expression;
+    return ParseBinary(
+      lexer,
+      ParseUnary,
+      {
+        TokenKind::Mul,
+        TokenKind::Div,
+        TokenKind::Mod,
+      }
+    );
   }
 
-  static expression_ptr
+  static inline expression_ptr
   ParseAdditive(Lexer& lexer)
   {
-    auto expression = ParseMultiplicative(lexer);
-
-    while (
-      lexer.PeekToken(TokenKind::Add) ||
-      lexer.PeekToken(TokenKind::Sub)
-    )
-    {
-      const auto op = static_cast<BinaryOp>(
-        lexer.ReadToken().kind
-      );
-      const auto operand = ParseMultiplicative(lexer);
-
-      expression = std::make_shared<Expression::Binary>(
-        expression,
-        op,
-        operand
-      );
-    }
-
-    return expression;
+    return ParseBinary(
+      lexer,
+      ParseMultiplicative,
+      {
+        TokenKind::Add,
+        TokenKind::Sub,
+      }
+    );
   }
 
-  static expression_ptr
+  static inline expression_ptr
   ParseShift(Lexer& lexer)
   {
-    auto expression = ParseAdditive(lexer);
-
-    while (
-      lexer.PeekToken(TokenKind::LeftShift) ||
-      lexer.PeekToken(TokenKind::RightShift)
-    )
-    {
-      const auto op = static_cast<BinaryOp>(
-        lexer.ReadToken().kind
-      );
-      const auto operand = ParseAdditive(lexer);
-
-      expression = std::make_shared<Expression::Binary>(
-        expression,
-        op,
-        operand
-      );
-    }
-
-    return expression;
+    return ParseBinary(
+      lexer,
+      ParseAdditive,
+      {
+        TokenKind::LeftShift,
+        TokenKind::RightShift,
+      }
+    );
   }
 
-  static expression_ptr
+  static inline expression_ptr
   ParseRelational(Lexer& lexer)
   {
-    auto expression = ParseShift(lexer);
-
-    while (
-      lexer.PeekToken(TokenKind::LessThan) ||
-      lexer.PeekToken(TokenKind::GreaterThan) ||
-      lexer.PeekToken(TokenKind::LessThanEqual) ||
-      lexer.PeekToken(TokenKind::GreaterThanEqual)
-    )
-    {
-      const auto op = static_cast<BinaryOp>(
-        lexer.ReadToken().kind
-      );
-      const auto operand = ParseShift(lexer);
-
-      expression = std::make_shared<Expression::Binary>(
-        expression,
-        op,
-        operand
-      );
-    }
-
-    return expression;
+    return ParseBinary(
+      lexer,
+      ParseShift,
+      {
+        TokenKind::LessThan,
+        TokenKind::GreaterThan,
+        TokenKind::LessThanEqual,
+        TokenKind::GreaterThanEqual,
+      }
+    );
   }
 
-  static expression_ptr
+  static inline expression_ptr
   ParseEquality(Lexer& lexer)
   {
-    auto expression = ParseRelational(lexer);
-
-    while (
-      lexer.PeekToken(TokenKind::Equal) ||
-      lexer.PeekToken(TokenKind::NotEqual)
-    )
-    {
-      const auto op = static_cast<BinaryOp>(
-        lexer.ReadToken().kind
-      );
-      const auto operand = ParseRelational(lexer);
-
-      expression = std::make_shared<Expression::Binary>(
-        expression,
-        op,
-        operand
-      );
-    }
-
-    return expression;
+    return ParseBinary(
+      lexer,
+      ParseRelational,
+      {
+        TokenKind::Equal,
+        TokenKind::NotEqual,
+      }
+    );
   }
 
-  static expression_ptr
+  static inline expression_ptr
   ParseBitwiseAnd(Lexer& lexer)
   {
-    auto expression = ParseEquality(lexer);
-
-    while (lexer.PeekToken(TokenKind::BitwiseAnd))
-    {
-      const auto op = static_cast<BinaryOp>(
-        lexer.ReadToken().kind
-      );
-      const auto operand = ParseEquality(lexer);
-
-      expression = std::make_shared<Expression::Binary>(
-        expression,
-        op,
-        operand
-      );
-    }
-
-    return expression;
+    return ParseBinary(
+      lexer,
+      ParseEquality,
+      { TokenKind::BitwiseAnd }
+    );
   }
 
-  static expression_ptr
+  static inline expression_ptr
   ParseBitwiseXor(Lexer& lexer)
   {
-    auto expression = ParseBitwiseAnd(lexer);
-
-    while (lexer.PeekToken(TokenKind::BitwiseXor))
-    {
-      const auto op = static_cast<BinaryOp>(lexer.ReadToken().kind);
-      const auto operand = ParseBitwiseAnd(lexer);
-
-      expression = std::make_shared<Expression::Binary>(
-        expression,
-        op,
-        operand
-      );
-    }
-
-    return expression;
+    return ParseBinary(
+      lexer,
+      ParseBitwiseAnd,
+      { TokenKind::BitwiseXor }
+    );
   }
 
-  static expression_ptr
+  static inline expression_ptr
   ParseBitwiseOr(Lexer& lexer)
   {
-    auto expression = ParseBitwiseXor(lexer);
-
-    while (lexer.PeekToken(TokenKind::BitwiseOr))
-    {
-      const auto op = static_cast<BinaryOp>(lexer.ReadToken().kind);
-      const auto operand = ParseBitwiseXor(lexer);
-
-      expression = std::make_shared<Expression::Binary>(
-        expression,
-        op,
-        operand
-      );
-    }
-
-    return expression;
+    return ParseBinary(
+      lexer,
+      ParseBitwiseXor,
+      { TokenKind::BitwiseOr }
+    );
   }
 
-  static expression_ptr
+  static inline expression_ptr
   ParseLogicalAnd(Lexer& lexer)
   {
-    auto expression = ParseBitwiseOr(lexer);
-
-    while (lexer.PeekToken(TokenKind::LogicalAnd))
-    {
-      const auto op = static_cast<BinaryOp>(
-        lexer.ReadToken().kind
-      );
-      const auto operand = ParseBitwiseOr(lexer);
-
-      expression = std::make_shared<Expression::Binary>(
-        expression,
-        op,
-        operand
-      );
-    }
-
-    return expression;
+    return ParseBinary(
+      lexer,
+      ParseBitwiseOr,
+      { TokenKind::LogicalAnd }
+    );
   }
 
-  static expression_ptr
+  static inline expression_ptr
   ParseLogicalOr(Lexer& lexer)
   {
-    auto expression = ParseLogicalAnd(lexer);
-
-    while (
-      lexer.PeekToken(TokenKind::LogicalOr) ||
-      lexer.PeekToken(TokenKind::NullCoalescing)
-    )
-    {
-      const auto op = static_cast<BinaryOp>(lexer.ReadToken().kind);
-      const auto operand = ParseLogicalAnd(lexer);
-
-      expression = std::make_shared<Expression::Binary>(
-        expression,
-        op,
-        operand
-      );
-    }
-
-    return expression;
+    return ParseBinary(
+      lexer,
+      ParseLogicalAnd,
+      {
+        TokenKind::LogicalOr,
+        TokenKind::NullCoalescing,
+      }
+    );
   }
 
   expression_ptr

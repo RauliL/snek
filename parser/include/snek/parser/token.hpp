@@ -176,21 +176,19 @@ namespace snek::parser
   std::u32string ToString(BinaryOp op);
   std::u32string ToString(UnaryOp op);
 
-  class Token final : public Node
+  class Token final : public TypedNode<TokenKind>
   {
   public:
     DEFAULT_COPY_AND_ASSIGN(Token);
 
-    TokenKind kind;
     std::optional<std::u32string> text;
 
     Token(
       const std::optional<Position>& position = std::nullopt,
-      TokenKind kind_ = TokenKind::Eof,
+      TokenKind kind = TokenKind::Eof,
       const std::optional<std::u32string>& text_ = std::nullopt
     )
-      : Node(position)
-      , kind(kind_)
+      : TypedNode(position, kind)
       , text(text_) {}
 
     std::u32string ToString() const override;

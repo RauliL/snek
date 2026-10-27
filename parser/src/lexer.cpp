@@ -23,8 +23,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-#include <unordered_map>
-
 #include <peelo/unicode/ctype/isvalid.hpp>
 #include <peelo/unicode/encoding/utf8.hpp>
 
@@ -326,6 +324,20 @@ namespace snek::parser
     UnreadToken(token);
 
     return token.kind == expected;
+  }
+
+  bool
+  Lexer::PeekToken(std::initializer_list<TokenKind> expected)
+  {
+    for (const auto& kind : expected)
+    {
+      if (PeekToken(kind))
+      {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   bool

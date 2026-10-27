@@ -123,6 +123,8 @@ namespace snek::parser
 
     bool PeekToken(TokenKind expected);
 
+    bool PeekToken(std::initializer_list<TokenKind> expected);
+
     bool PeekNextButOneToken(TokenKind expected);
 
     bool PeekReadToken(TokenKind expected);
