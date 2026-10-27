@@ -45,8 +45,8 @@ namespace snek::interpreter
   )
   {
     return std::make_shared<type::Function>(
-      ResolveParameterList(runtime, scope, type->parameters),
-      ResolveType(runtime, scope, type->return_type)
+      ResolveParameterList(runtime, scope, type->signature.parameters),
+      ResolveType(runtime, scope, type->signature.return_type)
     );
   }
 

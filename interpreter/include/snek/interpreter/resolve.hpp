@@ -28,7 +28,6 @@
 #include "snek/interpreter/runtime.hpp"
 #include "snek/interpreter/type.hpp"
 #include "snek/parser/expression.hpp"
-#include "snek/parser/parameter.hpp"
 #include "snek/parser/statement.hpp"
 #include "snek/parser/type.hpp"
 
@@ -75,6 +74,14 @@ namespace snek::interpreter
     const Scope::ptr& scope,
     const parser::field::ptr& field,
     type::Record::container_type& resolved_fields
+  );
+
+  type::ptr
+  ResolveReturnType(
+    const Runtime& runtime,
+    const Scope::ptr& scope,
+    const parser::type::ptr& return_type,
+    const parser::statement::ptr& body
   );
 
   type::ptr

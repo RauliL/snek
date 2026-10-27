@@ -30,7 +30,6 @@
 
 #include "snek/interpreter/config.hpp"
 #include "snek/interpreter/parameter.hpp"
-#include "snek/parser/parameter.hpp"
 #include "snek/parser/statement.hpp"
 
 namespace snek::interpreter

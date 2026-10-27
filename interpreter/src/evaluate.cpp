@@ -55,38 +55,6 @@ namespace snek::interpreter
     return static_cast<const T*>(value.get());
   }
 
-  static type::ptr
-  ResolveReturnType(
-    const Runtime& runtime,
-    const Scope::ptr& scope,
-    const parser::type::ptr& return_type,
-    const parser::statement::ptr& body
-  )
-  {
-    // TODO: Create new fake scope and populate it with parameters and local
-    // variables.
-    const auto actual_return_type = ResolveStatement(runtime, scope, body);
-    type::ptr resolved_return_type;
-
-    if (!return_type)
-    {
-      return actual_return_type;
-    }
-    resolved_return_type = ResolveType(runtime, scope, return_type);
-    if (!actual_return_type->Accepts(resolved_return_type))
-    {
-      throw runtime.MakeError(
-        U"Return type "
-        + resolved_return_type->ToString()
-        + U" does not match actual return type "
-        + actual_return_type->ToString()
-        + U"."
-      );
-    }
-
-    return resolved_return_type;
-  }
-
   static void
   EvaluateElement(
     Runtime& runtime,
@@ -153,8 +121,17 @@ namespace snek::interpreter
   )
   {
     record[field->name] = value::Function::MakeScripted(
-      ResolveParameterList(runtime, scope, field->parameters),
-      ResolveReturnType(runtime, scope, field->return_type, field->body),
+      ResolveParameterList(
+        runtime,
+        scope,
+        field->signature.parameters
+      ),
+      ResolveReturnType(
+        runtime,
+        scope,
+        field->signature.return_type,
+        field->body
+      ),
       field->body,
       scope
     );
@@ -520,11 +497,16 @@ namespace snek::interpreter
   )
   {
     return value::Function::MakeScripted(
-      ResolveParameterList(runtime, scope, expression->parameters),
+      ResolveParameterList(
+        runtime,
+        scope,
+        expression->signature.parameters
+      ),
       ResolveReturnType(
         runtime,
         scope,
-        expression->return_type, expression->body
+        expression->signature.return_type,
+        expression->body
       ),
       expression->body,
       scope

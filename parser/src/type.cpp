@@ -26,7 +26,6 @@
 #include <functional>
 
 #include "snek/parser/error.hpp"
-#include "snek/parser/parameter.hpp"
 #include "snek/parser/type.hpp"
 #include "snek/parser/utils.hpp"
 
@@ -113,7 +112,10 @@ namespace snek::parser::type
     lexer.ReadToken(Token::Kind::FatArrow);
     return_type = Parse(lexer);
 
-    return std::make_shared<Function>(position, parameters, return_type);
+    return std::make_shared<Function>(
+      position,
+      Signature{ parameters, return_type }
+    );
   }
 
   static ptr
@@ -233,29 +235,6 @@ namespace snek::parser::type
     }
 
     return type;
-  }
-
-  std::u32string
-  Function::ToString() const
-  {
-    auto result = utils::Join<
-      Parameter,
-      std::vector<Parameter>::const_iterator
-    >(
-      std::begin(parameters),
-      std::end(parameters),
-      [](const auto& parameter)
-      {
-        return parameter.ToString();
-      },
-      U'(',
-      U')'
-    );
-
-    result.append(U" => ");
-    result.append(return_type ? return_type->ToString() : U"any");
-
-    return result;
   }
 
   std::u32string

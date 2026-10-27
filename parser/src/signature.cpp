@@ -25,7 +25,8 @@
  */
 #include "snek/parser/error.hpp"
 #include "snek/parser/expression.hpp"
-#include "snek/parser/parameter.hpp"
+#include "snek/parser/signature.hpp"
+#include "snek/parser/utils.hpp"
 #include "snek/parser/type.hpp"
 
 namespace snek::parser
@@ -110,6 +111,38 @@ namespace snek::parser
     if (default_value)
     {
       result.append(U" = ").append(default_value->ToString());
+    }
+
+    return result;
+  }
+
+  std::u32string
+  Signature::ToString(
+    const std::u32string& return_type_separator,
+    bool include_missing_return_type
+  ) const
+  {
+    auto result = utils::Join<
+      Parameter,
+      std::vector<Parameter>::const_iterator
+    >(
+      std::begin(parameters),
+      std::end(parameters),
+      [](const auto& parameter)
+      {
+        return parameter.ToString();
+      },
+      U'(',
+      U')'
+    );
+
+    if (return_type)
+    {
+      result.append(return_type_separator).append(return_type->ToString());
+    }
+    else if (include_missing_return_type)
+    {
+      result.append(return_type_separator).append(U"any");
     }
 
     return result;

@@ -26,7 +26,6 @@
 #include "snek/parser/error.hpp"
 #include "snek/parser/expression.hpp"
 #include "snek/parser/field.hpp"
-#include "snek/parser/parameter.hpp"
 #include "snek/parser/statement.hpp"
 #include "snek/parser/type.hpp"
 #include "snek/parser/utils.hpp"
@@ -70,8 +69,7 @@ namespace snek::parser::field
       return std::make_shared<Function>(
         token.position,
         *token.text,
-        parameters,
-        return_type,
+        Signature{ parameters, return_type },
         statement::ParseFunctionBody(lexer)
       );
     }
@@ -122,31 +120,6 @@ namespace snek::parser::field
   Computed::ToString() const
   {
     return U'[' + key->ToString() + U"]: " + value->ToString();
-  }
-
-  std::u32string
-  Function::ToString() const
-  {
-    std::u32string result(name);
-
-    result.append(
-      utils::Join<Parameter, std::vector<Parameter>::const_iterator>(
-        std::begin(parameters),
-        std::end(parameters),
-        [](const Parameter& parameter)
-        {
-          return parameter.ToString();
-        },
-        U'(',
-        U')'
-      )
-    );
-    if (return_type)
-    {
-      result.append(U" -> ").append(return_type->ToString());
-    }
-
-    return result;
   }
 
   std::u32string

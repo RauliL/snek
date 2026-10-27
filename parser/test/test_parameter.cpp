@@ -27,7 +27,7 @@
 
 #include "snek/parser/error.hpp"
 #include "snek/parser/expression.hpp"
-#include "snek/parser/parameter.hpp"
+#include "snek/parser/signature.hpp"
 #include "snek/parser/type.hpp"
 
 using namespace snek::parser;

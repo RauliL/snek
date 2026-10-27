@@ -27,7 +27,7 @@
 
 #include <unordered_map>
 
-#include "snek/parser/parameter.hpp"
+#include "snek/parser/signature.hpp"
 
 namespace snek::parser::type
 {
@@ -77,19 +77,19 @@ namespace snek::parser::type
   class Function final : public Base
   {
   public:
-    const std::vector<Parameter> parameters;
-    const ptr return_type;
+    const Signature signature;
 
     explicit Function(
       const std::optional<Position>& position,
-      const std::vector<Parameter>& parameters_,
-      const ptr& return_type_
+      const Signature& signature_
     )
       : Base(position, Kind::Function)
-      , parameters(parameters_)
-      , return_type(return_type_) {}
+      , signature(signature_) {}
 
-    std::u32string ToString() const override;
+    inline std::u32string ToString() const override
+    {
+      return signature.ToString(U" => ", true);
+    }
   };
 
   class List final : public Base

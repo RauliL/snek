@@ -25,7 +25,7 @@
  */
 #pragma once
 
-#include "snek/parser/parameter.hpp"
+#include "snek/parser/signature.hpp"
 
 namespace snek::parser::field
 {
@@ -71,24 +71,24 @@ namespace snek::parser::field
   {
   public:
     const std::u32string name;
-    const std::vector<Parameter> parameters;
-    const type::ptr return_type;
+    const Signature signature;
     const statement::ptr body;
 
     explicit Function(
       const std::optional<Position>& position,
       const std::u32string& name_,
-      const std::vector<Parameter>& parameters_,
-      const type::ptr& return_type_,
+      const Signature& signature_,
       const statement::ptr& body_
     )
       : Base(position, Kind::Function)
       , name(name_)
-      , parameters(parameters_)
-      , return_type(return_type_)
+      , signature(signature_)
       , body(body_) {}
 
-    std::u32string ToString() const override;
+    inline std::u32string ToString() const override
+    {
+      return name + signature.ToString(U" -> ");
+    }
   };
 
   class Named final : public Base

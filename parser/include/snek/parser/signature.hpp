@@ -30,32 +30,14 @@
 
 #include "snek/parser/lexer.hpp"
 
-namespace snek::parser::expression
-{
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
-namespace snek::parser::type
-{
-  class Base;
-
-  using ptr = std::shared_ptr<Base>;
-}
-
 namespace snek::parser
 {
+  /**
+   * Representation of function parameter.
+   */
   class Parameter final : public Node
   {
   public:
-    static Parameter Parse(Lexer& lexer);
-
-    static std::vector<Parameter> ParseList(
-      Lexer& lexer,
-      bool read_opening_parenthesis = true
-    );
-
     std::u32string name;
     type::ptr type;
     expression::ptr default_value;
@@ -74,6 +56,27 @@ namespace snek::parser
       , default_value(default_value_)
       , rest(rest_) {}
 
+    static Parameter Parse(Lexer& lexer);
+
+    static std::vector<Parameter> ParseList(
+      Lexer& lexer,
+      bool read_opening_parenthesis = true
+    );
+
     std::u32string ToString() const override;
+  };
+
+  /**
+   * Representation of function signature.
+   */
+  struct Signature final
+  {
+    std::vector<Parameter> parameters = {};
+    type::ptr return_type = nullptr;
+
+    std::u32string ToString(
+      const std::u32string& return_type_separator = U": ",
+      bool include_missing_return_type = false
+    ) const;
   };
 }

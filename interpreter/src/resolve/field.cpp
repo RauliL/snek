@@ -83,8 +83,8 @@ namespace snek::interpreter
   )
   {
     resolved_fields[field->name] = std::make_shared<type::Function>(
-      ResolveParameterList(runtime, scope, field->parameters),
-      ResolveType(runtime, scope, field->return_type)
+      ResolveParameterList(runtime, scope, field->signature.parameters),
+      ResolveType(runtime, scope, field->signature.return_type)
     );
 
     return true;

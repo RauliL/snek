@@ -95,8 +95,8 @@ TEST_CASE("Parse function type")
 
   REQUIRE(result->kind == type::Kind::Function);
   function = As<type::Function>(result);
-  REQUIRE(function->parameters.size() == 1);
-  REQUIRE(function->return_type->kind == type::Kind::Named);
+  REQUIRE(function->signature.parameters.size() == 1);
+  REQUIRE(function->signature.return_type->kind == type::Kind::Named);
 }
 
 TEST_CASE("Parse empty record type")
