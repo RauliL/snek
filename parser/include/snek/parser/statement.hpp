@@ -215,6 +215,11 @@ namespace snek::parser
       , jump_kind(jump_kind_)
       , value(value_) {}
 
+    inline bool Is(JumpKind jump_kind_) const
+    {
+      return jump_kind == jump_kind_;
+    }
+
     static std::u32string ToString(JumpKind kind);
 
     std::u32string ToString() const override;

@@ -262,11 +262,11 @@ namespace snek::interpreter
       }
       catch (const Jump& jump)
       {
-        if (jump.kind() == parser::JumpKind::Break)
+        if (jump.Is(parser::JumpKind::Break))
         {
           break;
         }
-        else if (jump.kind() == parser::JumpKind::Continue)
+        else if (jump.Is(parser::JumpKind::Continue))
         {
           throw jump;
         }
@@ -291,7 +291,7 @@ namespace snek::interpreter
         runtime,
         scope,
         statement->value,
-        statement->jump_kind == parser::JumpKind::Return
+        statement->Is(parser::JumpKind::Return)
       );
     }
 

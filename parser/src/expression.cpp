@@ -135,18 +135,18 @@ namespace snek::parser
   static Parameter
   ToParameter(const expression_ptr& expression)
   {
-    if (expression->kind == ExpressionKind::Id)
+    if (expression->Is(ExpressionKind::Id))
     {
       return Parameter(
         expression->position,
         As<Expression::Id>(expression)->identifier
       );
     }
-    else if (expression->kind == ExpressionKind::Assign)
+    else if (expression->Is(ExpressionKind::Assign))
     {
       const auto assign = As<Expression::Assign>(expression);
 
-      if (!assign->op && assign->variable->kind == ExpressionKind::Id)
+      if (!assign->op && assign->variable->Is(ExpressionKind::Id))
       {
         return Parameter(
           expression->position,

@@ -393,7 +393,7 @@ namespace snek::interpreter
     {
       arguments.push_back(nullptr);
     }
-    else if (expression->kind == parser::ExpressionKind::Spread)
+    else if (expression->Is(parser::ExpressionKind::Spread))
     {
       const auto value = EvaluateExpression(
         runtime,

@@ -144,6 +144,11 @@ namespace snek::parser
       , multiple_kind(multiple_kind_)
       , types(types_) {}
 
+    inline bool Is(MultipleKind multiple_kind_) const
+    {
+      return multiple_kind == multiple_kind_;
+    }
+
     std::u32string ToString() const override;
   };
 

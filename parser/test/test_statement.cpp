@@ -45,9 +45,10 @@ TEST_CASE("Parse expression statement")
   Lexer lexer("foo");
   const auto result = Statement::Parse(lexer, false);
 
-  REQUIRE(result->kind == StatementKind::Expression);
-  REQUIRE(As<Statement::Expression>(result)->expression->kind ==
-    ExpressionKind::Id);
+  REQUIRE(result->Is(StatementKind::Expression));
+  REQUIRE(As<Statement::Expression>(result)->expression->Is(
+    ExpressionKind::Id
+  ));
 }
 
 TEST_CASE("Parse block statement from semicolon-separated statements")
@@ -56,11 +57,11 @@ TEST_CASE("Parse block statement from semicolon-separated statements")
   const auto result = Statement::Parse(lexer, false);
   const Statement::Block* block;
 
-  REQUIRE(result->kind == StatementKind::Block);
+  REQUIRE(result->Is(StatementKind::Block));
   block = As<Statement::Block>(result);
   REQUIRE(block->statements.size() == 2);
-  REQUIRE(block->statements[0]->kind == StatementKind::Expression);
-  REQUIRE(block->statements[1]->kind == StatementKind::Expression);
+  REQUIRE(block->statements[0]->Is(StatementKind::Expression));
+  REQUIRE(block->statements[1]->Is(StatementKind::Expression));
 }
 
 TEST_CASE("Parse indented block statement")
@@ -69,7 +70,7 @@ TEST_CASE("Parse indented block statement")
   const auto result = Statement::ParseFunctionBody(lexer);
   const Statement::Block* block;
 
-  REQUIRE(result->kind == StatementKind::Block);
+  REQUIRE(result->Is(StatementKind::Block));
   block = As<Statement::Block>(result);
   REQUIRE(block->statements.size() == 2);
 }
@@ -80,11 +81,11 @@ TEST_CASE("Parse type declaration")
   const auto result = Statement::Parse(lexer, false);
   const Statement::DeclareType* declaration;
 
-  REQUIRE(result->kind == StatementKind::DeclareType);
+  REQUIRE(result->Is(StatementKind::DeclareType));
   declaration = As<Statement::DeclareType>(result);
   REQUIRE(!declaration->is_export);
   REQUIRE(!declaration->name.compare(U"Foo"));
-  REQUIRE(declaration->type->kind == TypeKind::Named);
+  REQUIRE(declaration->type->Is(TypeKind::Named));
 }
 
 TEST_CASE("Parse type declaration with record body")
@@ -93,10 +94,10 @@ TEST_CASE("Parse type declaration with record body")
   const auto result = Statement::Parse(lexer, false);
   const Statement::DeclareType* declaration;
 
-  REQUIRE(result->kind == StatementKind::DeclareType);
+  REQUIRE(result->Is(StatementKind::DeclareType));
   declaration = As<Statement::DeclareType>(result);
   REQUIRE(!declaration->name.compare(U"Foo"));
-  REQUIRE(declaration->type->kind == TypeKind::Record);
+  REQUIRE(declaration->type->Is(TypeKind::Record));
 }
 
 TEST_CASE("Parse exported type declaration")
@@ -105,7 +106,7 @@ TEST_CASE("Parse exported type declaration")
   const auto result = Statement::Parse(lexer, true);
   const Statement::DeclareType* declaration;
 
-  REQUIRE(result->kind == StatementKind::DeclareType);
+  REQUIRE(result->Is(StatementKind::DeclareType));
   declaration = As<Statement::DeclareType>(result);
   REQUIRE(declaration->is_export);
   REQUIRE(!declaration->name.compare(U"Foo"));
@@ -117,11 +118,11 @@ TEST_CASE("Parse variable declaration without value")
   const auto result = Statement::Parse(lexer, false);
   const Statement::DeclareVar* declaration;
 
-  REQUIRE(result->kind == StatementKind::DeclareVar);
+  REQUIRE(result->Is(StatementKind::DeclareVar));
   declaration = As<Statement::DeclareVar>(result);
   REQUIRE(!declaration->is_export);
   REQUIRE(!declaration->is_read_only);
-  REQUIRE(declaration->variable->kind == ExpressionKind::Id);
+  REQUIRE(declaration->variable->Is(ExpressionKind::Id));
   REQUIRE(!declaration->value);
 }
 
@@ -131,12 +132,12 @@ TEST_CASE("Parse constant declaration with value")
   const auto result = Statement::Parse(lexer, false);
   const Statement::DeclareVar* declaration;
 
-  REQUIRE(result->kind == StatementKind::DeclareVar);
+  REQUIRE(result->Is(StatementKind::DeclareVar));
   declaration = As<Statement::DeclareVar>(result);
   REQUIRE(!declaration->is_export);
   REQUIRE(declaration->is_read_only);
-  REQUIRE(declaration->variable->kind == ExpressionKind::Id);
-  REQUIRE(declaration->value->kind == ExpressionKind::Id);
+  REQUIRE(declaration->variable->Is(ExpressionKind::Id));
+  REQUIRE(declaration->value->Is(ExpressionKind::Id));
 }
 
 TEST_CASE("Parse shorthand function declaration")
@@ -145,10 +146,10 @@ TEST_CASE("Parse shorthand function declaration")
   const auto result = Statement::Parse(lexer, false);
   const Statement::DeclareVar* declaration;
 
-  REQUIRE(result->kind == StatementKind::DeclareVar);
+  REQUIRE(result->Is(StatementKind::DeclareVar));
   declaration = As<Statement::DeclareVar>(result);
   REQUIRE(declaration->is_read_only);
-  REQUIRE(declaration->value->kind == ExpressionKind::Function);
+  REQUIRE(declaration->value->Is(ExpressionKind::Function));
 }
 
 TEST_CASE("Parse variable declaration with record body")
@@ -157,9 +158,9 @@ TEST_CASE("Parse variable declaration with record body")
   const auto result = Statement::Parse(lexer, false);
   const Statement::DeclareVar* declaration;
 
-  REQUIRE(result->kind == StatementKind::DeclareVar);
+  REQUIRE(result->Is(StatementKind::DeclareVar));
   declaration = As<Statement::DeclareVar>(result);
-  REQUIRE(declaration->value->kind == ExpressionKind::Record);
+  REQUIRE(declaration->value->Is(ExpressionKind::Record));
 }
 
 TEST_CASE("Parse exported variable declaration")
@@ -168,7 +169,7 @@ TEST_CASE("Parse exported variable declaration")
   const auto result = Statement::Parse(lexer, true);
   const Statement::DeclareVar* declaration;
 
-  REQUIRE(result->kind == StatementKind::DeclareVar);
+  REQUIRE(result->Is(StatementKind::DeclareVar));
   declaration = As<Statement::DeclareVar>(result);
   REQUIRE(declaration->is_export);
   REQUIRE(!declaration->is_read_only);
@@ -180,10 +181,10 @@ TEST_CASE("Parse if statement without else")
   const auto result = Statement::Parse(lexer, false);
   const Statement::If* statement;
 
-  REQUIRE(result->kind == StatementKind::If);
+  REQUIRE(result->Is(StatementKind::If));
   statement = As<Statement::If>(result);
-  REQUIRE(statement->condition->kind == ExpressionKind::Boolean);
-  REQUIRE(statement->then_statement->kind == StatementKind::Expression);
+  REQUIRE(statement->condition->Is(ExpressionKind::Boolean));
+  REQUIRE(statement->then_statement->Is(StatementKind::Expression));
   REQUIRE(!statement->else_statement);
 }
 
@@ -193,10 +194,10 @@ TEST_CASE("Parse if statement with else")
   const auto result = Statement::Parse(lexer, false);
   const Statement::If* statement;
 
-  REQUIRE(result->kind == StatementKind::If);
+  REQUIRE(result->Is(StatementKind::If));
   statement = As<Statement::If>(result);
-  REQUIRE(statement->then_statement->kind == StatementKind::Expression);
-  REQUIRE(statement->else_statement->kind == StatementKind::Expression);
+  REQUIRE(statement->then_statement->Is(StatementKind::Expression));
+  REQUIRE(statement->else_statement->Is(StatementKind::Expression));
 }
 
 TEST_CASE("Parse if statement with else if")
@@ -205,9 +206,9 @@ TEST_CASE("Parse if statement with else if")
   const auto result = Statement::Parse(lexer, false);
   const Statement::If* statement;
 
-  REQUIRE(result->kind == StatementKind::If);
+  REQUIRE(result->Is(StatementKind::If));
   statement = As<Statement::If>(result);
-  REQUIRE(statement->else_statement->kind == StatementKind::If);
+  REQUIRE(statement->else_statement->Is(StatementKind::If));
 }
 
 TEST_CASE("Parse if statement with indented body")
@@ -216,9 +217,9 @@ TEST_CASE("Parse if statement with indented body")
   const auto result = Statement::Parse(lexer, false);
   const Statement::If* statement;
 
-  REQUIRE(result->kind == StatementKind::If);
+  REQUIRE(result->Is(StatementKind::If));
   statement = As<Statement::If>(result);
-  REQUIRE(statement->then_statement->kind == StatementKind::Block);
+  REQUIRE(statement->then_statement->Is(StatementKind::Block));
 }
 
 TEST_CASE("Parse import statement")
@@ -227,10 +228,10 @@ TEST_CASE("Parse import statement")
   const auto result = Statement::Parse(lexer, true);
   const Statement::Import* statement;
 
-  REQUIRE(result->kind == StatementKind::Import);
+  REQUIRE(result->Is(StatementKind::Import));
   statement = As<Statement::Import>(result);
   REQUIRE(statement->specifiers.size() == 1);
-  REQUIRE(statement->specifiers[0]->kind == ImportKind::Named);
+  REQUIRE(statement->specifiers[0]->Is(ImportKind::Named));
   REQUIRE(!statement->path.compare(U"bar"));
 }
 
@@ -240,11 +241,11 @@ TEST_CASE("Parse import statement with multiple specifiers")
   const auto result = Statement::Parse(lexer, true);
   const Statement::Import* statement;
 
-  REQUIRE(result->kind == StatementKind::Import);
+  REQUIRE(result->Is(StatementKind::Import));
   statement = As<Statement::Import>(result);
   REQUIRE(statement->specifiers.size() == 2);
-  REQUIRE(statement->specifiers[0]->kind == ImportKind::Named);
-  REQUIRE(statement->specifiers[1]->kind == ImportKind::Star);
+  REQUIRE(statement->specifiers[0]->Is(ImportKind::Named));
+  REQUIRE(statement->specifiers[1]->Is(ImportKind::Star));
 }
 
 TEST_CASE("Reject import statement outside top level")
@@ -260,9 +261,9 @@ TEST_CASE("Parse break statement")
   const auto result = Statement::Parse(lexer, false);
   const Statement::Jump* statement;
 
-  REQUIRE(result->kind == StatementKind::Jump);
+  REQUIRE(result->Is(StatementKind::Jump));
   statement = As<Statement::Jump>(result);
-  REQUIRE(statement->jump_kind == JumpKind::Break);
+  REQUIRE(statement->Is(JumpKind::Break));
   REQUIRE(!statement->value);
 }
 
@@ -272,9 +273,9 @@ TEST_CASE("Parse continue statement")
   const auto result = Statement::Parse(lexer, false);
   const Statement::Jump* statement;
 
-  REQUIRE(result->kind == StatementKind::Jump);
+  REQUIRE(result->Is(StatementKind::Jump));
   statement = As<Statement::Jump>(result);
-  REQUIRE(statement->jump_kind == JumpKind::Continue);
+  REQUIRE(statement->Is(JumpKind::Continue));
   REQUIRE(!statement->value);
 }
 
@@ -284,9 +285,9 @@ TEST_CASE("Parse return statement without value")
   const auto result = Statement::Parse(lexer, false);
   const Statement::Jump* statement;
 
-  REQUIRE(result->kind == StatementKind::Jump);
+  REQUIRE(result->Is(StatementKind::Jump));
   statement = As<Statement::Jump>(result);
-  REQUIRE(statement->jump_kind == JumpKind::Return);
+  REQUIRE(statement->Is(JumpKind::Return));
   REQUIRE(!statement->value);
 }
 
@@ -296,10 +297,10 @@ TEST_CASE("Parse return statement with value")
   const auto result = Statement::Parse(lexer, false);
   const Statement::Jump* statement;
 
-  REQUIRE(result->kind == StatementKind::Jump);
+  REQUIRE(result->Is(StatementKind::Jump));
   statement = As<Statement::Jump>(result);
-  REQUIRE(statement->jump_kind == JumpKind::Return);
-  REQUIRE(statement->value->kind == ExpressionKind::Id);
+  REQUIRE(statement->Is(JumpKind::Return));
+  REQUIRE(statement->value->Is(ExpressionKind::Id));
 }
 
 TEST_CASE("Parse while statement")
@@ -308,10 +309,10 @@ TEST_CASE("Parse while statement")
   const auto result = Statement::Parse(lexer, false);
   const Statement::While* statement;
 
-  REQUIRE(result->kind == StatementKind::While);
+  REQUIRE(result->Is(StatementKind::While));
   statement = As<Statement::While>(result);
-  REQUIRE(statement->condition->kind == ExpressionKind::Boolean);
-  REQUIRE(statement->body->kind == StatementKind::Expression);
+  REQUIRE(statement->condition->Is(ExpressionKind::Boolean));
+  REQUIRE(statement->body->Is(StatementKind::Expression));
 }
 
 TEST_CASE("Parse while statement with indented body")
@@ -320,9 +321,9 @@ TEST_CASE("Parse while statement with indented body")
   const auto result = Statement::Parse(lexer, false);
   const Statement::While* statement;
 
-  REQUIRE(result->kind == StatementKind::While);
+  REQUIRE(result->Is(StatementKind::While));
   statement = As<Statement::While>(result);
-  REQUIRE(statement->body->kind == StatementKind::Block);
+  REQUIRE(statement->body->Is(StatementKind::Block));
 }
 
 TEST_CASE("Parse function body with fat arrow")
@@ -331,10 +332,10 @@ TEST_CASE("Parse function body with fat arrow")
   const auto result = Statement::ParseFunctionBody(lexer);
   const Statement::Jump* statement;
 
-  REQUIRE(result->kind == StatementKind::Jump);
+  REQUIRE(result->Is(StatementKind::Jump));
   statement = As<Statement::Jump>(result);
-  REQUIRE(statement->jump_kind == JumpKind::Return);
-  REQUIRE(statement->value->kind == ExpressionKind::Id);
+  REQUIRE(statement->Is(JumpKind::Return));
+  REQUIRE(statement->value->Is(ExpressionKind::Id));
 }
 
 TEST_CASE("Parse function body with block")
@@ -342,7 +343,7 @@ TEST_CASE("Parse function body with block")
   Lexer lexer(": foo");
   const auto result = Statement::ParseFunctionBody(lexer);
 
-  REQUIRE(result->kind == StatementKind::Expression);
+  REQUIRE(result->Is(StatementKind::Expression));
 }
 
 TEST_CASE("Reject export statement outside top level")

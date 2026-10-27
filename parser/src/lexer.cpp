@@ -276,7 +276,7 @@ namespace snek::parser
   {
     const auto token = ReadToken();
 
-    if (token.kind != expected)
+    if (!token.Is(expected))
     {
       throw SyntaxError{
         token.position,
@@ -292,7 +292,7 @@ namespace snek::parser
   void
   Lexer::UnreadToken(const Token& token)
   {
-    if (token.kind != TokenKind::Eof)
+    if (!token.Is(TokenKind::Eof))
     {
       m_token_queue.push_front(token);
     }
@@ -323,21 +323,24 @@ namespace snek::parser
 
     UnreadToken(token);
 
-    return token.kind == expected;
+    return token.Is(expected);
   }
 
   bool
   Lexer::PeekToken(std::initializer_list<TokenKind> expected)
   {
-    for (const auto& kind : expected)
-    {
-      if (PeekToken(kind))
-      {
-        return true;
-      }
-    }
+    const auto token = ReadToken();
 
-    return false;
+    UnreadToken(token);
+
+    return std::find_if(
+      std::begin(expected),
+      std::end(expected),
+      [token](TokenKind kind)
+      {
+        return token.Is(kind);
+      }
+    ) != std::end(expected);
   }
 
   bool
@@ -349,7 +352,7 @@ namespace snek::parser
     m_token_queue.push_front(token);
     m_token_queue.push_front(skip);
 
-    return token.kind == expected;
+    return token.Is(expected);
   }
 
   bool

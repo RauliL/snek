@@ -45,7 +45,7 @@ namespace snek::parser
 
     return std::make_shared<Type::Multiple>(
       token.position,
-      token.kind == TokenKind::BitwiseAnd
+      token.Is(TokenKind::BitwiseAnd)
         ? Type::Multiple::MultipleKind::Intersection
         : Type::Multiple::MultipleKind::Union,
       types
@@ -188,7 +188,7 @@ namespace snek::parser
       case TokenKind::KeywordTrue:
         type = std::make_shared<Type::Boolean>(
           token.position,
-          token.kind == TokenKind::KeywordTrue
+          token.Is(TokenKind::KeywordTrue)
         );
         break;
 

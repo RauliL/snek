@@ -185,11 +185,7 @@ namespace snek::interpreter
     }
     catch (const Jump& jump)
     {
-      throw runtime.MakeError(
-        U"Unexpected `" +
-        parser::Statement::Jump::ToString(jump.kind())
-        + U"'."
-      );
+      throw runtime.MakeError(U"Unexpected `" + jump.ToString() + U"'.");
     }
     catch (const parser::SyntaxError& e)
     {

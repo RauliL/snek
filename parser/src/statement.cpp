@@ -64,7 +64,7 @@ namespace snek::parser
     expression_ptr value;
 
     if (
-      token.kind == TokenKind::KeywordReturn &&
+      token.Is(TokenKind::KeywordReturn) &&
       !lexer.PeekToken(TokenKind::Eof) &&
       !lexer.PeekToken(TokenKind::NewLine) &&
       !lexer.PeekToken(TokenKind::Semicolon)
@@ -99,7 +99,7 @@ namespace snek::parser
         return std::make_shared<Statement::DeclareVar>(
           token.position,
           exported,
-          token.kind == TokenKind::KeywordConst,
+          token.Is(TokenKind::KeywordConst),
           variable,
           Expression::ParseFunction(lexer)
         );
@@ -122,7 +122,7 @@ namespace snek::parser
         return std::make_shared<Statement::DeclareVar>(
           token.position,
           exported,
-          token.kind == TokenKind::KeywordConst,
+          token.Is(TokenKind::KeywordConst),
           variable,
           std::make_shared<Expression::Record>(variable->position, fields)
         );
@@ -147,7 +147,7 @@ namespace snek::parser
     return std::make_shared<Statement::DeclareVar>(
       token.position,
       exported,
-      token.kind == TokenKind::KeywordConst,
+      token.Is(TokenKind::KeywordConst),
       variable,
       value
     );

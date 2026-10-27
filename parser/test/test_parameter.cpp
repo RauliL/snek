@@ -60,7 +60,7 @@ TEST_CASE("Parse typed parameter")
   const auto result = Parameter::Parse(lexer);
 
   REQUIRE(!result.name.compare(U"foo"));
-  REQUIRE(result.type->kind == TypeKind::Named);
+  REQUIRE(result.type->Is(TypeKind::Named));
   REQUIRE(!result.default_value);
   REQUIRE(!result.rest);
 }
@@ -72,7 +72,7 @@ TEST_CASE("Parse parameter with default value")
 
   REQUIRE(!result.name.compare(U"foo"));
   REQUIRE(!result.type);
-  REQUIRE(result.default_value->kind == ExpressionKind::Id);
+  REQUIRE(result.default_value->Is(ExpressionKind::Id));
   REQUIRE(!result.rest);
 }
 

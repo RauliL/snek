@@ -69,6 +69,14 @@ namespace snek::parser
     )
       : Node(position)
       , kind(kind_) {}
+
+    /**
+     * Tests whether node is of given type.
+     */
+    inline bool Is(NodeType kind_) const
+    {
+      return kind == kind_;
+    }
   };
 
   /**

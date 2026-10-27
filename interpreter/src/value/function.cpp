@@ -199,16 +199,12 @@ namespace snek::interpreter::value
         }
         catch (const Jump& jump)
         {
-          if (jump.kind() == parser::JumpKind::Return)
+          if (jump.Is(parser::JumpKind::Return))
           {
-            return jump.value();
+            return jump.value;
           }
 
-          throw runtime.MakeError(
-            U"Unexpected `" +
-            parser::Statement::Jump::ToString(jump.kind())
-            + U"'."
-          );
+          throw runtime.MakeError(U"Unexpected `" + jump.ToString() + U"'.");
         }
 
         return nullptr;

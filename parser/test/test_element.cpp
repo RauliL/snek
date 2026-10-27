@@ -34,7 +34,7 @@ TEST_CASE("Parse spread list element")
   Lexer lexer("...foo");
   const auto result = Element::Parse(lexer);
 
-  REQUIRE(result->kind == ElementKind::Spread);
+  REQUIRE(result->Is(ElementKind::Spread));
 }
 
 TEST_CASE("Parse ordinary list element")
@@ -42,5 +42,5 @@ TEST_CASE("Parse ordinary list element")
   Lexer lexer("foo");
   const auto result = Element::Parse(lexer);
 
-  REQUIRE(result->kind == ElementKind::Value);
+  REQUIRE(result->Is(ElementKind::Value));
 }

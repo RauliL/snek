@@ -150,7 +150,7 @@ namespace snek::interpreter
     {
       return false;
     }
-    else if (element->kind == parser::ElementKind::Spread)
+    else if (element->Is(parser::ElementKind::Spread))
     {
       if (type->kind() == type::Kind::Tuple)
       {

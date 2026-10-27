@@ -35,7 +35,7 @@ namespace snek::parser
     const auto token = lexer.ReadToken();
     ElementKind kind = ElementKind::Value;
 
-    if (token.kind == TokenKind::Spread)
+    if (token.Is(TokenKind::Spread))
     {
       kind = ElementKind::Spread;
     } else {

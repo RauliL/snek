@@ -30,38 +30,24 @@
 
 namespace snek::interpreter
 {
-  class Jump final
+  class Jump final : public parser::TypedNode<parser::JumpKind>
   {
   public:
     DEFAULT_COPY_AND_ASSIGN(Jump);
 
+    value::ptr value;
+
     Jump(
       const std::optional<Position>& position,
       parser::JumpKind kind,
-      const value::ptr& value = nullptr
+      const value::ptr& value_ = nullptr
     )
-      : m_position(position)
-      , m_kind(kind)
-      , m_value(value) {}
+      : TypedNode(position, kind)
+      , value(value_) {}
 
-    inline const std::optional<Position>& position() const
+    inline std::u32string ToString() const override
     {
-      return m_position;
+      return parser::Statement::Jump::ToString(kind);
     }
-
-    inline parser::JumpKind kind() const
-    {
-      return m_kind;
-    }
-
-    inline const value::ptr& value() const
-    {
-      return m_value;
-    }
-
-  private:
-    std::optional<Position> m_position;
-    parser::JumpKind m_kind;
-    value::ptr m_value;
   };
 }
