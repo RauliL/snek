@@ -33,9 +33,7 @@ namespace snek::interpreter
   class Jump final : public parser::TypedNode<parser::JumpKind>
   {
   public:
-    DEFAULT_COPY_AND_ASSIGN(Jump);
-
-    value::ptr value;
+    const value::ptr value;
 
     Jump(
       const std::optional<Position>& position,

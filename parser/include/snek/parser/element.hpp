@@ -38,9 +38,7 @@ namespace snek::parser
   class Element final : public TypedNode<ElementKind>
   {
   public:
-    DEFAULT_COPY_AND_ASSIGN(Element);
-
-    expression_ptr expression;
+    const expression_ptr expression;
 
     explicit Element(
       const std::optional<Position>& position,

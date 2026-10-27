@@ -809,18 +809,14 @@ namespace snek::parser
   {
     for (const auto& field : fields)
     {
-      const auto kind = field->kind;
-
-      if (kind == FieldKind::Spread)
+      if (field->Is(FieldKind::Spread))
       {
-        if (!static_cast<const Field::Spread*>(
-          field.get()
-        )->expression->IsAssignable())
+        if (!As<Field::Spread>(field)->expression->IsAssignable())
         {
           return false;
         }
       }
-      else if (kind != FieldKind::Named && kind != FieldKind::Shorthand)
+      else if (!field->Is(FieldKind::Named) && !field->Is(FieldKind::Shorthand))
       {
         return false;
       }

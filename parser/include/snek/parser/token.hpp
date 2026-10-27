@@ -179,9 +179,7 @@ namespace snek::parser
   class Token final : public TypedNode<TokenKind>
   {
   public:
-    DEFAULT_COPY_AND_ASSIGN(Token);
-
-    std::optional<std::u32string> text;
+    const std::optional<std::u32string> text;
 
     Token(
       const std::optional<Position>& position = std::nullopt,
