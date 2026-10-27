@@ -28,13 +28,6 @@
 
 namespace snek::interpreter
 {
-  template <class T>
-  static inline const T*
-  As(const parser::type_ptr& type)
-  {
-    return static_cast<const T*>(type.get());
-  }
-
   static type::ptr
   ResolveFunction(
     const Runtime& runtime,
@@ -135,14 +128,14 @@ namespace snek::interpreter
     {
       case parser::TypeKind::Boolean:
         return std::make_shared<type::Boolean>(
-          As<parser::Type::Boolean>(type)->value
+          parser::As<parser::Type::Boolean>(type)->value
         );
 
       case parser::TypeKind::Function:
         return ResolveFunction(
           runtime,
           scope,
-          As<parser::Type::Function>(type)
+          parser::As<parser::Type::Function>(type)
         );
 
       case parser::TypeKind::List:
@@ -150,7 +143,7 @@ namespace snek::interpreter
           ResolveType(
             runtime,
             scope,
-            As<parser::Type::List>(type)->element_type
+            parser::As<parser::Type::List>(type)->element_type
           )
         );
 
@@ -158,21 +151,29 @@ namespace snek::interpreter
         return ResolveMultiple(
           runtime,
           scope,
-          As<parser::Type::Multiple>(type)
+          parser::As<parser::Type::Multiple>(type)
         );
 
       case parser::TypeKind::Named:
-        return ResolveNamed(runtime, scope, As<parser::Type::Named>(type));
+        return ResolveNamed(
+          runtime,
+          scope,
+          parser::As<parser::Type::Named>(type)
+        );
 
       case parser::TypeKind::Null:
         return runtime.void_type();
 
       case parser::TypeKind::Record:
-        return ResolveRecord(runtime, scope, As<parser::Type::Record>(type));
+        return ResolveRecord(
+          runtime,
+          scope,
+          parser::As<parser::Type::Record>(type)
+        );
 
       case parser::TypeKind::String:
         return std::make_shared<type::String>(
-          As<parser::Type::String>(type)->value
+          parser::As<parser::Type::String>(type)->value
         );
     }
 

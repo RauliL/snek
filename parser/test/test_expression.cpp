@@ -31,13 +31,6 @@
 
 using namespace snek::parser;
 
-template<class T>
-static inline std::shared_ptr<T>
-As(const expression_ptr& expression)
-{
-  return std::static_pointer_cast<T>(expression);
-}
-
 TEST_CASE("Hitting end of input while parsing an expression")
 {
   Lexer lexer("");
@@ -155,7 +148,7 @@ TEST_CASE("Parse function expression with fat arrow")
 {
   Lexer lexer("() => foo");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Function> function;
+  const Expression::Function* function;
 
   REQUIRE(result->kind == ExpressionKind::Function);
   function = As<Expression::Function>(result);
@@ -167,7 +160,7 @@ TEST_CASE("Parse function expression with parameter and return type")
 {
   Lexer lexer("(foo: Int) -> Int => foo");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Function> function;
+  const Expression::Function* function;
 
   REQUIRE(result->kind == ExpressionKind::Function);
   function = As<Expression::Function>(result);
@@ -187,7 +180,7 @@ TEST_CASE("Parse single-parameter function without parameter list")
 {
   Lexer lexer("(foo) => bar");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Function> function;
+  const Expression::Function* function;
 
   REQUIRE(result->kind == ExpressionKind::Function);
   function = As<Expression::Function>(result);
@@ -198,7 +191,7 @@ TEST_CASE("Parse unary not expression")
 {
   Lexer lexer("!foo");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Unary> unary;
+  const Expression::Unary* unary;
 
   REQUIRE(result->kind == ExpressionKind::Unary);
   unary = As<Expression::Unary>(result);
@@ -237,7 +230,7 @@ TEST_CASE("Parse prefix increment expression")
 {
   Lexer lexer("++foo");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Increment> increment;
+  const Expression::Increment* increment;
 
   REQUIRE(result->kind == ExpressionKind::Increment);
   increment = As<Expression::Increment>(result);
@@ -249,7 +242,7 @@ TEST_CASE("Parse postfix increment expression")
 {
   Lexer lexer("foo++");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Increment> increment;
+  const Expression::Increment* increment;
 
   REQUIRE(result->kind == ExpressionKind::Increment);
   increment = As<Expression::Increment>(result);
@@ -260,7 +253,7 @@ TEST_CASE("Parse prefix decrement expression")
 {
   Lexer lexer("--foo");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Decrement> decrement;
+  const Expression::Decrement* decrement;
 
   REQUIRE(result->kind == ExpressionKind::Decrement);
   decrement = As<Expression::Decrement>(result);
@@ -271,7 +264,7 @@ TEST_CASE("Parse postfix decrement expression")
 {
   Lexer lexer("foo--");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Decrement> decrement;
+  const Expression::Decrement* decrement;
 
   REQUIRE(result->kind == ExpressionKind::Decrement);
   decrement = As<Expression::Decrement>(result);
@@ -282,7 +275,7 @@ TEST_CASE("Parse property expression")
 {
   Lexer lexer("foo.bar");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Property> property;
+  const Expression::Property* property;
 
   REQUIRE(result->kind == ExpressionKind::Property);
   property = As<Expression::Property>(result);
@@ -295,7 +288,7 @@ TEST_CASE("Parse conditional property expression")
 {
   Lexer lexer("foo?.bar");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Property> property;
+  const Expression::Property* property;
 
   REQUIRE(result->kind == ExpressionKind::Property);
   property = As<Expression::Property>(result);
@@ -307,7 +300,7 @@ TEST_CASE("Parse call expression")
 {
   Lexer lexer("foo(bar, baz)");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Call> call;
+  const Expression::Call* call;
 
   REQUIRE(result->kind == ExpressionKind::Call);
   call = As<Expression::Call>(result);
@@ -320,7 +313,7 @@ TEST_CASE("Parse conditional call expression")
 {
   Lexer lexer("foo?.(bar)");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Call> call;
+  const Expression::Call* call;
 
   REQUIRE(result->kind == ExpressionKind::Call);
   call = As<Expression::Call>(result);
@@ -332,7 +325,7 @@ TEST_CASE("Parse call expression with spread argument")
 {
   Lexer lexer("foo(...bar)");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Call> call;
+  const Expression::Call* call;
 
   REQUIRE(result->kind == ExpressionKind::Call);
   call = As<Expression::Call>(result);
@@ -348,7 +341,7 @@ TEST_CASE("Parse subscript expression")
 {
   Lexer lexer("foo[bar]");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Subscript> subscript;
+  const Expression::Subscript* subscript;
 
   REQUIRE(result->kind == ExpressionKind::Subscript);
   subscript = As<Expression::Subscript>(result);
@@ -361,7 +354,7 @@ TEST_CASE("Parse conditional subscript expression")
 {
   Lexer lexer("foo?.[bar]");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Subscript> subscript;
+  const Expression::Subscript* subscript;
 
   REQUIRE(result->kind == ExpressionKind::Subscript);
   subscript = As<Expression::Subscript>(result);
@@ -372,7 +365,7 @@ TEST_CASE("Parse binary expression")
 {
   Lexer lexer("foo + bar");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Binary> binary;
+  const Expression::Binary* binary;
 
   REQUIRE(result->kind == ExpressionKind::Binary);
   binary = As<Expression::Binary>(result);
@@ -412,7 +405,7 @@ TEST_CASE("Parse ternary expression")
 {
   Lexer lexer("foo ? bar : baz");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Ternary> ternary;
+  const Expression::Ternary* ternary;
 
   REQUIRE(result->kind == ExpressionKind::Ternary);
   ternary = As<Expression::Ternary>(result);
@@ -425,7 +418,7 @@ TEST_CASE("Parse assignment expression")
 {
   Lexer lexer("foo = bar");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Assign> assign;
+  const Expression::Assign* assign;
 
   REQUIRE(result->kind == ExpressionKind::Assign);
   assign = As<Expression::Assign>(result);
@@ -438,7 +431,7 @@ TEST_CASE("Parse compound assignment expression")
 {
   Lexer lexer("foo += bar");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Assign> assign;
+  const Expression::Assign* assign;
 
   REQUIRE(result->kind == ExpressionKind::Assign);
   assign = As<Expression::Assign>(result);
@@ -457,7 +450,7 @@ TEST_CASE("Parse list destructuring assignment")
 {
   Lexer lexer("[foo, bar] = baz");
   const auto result = Expression::Parse(lexer);
-  std::shared_ptr<Expression::Assign> assign;
+  const Expression::Assign* assign;
 
   REQUIRE(result->kind == ExpressionKind::Assign);
   assign = As<Expression::Assign>(result);

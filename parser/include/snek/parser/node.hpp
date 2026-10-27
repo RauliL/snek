@@ -71,6 +71,20 @@ namespace snek::parser
       , kind(kind_) {}
   };
 
+  /**
+   * Helper function for casting an AST node. Use with caution.
+   */
+  template<
+    typename T,
+    typename U,
+    typename = typename std::enable_if<std::is_base_of<Node, U>::value>::type
+  >
+  inline const T*
+  As(const std::shared_ptr<U>& ptr)
+  {
+    return static_cast<const T*>(ptr.get());
+  }
+
   class Element;
   class Expression;
   class Field;

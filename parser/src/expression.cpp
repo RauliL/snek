@@ -37,13 +37,6 @@ namespace snek::parser
   using lex_function = std::function<expression_ptr(Lexer&)>;
 
   template<class T>
-  static inline const T*
-  As(const expression_ptr& expression)
-  {
-    return static_cast<const T*>(expression.get());
-  }
-
-  template<class T>
   static std::vector<T>
   ParseMultiple(
     const std::optional<Position>& position,

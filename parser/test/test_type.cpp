@@ -30,13 +30,6 @@
 
 using namespace snek::parser;
 
-template<class T>
-static inline std::shared_ptr<T>
-As(const type_ptr& type)
-{
-  return std::static_pointer_cast<T>(type);
-}
-
 TEST_CASE("Hitting end of input while parsing a type")
 {
   Lexer lexer("");
@@ -91,7 +84,7 @@ TEST_CASE("Parse function type")
 {
   Lexer lexer("(foo) => bar");
   const auto result = Type::Parse(lexer);
-  std::shared_ptr<Type::Function> function;
+  const Type::Function* function;
 
   REQUIRE(result->kind == TypeKind::Function);
   function = As<Type::Function>(result);
@@ -155,7 +148,7 @@ TEST_CASE("Parse empty tuple type")
 {
   Lexer lexer("[]");
   const auto result = Type::Parse(lexer);
-  std::shared_ptr<Type::Multiple> multiple;
+  const Type::Multiple* multiple;
 
   REQUIRE(result->kind == TypeKind::Multiple);
   multiple = As<Type::Multiple>(result);
@@ -167,7 +160,7 @@ TEST_CASE("Parse tuple type with one element")
 {
   Lexer lexer("[foo]");
   const auto result = Type::Parse(lexer);
-  std::shared_ptr<Type::Multiple> multiple;
+  const Type::Multiple* multiple;
 
   REQUIRE(result->kind == TypeKind::Multiple);
   multiple = As<Type::Multiple>(result);
@@ -179,7 +172,7 @@ TEST_CASE("Parse tuple type with one element and dangling comma")
 {
   Lexer lexer("[foo,]");
   const auto result = Type::Parse(lexer);
-  std::shared_ptr<Type::Multiple> multiple;
+  const Type::Multiple* multiple;
 
   REQUIRE(result->kind == TypeKind::Multiple);
   multiple = As<Type::Multiple>(result);
@@ -191,7 +184,7 @@ TEST_CASE("Parse tuple type with two elements")
 {
   Lexer lexer("[foo, foo]");
   const auto result = Type::Parse(lexer);
-  std::shared_ptr<Type::Multiple> multiple;
+  const Type::Multiple* multiple;
 
   REQUIRE(result->kind == TypeKind::Multiple);
   multiple = As<Type::Multiple>(result);
@@ -241,7 +234,7 @@ TEST_CASE("Parse intersection type")
 {
   Lexer lexer("foo & bar");
   const auto result = Type::Parse(lexer);
-  std::shared_ptr<Type::Multiple> multiple;
+  const Type::Multiple* multiple;
 
   REQUIRE(result->kind == TypeKind::Multiple);
   multiple = As<Type::Multiple>(result);
@@ -254,7 +247,7 @@ TEST_CASE("Parse union type")
 {
   Lexer lexer("foo | bar");
   const auto result = Type::Parse(lexer);
-  std::shared_ptr<Type::Multiple> multiple;
+  const Type::Multiple* multiple;
 
   REQUIRE(result->kind == TypeKind::Multiple);
   multiple = As<Type::Multiple>(result);

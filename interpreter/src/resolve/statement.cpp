@@ -29,13 +29,6 @@
 
 namespace snek::interpreter
 {
-  template<class T>
-  inline const T*
-  As(const parser::statement_ptr& statement)
-  {
-    return static_cast<const T*>(statement.get());
-  }
-
   static void
   FindReturnValues(
     const parser::statement_ptr& statement,
@@ -94,28 +87,28 @@ namespace snek::interpreter
     {
       case parser::StatementKind::Block:
         FindReturnValuesFromBlock(
-          As<parser::Statement::Block>(statement),
+          parser::As<parser::Statement::Block>(statement),
           values
         );
         break;
 
       case parser::StatementKind::If:
         FindReturnValuesFromIf(
-          As<parser::Statement::If>(statement),
+          parser::As<parser::Statement::If>(statement),
           values
         );
         break;
 
       case parser::StatementKind::Jump:
         FindReturnValuesFromJump(
-          As<parser::Statement::Jump>(statement),
+          parser::As<parser::Statement::Jump>(statement),
           values
         );
         break;
 
       case parser::StatementKind::While:
         FindReturnValues(
-          As<parser::Statement::While>(statement)->body,
+          parser::As<parser::Statement::While>(statement)->body,
           values
         );
         break;
@@ -190,14 +183,14 @@ namespace snek::interpreter
         return ResolveDeclareVar(
           runtime,
           scope,
-          As<parser::Statement::DeclareVar>(statement)
+          parser::As<parser::Statement::DeclareVar>(statement)
         );
 
       case parser::StatementKind::Expression:
         return ResolveExpression(
           runtime,
           scope,
-          As<parser::Statement::Expression>(statement)->expression
+          parser::As<parser::Statement::Expression>(statement)->expression
         );
 
       case parser::StatementKind::Import:

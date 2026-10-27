@@ -31,13 +31,6 @@ namespace snek::interpreter
 {
   template<class T>
   inline const T*
-  As(const parser::expression_ptr& expression)
-  {
-    return static_cast<const T*>(expression.get());
-  }
-
-  template<class T>
-  inline const T*
   As(const type::ptr& type)
   {
     return static_cast<const T*>(type.get());

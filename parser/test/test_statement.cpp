@@ -32,13 +32,6 @@
 
 using namespace snek::parser;
 
-template<class T>
-static inline std::shared_ptr<T>
-As(const statement_ptr& statement)
-{
-  return std::static_pointer_cast<T>(statement);
-}
-
 TEST_CASE("Parse pass statement")
 {
   Lexer lexer("pass");
@@ -61,7 +54,7 @@ TEST_CASE("Parse block statement from semicolon-separated statements")
 {
   Lexer lexer("foo; bar");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::Block> block;
+  const Statement::Block* block;
 
   REQUIRE(result->kind == StatementKind::Block);
   block = As<Statement::Block>(result);
@@ -74,7 +67,7 @@ TEST_CASE("Parse indented block statement")
 {
   Lexer lexer(":\n  foo\n  bar\n");
   const auto result = Statement::ParseFunctionBody(lexer);
-  std::shared_ptr<Statement::Block> block;
+  const Statement::Block* block;
 
   REQUIRE(result->kind == StatementKind::Block);
   block = As<Statement::Block>(result);
@@ -85,7 +78,7 @@ TEST_CASE("Parse type declaration")
 {
   Lexer lexer("type Foo = Bar");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::DeclareType> declaration;
+  const Statement::DeclareType* declaration;
 
   REQUIRE(result->kind == StatementKind::DeclareType);
   declaration = As<Statement::DeclareType>(result);
@@ -98,7 +91,7 @@ TEST_CASE("Parse type declaration with record body")
 {
   Lexer lexer("type Foo:\n  bar: Int\n");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::DeclareType> declaration;
+  const Statement::DeclareType* declaration;
 
   REQUIRE(result->kind == StatementKind::DeclareType);
   declaration = As<Statement::DeclareType>(result);
@@ -110,7 +103,7 @@ TEST_CASE("Parse exported type declaration")
 {
   Lexer lexer("export type Foo = Bar");
   const auto result = Statement::Parse(lexer, true);
-  std::shared_ptr<Statement::DeclareType> declaration;
+  const Statement::DeclareType* declaration;
 
   REQUIRE(result->kind == StatementKind::DeclareType);
   declaration = As<Statement::DeclareType>(result);
@@ -122,7 +115,7 @@ TEST_CASE("Parse variable declaration without value")
 {
   Lexer lexer("let foo");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::DeclareVar> declaration;
+  const Statement::DeclareVar* declaration;
 
   REQUIRE(result->kind == StatementKind::DeclareVar);
   declaration = As<Statement::DeclareVar>(result);
@@ -136,7 +129,7 @@ TEST_CASE("Parse constant declaration with value")
 {
   Lexer lexer("const foo = bar");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::DeclareVar> declaration;
+  const Statement::DeclareVar* declaration;
 
   REQUIRE(result->kind == StatementKind::DeclareVar);
   declaration = As<Statement::DeclareVar>(result);
@@ -150,7 +143,7 @@ TEST_CASE("Parse shorthand function declaration")
 {
   Lexer lexer("const foo():\n  pass\n");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::DeclareVar> declaration;
+  const Statement::DeclareVar* declaration;
 
   REQUIRE(result->kind == StatementKind::DeclareVar);
   declaration = As<Statement::DeclareVar>(result);
@@ -162,7 +155,7 @@ TEST_CASE("Parse variable declaration with record body")
 {
   Lexer lexer("const foo:\n  bar: 1\n");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::DeclareVar> declaration;
+  const Statement::DeclareVar* declaration;
 
   REQUIRE(result->kind == StatementKind::DeclareVar);
   declaration = As<Statement::DeclareVar>(result);
@@ -173,7 +166,7 @@ TEST_CASE("Parse exported variable declaration")
 {
   Lexer lexer("export let foo = 1");
   const auto result = Statement::Parse(lexer, true);
-  std::shared_ptr<Statement::DeclareVar> declaration;
+  const Statement::DeclareVar* declaration;
 
   REQUIRE(result->kind == StatementKind::DeclareVar);
   declaration = As<Statement::DeclareVar>(result);
@@ -185,7 +178,7 @@ TEST_CASE("Parse if statement without else")
 {
   Lexer lexer("if true: foo");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::If> statement;
+  const Statement::If* statement;
 
   REQUIRE(result->kind == StatementKind::If);
   statement = As<Statement::If>(result);
@@ -198,7 +191,7 @@ TEST_CASE("Parse if statement with else")
 {
   Lexer lexer("if true: foo\nelse: bar");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::If> statement;
+  const Statement::If* statement;
 
   REQUIRE(result->kind == StatementKind::If);
   statement = As<Statement::If>(result);
@@ -210,7 +203,7 @@ TEST_CASE("Parse if statement with else if")
 {
   Lexer lexer("if true: foo\nelse if false: bar");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::If> statement;
+  const Statement::If* statement;
 
   REQUIRE(result->kind == StatementKind::If);
   statement = As<Statement::If>(result);
@@ -221,7 +214,7 @@ TEST_CASE("Parse if statement with indented body")
 {
   Lexer lexer("if true:\n  foo\n  bar\n");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::If> statement;
+  const Statement::If* statement;
 
   REQUIRE(result->kind == StatementKind::If);
   statement = As<Statement::If>(result);
@@ -232,7 +225,7 @@ TEST_CASE("Parse import statement")
 {
   Lexer lexer("import foo from \"bar\"");
   const auto result = Statement::Parse(lexer, true);
-  std::shared_ptr<Statement::Import> statement;
+  const Statement::Import* statement;
 
   REQUIRE(result->kind == StatementKind::Import);
   statement = As<Statement::Import>(result);
@@ -245,7 +238,7 @@ TEST_CASE("Parse import statement with multiple specifiers")
 {
   Lexer lexer("import foo: * as bar from \"baz\"");
   const auto result = Statement::Parse(lexer, true);
-  std::shared_ptr<Statement::Import> statement;
+  const Statement::Import* statement;
 
   REQUIRE(result->kind == StatementKind::Import);
   statement = As<Statement::Import>(result);
@@ -265,7 +258,7 @@ TEST_CASE("Parse break statement")
 {
   Lexer lexer("break");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::Jump> statement;
+  const Statement::Jump* statement;
 
   REQUIRE(result->kind == StatementKind::Jump);
   statement = As<Statement::Jump>(result);
@@ -277,7 +270,7 @@ TEST_CASE("Parse continue statement")
 {
   Lexer lexer("continue");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::Jump> statement;
+  const Statement::Jump* statement;
 
   REQUIRE(result->kind == StatementKind::Jump);
   statement = As<Statement::Jump>(result);
@@ -289,7 +282,7 @@ TEST_CASE("Parse return statement without value")
 {
   Lexer lexer("return");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::Jump> statement;
+  const Statement::Jump* statement;
 
   REQUIRE(result->kind == StatementKind::Jump);
   statement = As<Statement::Jump>(result);
@@ -301,7 +294,7 @@ TEST_CASE("Parse return statement with value")
 {
   Lexer lexer("return foo");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::Jump> statement;
+  const Statement::Jump* statement;
 
   REQUIRE(result->kind == StatementKind::Jump);
   statement = As<Statement::Jump>(result);
@@ -313,7 +306,7 @@ TEST_CASE("Parse while statement")
 {
   Lexer lexer("while true: foo");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::While> statement;
+  const Statement::While* statement;
 
   REQUIRE(result->kind == StatementKind::While);
   statement = As<Statement::While>(result);
@@ -325,7 +318,7 @@ TEST_CASE("Parse while statement with indented body")
 {
   Lexer lexer("while true:\n  foo\n  break\n");
   const auto result = Statement::Parse(lexer, false);
-  std::shared_ptr<Statement::While> statement;
+  const Statement::While* statement;
 
   REQUIRE(result->kind == StatementKind::While);
   statement = As<Statement::While>(result);
@@ -336,7 +329,7 @@ TEST_CASE("Parse function body with fat arrow")
 {
   Lexer lexer("=> foo");
   const auto result = Statement::ParseFunctionBody(lexer);
-  std::shared_ptr<Statement::Jump> statement;
+  const Statement::Jump* statement;
 
   REQUIRE(result->kind == StatementKind::Jump);
   statement = As<Statement::Jump>(result);
